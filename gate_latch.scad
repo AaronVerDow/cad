@@ -149,12 +149,12 @@ module catch() {
 
 translate([-guide_w,-bar_w*2-pivot_gap,0])
 guide();
-//translate([0,0,-catch_arm_h])
-//color("cyan")
-//catch();
-//translate([-bar_l/12*11,-bar_w-pivot_gap,0]) {
-    //color("lime")
-    //bar();
-    //color("magenta")
-    //pivot();
-//}
+translate([0,0,-catch_arm_h])
+color("cyan")
+catch();
+translate([-bar_l/12*11,-bar_w-pivot_gap,0]) {
+    color("lime")
+    bar();
+    color("magenta")
+    pivot();
+}
