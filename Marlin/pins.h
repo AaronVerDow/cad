@@ -652,18 +652,18 @@
   #define TEMP_BED_PIN       14   // ANALOG NUMBERING
 
   #ifdef NUM_SERVOS
-    #define SERVO0_PIN         11
+    #define SERVO0_PIN         4
 
     #if NUM_SERVOS > 1
-      #define SERVO1_PIN         6
+      #define SERVO1_PIN         5
     #endif
 
     #if NUM_SERVOS > 2
-      #define SERVO2_PIN         5
+      #define SERVO2_PIN         2
     #endif
 
     #if NUM_SERVOS > 3
-      #define SERVO3_PIN         4
+      #define SERVO3_PIN         13
     #endif
   #endif
 
@@ -1141,18 +1141,18 @@
 #endif
 
 #ifdef NUM_SERVOS
-  #define SERVO0_PIN          -1
+  #define SERVO0_PIN          4
 
   #if NUM_SERVOS > 1
-    #define SERVO1_PIN        -1
+    #define SERVO1_PIN        5
   #endif
 
   #if NUM_SERVOS > 2
-    #define SERVO2_PIN        -1
+    #define SERVO2_PIN        2
   #endif
 
   #if NUM_SERVOS > 3
-    #define SERVO3_PIN        -1
+    #define SERVO3_PIN        13
   #endif
 #endif
 
@@ -2106,6 +2106,7 @@
 
 #define HEATER_1_PIN 7
 #define TEMP_1_PIN 1
+#define SERVO0_PIN 4 // RAMBO ext1 pin 6
 
 #ifdef BARICUDA
 #define HEATER_2_PIN 6
