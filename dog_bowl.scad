@@ -53,7 +53,7 @@ module bottleHolder() {
 
 
 $fn=190;
-max_x = 170;
+max_x = 160;
 max_y = max_x;
 max_z = 45;
 wall = 4;
