@@ -1,6 +1,6 @@
 //http://www.thingiverse.com/thing:20016/#files
 
-length = 375;
+length = 420;
 height = 85;
 
 bar_d = 7;
@@ -12,6 +12,7 @@ bend_r = bend_d / 2;
 pin_d = bar_d;
 pin_buffer = 5;
 plate_h = pin_d * 2 + pin_buffer + 4;
+pin_delta = 0.9;
 
 bottom_l = length /2 - bend_r - plate_h / 2;
 
@@ -116,7 +117,7 @@ module pinplate(plate_t, num_pins, pin_d) {
 
       for (i = [0:num_pins - 1]) {
 	translate([pin_d + pin_d * i * 2, pin_r + 2, -1])
-        cylinder(h = plate_t + 2, r = pin_r, center = false, $fn = 20);
+        cylinder(h = plate_t + 2, r = pin_r+pin_delta, center = false, $fn = 20);
 
 /*	rotate(a = [0, 180, 0])
           pinhole(h = plate_t, r = pin_r, lh = plate_t / 3, lt = 1,
@@ -198,10 +199,10 @@ module bed_guide() {
 
 
 //Uncomment to render the hook
-hangerhook();
+//hangerhook();
 
 //Uncomment to render one side
 //translate([-93, -65, 0])
   //rotate(a = [0, 0, -33])
-  //hangerside();
+  hangerside();
 
