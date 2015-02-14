@@ -17,7 +17,7 @@ parser.add_option("-d", "--done", dest="done", type="int", default=0,
                   help="percent done")
 (opts, args) = parser.parse_args()
 
-filename = '/tmp/white_value'
+filename = '/home/averdow/.white_value'
 
 if opts.white_level:
     f = open(filename, 'w')
@@ -32,21 +32,23 @@ plength = 128
 pixels = np.zeros((plength, 3), dtype=np.uint8)
 
 # this section is for lighting only
-white = pixels[0:64]
+white = (pixels[14:35], pixels[78:100])
 f = open(filename)
 white_level = int(f.read())
 f.close()
-white[:] = [white_level] * 3
+for section in white:
+    section[:] = [white_level] * 3
 
-# the progress bar
-progress = pixels[65:128]
+if opts.done:
+    # the progress bar
+    progress = (pixels[65:78], pixels[0:13])
 
-# fill the whole bar as incomplete
-progress[:] = [255, 0, 0]
-
-# color in completed
-transition = progress.shape[0]*int(opts.done)/100
-progress[:transition] = [0, 255, 0]
+    for section in progress:
+        # fill the whole bar as incomplete
+        section[:] = [255, 0, 0]
+        # color in completed
+        transition = section.shape[0]-section.shape[0]*opts.done/100
+        section[transition:] = [0, 255, 0]
 
 for x in range(0, 5):
     time.sleep(0.1)
