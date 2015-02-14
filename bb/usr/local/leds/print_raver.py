@@ -22,6 +22,7 @@ from __future__ import division
 import time
 import math
 import sys
+import os.path
 
 import opc
 import color_utils
@@ -95,9 +96,14 @@ while True:
             g = blackstripes * color_utils.remap(math.cos((t/speed_g + pct*freq_g)*math.pi*2), -1, 1, 0, 256)
             b = blackstripes * color_utils.remap(math.cos((t/speed_b + pct*freq_b)*math.pi*2), -1, 1, 0, 256)
         else:
-            r = 255;
-            g = 255;
-            b = 255;
+            if os.path.isfile("/tmp/lights_off"):
+                r = 100;
+                g = 100;
+                b = 100;
+            else:
+                r = 255;
+                g = 255;
+                b = 255;
         pixels.append((r, g, b))
     client.put_pixels(pixels, channel=0)
     time.sleep(1 / fps)

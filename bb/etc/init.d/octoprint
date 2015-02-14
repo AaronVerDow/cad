@@ -24,6 +24,8 @@ DAEMON=/home/averdow/OctoPrint/run
 # Port to use
 PORT=5000
 
+CONFIG=/home/averdow/.octoprint/config.yaml
+
 # Run as this user
 RUNAS=averdow
 
@@ -33,13 +35,13 @@ RUNAS=averdow
 
 case "$1" in
   start)
-	su $RUNAS -c "$DAEMON --port=$PORT --daemon start"
+	su $RUNAS -c "$DAEMON --config=$CONFIG --port=$PORT --daemon start"
 	;;
   stop)
 	su $RUNAS -c "$DAEMON --port=$PORT --daemon stop"
 	;;
   restart)
-	su $RUNAS -c "$DAEMON --port=$PORT --daemon restart"
+	su $RUNAS -c "$DAEMON --config=$CONFIG --port=$PORT --daemon restart"
 	;;
   *)
 	echo "Usage: $0 {start|stop|restart}" >&2
