@@ -41,11 +41,17 @@ controls:
 cura: {}
 events:
   subscriptions:
-  - command: sudo -u averdow rm /tmp/lights_off
-    event: PrintStarted
+  - event: ZChange
+    command: /home/averdow/cad/bb/printer.py --done %(progress)s
     type: system
-  - command: sudo -u averdow rm /tmp/lights_off
-    event: PrintDone
+  - event: PrintDone
+    command: /home/averdow/cad/bb/wtf.py
+    type: system
+  - event: ClientOpen
+    command: killall wtf.py
+    type: system
+  - event: Connected
+    command: /home/averdow/cad/bb/printer.py --white 255
     type: system
 feature:
   gCodeVisualizer: false
