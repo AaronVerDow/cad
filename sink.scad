@@ -1,22 +1,22 @@
-$fn=120;
+$fn=90;
 pad = 0.1;
 max_d = 80;
 max_r = max_d/2;
-max_h = 2.5;
+max_h = 2.0;
 max_h_pad = max_h+2*pad;
 
 small_d_t = 3;
 small_r_t = small_d_t/2;
-small_d_b = 8;
+small_d_b = 8.5;
 small_r_b = small_d_b/2;
 
 from_edge = max_r - 20;
 
-out_r = max_r-10;
-in_r = 14;
+out_r = max_r-5;
+in_r = 13;
 
-count = 10;
-circles = 3;
+count = 8;
+circles = 5;
 
 step = 360/count/2;
 
