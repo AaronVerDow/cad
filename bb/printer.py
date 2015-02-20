@@ -75,6 +75,7 @@ octo_url = 'http://%s:%s/api/job' % (options.octo_host, options.octo_port)
 
 # create default view, split into sections by function
 default_view = create_pixel_array()
+default_view[:] = default_color
 white_pixels = (default_view[14:35], default_view[78:100])
 progress_pixels = (default_view[65:78], default_view[0:13])
 

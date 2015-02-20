@@ -1,4 +1,3 @@
-import griddata as gd
 import numpy as np
 import math
 

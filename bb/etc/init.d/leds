@@ -14,7 +14,7 @@ umask 022
 
 . /lib/lsb/init-functions
 
-EXECUTE="/usr/local/leds/print_raver.py"
+EXECUTE="/home/averdow/cad/bb/printer.py"
 
 
 case "$1" in
