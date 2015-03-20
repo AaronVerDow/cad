@@ -1,0 +1,92 @@
+accessControl:
+  salt: cwWAf9w06ODBhbYhauuhaIwCuSBzMnC6
+api:
+  key: 41B825B2EC7147408955EF2FD0AA16E6
+appearance:
+  name: FrankenRap
+controls:
+- children:
+  - commands:
+    - G28 X Y
+    - M401
+    - M402
+    - G1 Y208 F6000
+    - M106
+    - M18
+    type: commands
+    name: Setup
+  - command: G28 X Y
+    name: Home XY
+    type: command
+  - command: G1 X189 F6000
+    name: X Max
+    type: command
+  - command: G1 X0 F6000
+    name: X Min
+    type: command
+  - command: G1 Y208 F6000
+    name: Y Max
+    type: command
+  - command: G1 Y0 F6000
+    name: Y Min
+    type: command
+  - command: M401
+    name: Lower Probe
+    type: command
+  - command: M402
+    name: Raise Probe
+    type: command
+  name: Corners
+  type: section
+cura: {}
+events:
+  subscriptions:
+  - event: ZChange
+    command: /home/averdow/cad/bb/printer.py --done %(progress)s
+    type: system
+  - event: PrintDone
+    command: /home/averdow/cad/bb/wtf.py
+    type: system
+  - event: ClientOpen
+    command: killall wtf.py
+    type: system
+  - event: Connected
+    command: /home/averdow/cad/bb/printer.py --white 255
+    type: system
+feature:
+  gCodeVisualizer: false
+  sdSupport: false
+gcodeViewer:
+  enabled: false
+printerParameters:
+  movementSpeed: {}
+serial:
+  autoconnect: true
+  baudrate: 115200
+  port: /dev/ttyACM0
+  timeout: {}
+server:
+  firstRun: false
+  secretKey: zq6HMYv2lebgUDkejK8zhKFAlvJkpQ6N
+system:
+  actions:
+  - action: shutdown
+    command: sudo shutdown -h now
+    confirm: You are about to shutdown the system.
+    name: Shutdown
+  - action: reboot
+    command: sudo shutdown -r now
+    confirm: You are about to reboot the system.
+    name: Reboot
+  - action: bright
+    command: sudo -u averdow rm /tmp/lights_off
+    name: Bright
+  - action: dim
+    command: sudo -u averdow touch /tmp/lights_off
+    name: Dim
+temperature:
+  profiles:
+  - bed: 60
+    extruder: '200'
+    name: PLA
+webcam: {}
