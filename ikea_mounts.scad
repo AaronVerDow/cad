@@ -9,7 +9,7 @@ d=50;
 r=d/2;
 lip=20;
 lip_h=7;
-lamp_h=65-lip_h;
+lamp_h=57-lip_h;
 pad=0.1;
 padd=pad*2;
 gap=1;
@@ -77,5 +77,5 @@ module lamp() {
     }
 }
 
-mount();
-//lamp();
+//mount();
+lamp();
