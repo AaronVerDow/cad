@@ -5,6 +5,7 @@ between_cut_lines=54;
 
 visor_width=2;
 visor_height=10;
+short_visor_height=7;
 base_height=2;
 
 pad=0.1;
@@ -17,11 +18,11 @@ zip_step=1;
 
 end_cap=0;
 
-garden_height=5;
+garden_height=3;
 garden_length=40;
 garden_width=10;
 garden_angle=atan(garden_width/2/garden_length);
-garden_other_angle=atan(garden_height/garden_length);
+garden_other_angle=atan(garden_height*1.5/garden_length);
 
 length=between_cut_lines*led_count+end_cap*2;
 
@@ -56,9 +57,11 @@ difference() {
     translate([-pad-end_cap,visor_width,base_height])
     union() {
         cube([length+padd,strip_width,visor_height+pad]);
-        //#cube([length+padd,strip_width,strip_height]);
+        cube([length+padd,strip_width,strip_height]);
 
     }
+    translate([-pad,-pad,base_height+short_visor_height])
+    cube([length+padd,visor_width+padd,visor_height+pad]);
 
     //anti_cap();
 }
