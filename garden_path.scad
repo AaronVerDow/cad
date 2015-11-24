@@ -1,12 +1,12 @@
-led_count=4;
-strip_width=9;
+led_count=3;
+strip_width=8;
 strip_height=3;
 between_cut_lines=54;
 
-visor_width=2;
+visor_width=1.5;
 visor_height=10;
-short_visor_height=7;
-base_height=2;
+short_visor_height=10;
+base_height=1.5;
 
 pad=0.1;
 padd=pad*2;
@@ -16,7 +16,7 @@ zip_width=4;
 zip_gap=3;
 zip_step=1;
 
-end_cap=0;
+end_cap=-0.5;
 
 garden_height=3;
 garden_length=40;
@@ -36,7 +36,7 @@ difference() {
     union() {
         cube([length,strip_width+visor_width*2,visor_height+base_height]);
         for (i=[0:zip_step:led_count-1]) {
-            translate([-zip_width/2+between_cut_lines/2+between_cut_lines*i,-garden_length,0]) {
+            translate([between_cut_lines/2-garden_width/2+between_cut_lines*i,-garden_length,0]) {
                 difference() {
                     cube([garden_width,garden_length,garden_height]);
                     rotate([garden_other_angle,0,0])
