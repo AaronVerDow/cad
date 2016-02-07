@@ -1,67 +1,67 @@
-inch_to_mm=25.4;
+in=25.4;
 
-back_l=8*inch_to_mm;
-max_x=40*inch_to_mm;
-max_y=48*inch_to_mm;
-max_z=1*inch_to_mm;
+back_l=8*in;        
+max_x=40.375*in; //measured
+max_y=48.125*in; //measured
+max_z=0.75*in;
 
-x_rail_hole=1*inch_to_mm;
-y_rail_hole=1*inch_to_mm;
-center_rail_hole=24*inch_to_mm;
-off_center_hole=6*inch_to_mm;
-side_hole=6*inch_to_mm;
+x_rail_hole=(3/4-1/16)*in; //measured
+y_rail_hole=15/16*in; //measured
+center_rail_hole=(24+1/16)*in; //measured
+off_center_hole=6*in; //measured
+side_hole=4*in;  //measured
 
-rail_bolt_d=30;
-rail_bolt_r=rail_bolt_d/2;
+rail_bolt_d=0.75*in;  //measured
+rail_bolt_r=rail_bolt_d/2;      //fixed
 
-bolt_d=15;
-bolt_r=bolt_d/2;
-bolt_head_d=30;
-bolt_head_r=bolt_head_d/2;
-bolt_depth=10;
+bolt_d=0.5*in; //fixed
+bolt_r=bolt_d/2; //fixed
+bolt_head_d=1.2*in;
+bolt_head_r=bolt_head_d/2; //fixed
+bolt_depth=7;
 
 pad=0.5;
 padd=pad*2;
 
-slot_l=100;
-slot_w=1*inch_to_mm;
+slot_l=(3+5/8)*in; //measured
+slot_w=7/8*in; //measured
 
-slot_to_edge=slot_w/2+3;
+slot_to_edge=slot_w/2+1/16*in; //measured
 
-side_top_slot=max_y-12*inch_to_mm;
-side_bottom_slot=12*inch_to_mm;
+side_bottom_slot=6.9375*in; //measured
+side_top_slot=max_y-side_bottom_slot; //fixed
 
-end_slot_offset=10*inch_to_mm;
-center_slot=max_y/2;
+end_slot_offset=7.1875*in; //measured
+center_slot=23.6875*in; //measured
 
-front_l=12*inch_to_mm;
-front_w=8*inch_to_mm;
-front_adj=(max_x-front_w)/2;
+front_l=12*in;
+front_w=8*in;
+front_adj=(max_x-front_w)/2; //fixed
 
-front_hyp=sqrt(front_l*front_l+front_adj*front_adj);
-front_angle=atan(front_l/front_adj);
+front_hyp=sqrt(front_l*front_l+front_adj*front_adj); //fixed
+front_angle=atan(front_l/front_adj); //fixed
 
-wheel_w=6*inch_to_mm;
-wheel_l=14*inch_to_mm;
-wheel_from_back=15*inch_to_mm;
+wheel_w=5.75*in; //measured
+wheel_l=(15+7/8)*in; //measured
+wheel_from_back=(11+15/16)*in;  //measured
 
-back_wheel_opp=wheel_w;
-back_wheel_adj=wheel_from_back+back_l;
-back_wheel_hyp=sqrt(back_wheel_opp*back_wheel_opp+back_wheel_adj*back_wheel_adj);
-back_wheel_angle=atan(back_wheel_opp/back_wheel_adj);
+back_wheel_opp=wheel_w; //fixed
+back_wheel_adj=wheel_from_back+back_l; //fixed
+back_wheel_hyp=sqrt(back_wheel_opp*back_wheel_opp+back_wheel_adj*back_wheel_adj); //fixed
+back_wheel_angle=atan(back_wheel_opp/back_wheel_adj); //fixed
 
-front_wheel_opp=wheel_w;
-front_wheel_adj=max_y-wheel_from_back-wheel_l;
-front_wheel_hyp=sqrt(front_wheel_opp*front_wheel_opp+front_wheel_adj*front_wheel_adj);
-front_wheel_angle=atan(front_wheel_opp/front_wheel_adj);
+front_wheel_opp=wheel_w; //fixed
+front_wheel_adj=max_y-wheel_from_back-wheel_l; //fixed
+front_wheel_hyp=sqrt(front_wheel_opp*front_wheel_opp+front_wheel_adj*front_wheel_adj); //fixed
+front_wheel_angle=atan(front_wheel_opp/front_wheel_adj); //fixed
 
-grom_left=max_x/2-15*inch_to_mm;
-grom_right=max_x/2+15*inch_to_mm;
-grom_top=45*inch_to_mm;
-grom_bottom=5*inch_to_mm;
+grom_left=max_x/2-15*in;
+grom_right=max_x/2+15*in;
+grom_top=45*in;
+grom_bottom=5*in;
 
-corner_d=0.25*inch_to_mm;
-corner_r=corner_d/2;
+corner_d=1/8*in; //measured
+corner_r=corner_d/2; //fixed
 
 module rail_bolt(x,y) {
     translate([x,y,-pad])
@@ -100,11 +100,11 @@ module wheel_well(){
     #cube([wheel_w,wheel_l,max_z*3]);
 }
 
-tie_d=0.25*inch_to_mm;
-tie_l=50;
-tie_w=30;
-tie_hole_d=15;
-tie_hole_r=tie_hole_d/2;
+tie_d=0.25*in; //measured
+tie_l=1.25*in; //measured
+tie_w=2*in; //measured
+tie_hole_d=3/8*in; //measured
+tie_hole_r=tie_hole_d/2; //measured
 
 module tie_down(x,y){
     translate([-tie_w/2+x,-tie_l/2+y,0]) {
