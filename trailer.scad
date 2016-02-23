@@ -20,7 +20,7 @@ bolt_head_d=1.2*in;
 bolt_head_r=bolt_head_d/2; //fixed
 bolt_depth=7;
 
-pad=0.5;
+pad=1.5;
 padd=pad*2;
 
 slot_l=(3+5/8)*in; //measured
@@ -138,10 +138,17 @@ module chock(){
     cylinder(r=chock_hole_r,h=max_z+padd);
     
 }
+side_h=18*in;
+
+overlap=4*in;
+overlap_opp=overlap;
+overlap_adj=side_h;
+overlap_angle=atan(overlap_opp/overlap_adj);
+overlap_h=side_h*2/3;
 
 side_z=max_z;
-side_h=18*in;
-side_l=max_y+back_l;
+end_z=side_z;
+side_l=max_y+back_l-slot_to_edge+end_z/2+overlap;
 
 //distance from bottom side of bed to center of bolt hole
 spike_bolt_depth=2*in;
@@ -155,6 +162,8 @@ spike_adj=spike_bolt_depth;
 spike_hyp=sqrt((spike_opp*spike_opp)+(spike_adj*spike_adj));
 spike_angle=atan(spike_opp/spike_adj);
 
+end_w=max_x-(slot_to_edge-side_z/2)*2+overlap*2;
+end_h=side_h;
 
 module spike(y) {
     translate([0,y,-max_z])
@@ -186,19 +195,58 @@ module spike(y) {
     }
 }
 
+module rotated_spike(y) {
+    rotate([0,0,90])
+    spike(-y);
+}
+
 module side(where){
     translate([where-side_z/2,0,max_z]) {
         translate([0,-back_l,0])
-        cube([side_z,side_l,side_h]);
+        difference() {
+            cube([side_z,side_l,side_h]);
+            translate([-pad,side_l-overlap,0])
+            rotate([-overlap_angle,0,0])
+            cube([side_z+padd,overlap*2,side_h*2]);
+            translate([-pad,max_y+back_l-plywood_h_gap-end_z/2-slot_to_edge,overlap_h-cut_edge_gap])
+            cube([side_z+padd,end_z+plywood_h_gap*2,side_h-overlap_h+cut_edge_gap+pad]);
+            translate([-pad,back_l+slot_to_edge-end_z/2-plywood_h_gap,overlap_h-cut_edge_gap])
+            cube([side_z+padd,end_z+plywood_h_gap*2,side_h-overlap_h+cut_edge_gap+pad]);
+            translate([-pad,back_l+center_slot-end_z/2-plywood_h_gap,overlap_h-cut_edge_gap])
+            cube([side_z+padd,end_z+plywood_h_gap*2,side_h-overlap_h+cut_edge_gap+pad]);
+        }
         spike(side_bottom_slot);
         spike(side_top_slot);
     }
 }
-side(slot_to_edge);
-side(max_x-slot_to_edge);
+color("cyan") side(slot_to_edge);
+color("cyan") side(max_x-slot_to_edge);
 
-module end() {
+
+module end(y) {
+    translate([slot_to_edge-side_z/2-overlap,y-end_z/2,max_z]) {
+        difference() {
+            cube([end_w,end_z,end_h]);
+            translate([overlap,-pad,0])
+            rotate([0,-overlap_angle,0])
+            translate([-overlap*2,0,0])
+            cube([overlap*2,end_z+padd,end_h*2]);
+            translate([end_w-overlap,-pad,0])
+            rotate([0,overlap_angle,0])
+            cube([overlap*2,end_z+padd,end_h*2]);
+            translate([overlap+slot_to_edge-side_z/2-plywood_h_gap*2,-pad,0])
+            cube([side_z+plywood_h_gap*2,end_z+padd,overlap_h+cut_edge_gap]);
+
+            translate([overlap+max_x-side_z/2-plywood_h_gap*2-slot_to_edge,-pad,0])
+            cube([side_z+plywood_h_gapp,end_z+padd,overlap_h+cut_edge_gap]);
+        }
+        rotated_spike(end_slot_offset+overlap-slot_to_edge+side_z/2);
+        rotated_spike(max_x-end_slot_offset+overlap-slot_to_edge+side_z/2);
+    }
 }
+end(max_y-slot_to_edge);
+end(slot_to_edge);
+end(center_slot);
 
 module base() {
     difference(){
