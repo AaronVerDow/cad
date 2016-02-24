@@ -71,6 +71,7 @@ grom_right=max_x-grom_from_edge;
 grom_top=45*in;
 grom_bottom=-1.5*in;
 
+
 corner_d=1/8*in; //measured
 corner_r=corner_d/2; //fixed
 
@@ -286,9 +287,9 @@ module rotated_spike(y) {
     spike(-y);
 }
 
-pat_d=2.25*in;
+pat_d=2*in;
 pat_r=pat_d/2;
-pat_delta=5*in;
+pat_delta=4*in;
 pat_l=30;
 pat_h=9;
 wall=1.5*in;
@@ -390,6 +391,28 @@ end(max_y-slot_to_edge);
 //end(center_slot);
 end(-back_l+overlap+end_z/2);
 
+strap_hole_d=0.5*in;
+strap_hole_r=strap_hole_d/2;
+strap_wall=3/4*in+strap_hole_r;
+strap_fillet=1/8*in;
+
+back_strap_hole_count=7;
+back_strap_gap=max_x/back_strap_hole_count;
+module strap_hole(x,y) {
+    translate([x,y,-pad])
+    cylinder(r=strap_hole_r,h=max_z+padd);
+    translate([x,y,max_z-strap_fillet])
+    cylinder(r1=strap_hole_r,r2=strap_hole_r+strap_fillet+pad,h=strap_fillet+pad);
+}
+
+module back_strap_holes() {
+    translate([-back_strap_gap/2,0,0])
+    for(x=[back_strap_gap:back_strap_gap:back_strap_gap*back_strap_hole_count]) {
+        strap_hole(x,-back_l+strap_wall);
+    }
+}
+
+
 module base() {
     difference(){
         union() {
@@ -400,35 +423,61 @@ module base() {
 
                 rotate([0,0,front_angle])
                 translate([0,-front_hyp,0])
-                cube([front_hyp,front_hyp,max_z]);
+                difference() {
+                    cube([front_hyp,front_hyp,max_z]);
+                    strap_hole(back_strap_gap/2,front_hyp-strap_wall);
+                    strap_hole(back_strap_gap/2+back_strap_gap,front_hyp-strap_wall);
+                    strap_hole(back_strap_gap/2+back_strap_gap*2,front_hyp-strap_wall);
+                }
 
                 translate([max_x,0,0])
                 rotate([0,0,-front_angle])
                 translate([-front_hyp,-front_hyp,0])
-                cube([front_hyp,front_hyp,max_z]);
+                difference() {
+                    cube([front_hyp,front_hyp,max_z]);
+                    strap_hole(front_hyp-back_strap_gap/2,front_hyp-strap_wall);
+                    strap_hole(front_hyp-back_strap_gap/2-back_strap_gap,front_hyp-strap_wall);
+                    strap_hole(front_hyp-back_strap_gap/2-back_strap_gap*2,front_hyp-strap_wall);
+                }
             }
             //back_left_angle
             translate([0,-back_l,0])
             rotate([0,0,back_wheel_angle])
-            cube([back_wheel_hyp,back_wheel_hyp,max_z]);
+            difference() {
+                cube([back_wheel_hyp,back_wheel_hyp,max_z]);
+                strap_hole(strap_wall,back_wheel_hyp-back_strap_gap/2);
+                strap_hole(strap_wall,back_wheel_hyp-back_strap_gap/2-back_strap_gap);
+            }
 
             //back_right_angle
             translate([max_x,-back_l,0])
             rotate([0,0,-back_wheel_angle])
             translate([-back_wheel_hyp,0,0])
-            cube([back_wheel_hyp,back_wheel_hyp,max_z]);
+            difference() {
+                cube([back_wheel_hyp,back_wheel_hyp,max_z]);
+                strap_hole(back_wheel_hyp-strap_wall,back_wheel_hyp-back_strap_gap/2);
+                strap_hole(back_wheel_hyp-strap_wall,back_wheel_hyp-back_strap_gap/2-back_strap_gap);
+            }
 
             //front left
             translate([0,max_y,0])
             rotate([0,0,-front_wheel_angle])
             translate([0,-front_wheel_hyp,0])
-            cube([front_wheel_hyp,front_wheel_hyp,max_z]);
+            difference() {
+                cube([back_wheel_hyp,back_wheel_hyp,max_z]);
+                strap_hole(strap_wall,back_strap_gap/2);
+                strap_hole(strap_wall,back_strap_gap/2+back_strap_gap);
+            }
 
             //front right
             translate([max_x,max_y,])
             rotate([0,0,front_wheel_angle])
             translate([-front_wheel_hyp,-front_wheel_hyp,0])
-            cube([front_wheel_hyp,front_wheel_hyp,max_z]);
+            difference() {
+                cube([back_wheel_hyp,back_wheel_hyp,max_z]);
+                strap_hole(back_wheel_hyp-strap_wall,back_strap_gap/2);
+                strap_hole(back_wheel_hyp-strap_wall,back_strap_gap/2+back_strap_gap);
+            }
 
             //back_extension
             translate([0,-back_l,0])
@@ -494,6 +543,7 @@ module base() {
         grom_chock();
         fifty_chock();
         bike_locks(bike_lock_y);
+        back_strap_holes();
 
         tounge_bolts(tounge_top);
         tounge_bolts(tounge_bottom);
