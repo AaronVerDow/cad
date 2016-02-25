@@ -14,7 +14,8 @@ plywood_h_gap=1/8*in;                   //arbitrary
 plywood_h_gapp=plywood_h_gap*2;         //derived
 
 
-back_x=8*in;        
+//distance to extend the back 
+back_y=8*in;                            //arbitrary
 
 //dimensions of the trailer base
 main_x=40.375*in;                       //measured
@@ -59,7 +60,7 @@ front_adj=(main_x-front_x)/2;           //derived
 front_hyp=sqrt(front_opp*front_opp+front_adj*front_adj);    //derived
 front_angle=atan(front_opp/front_adj);  //derived
 
-echo ("Total length: ", (main_y+front_y+back_x)/in);
+echo ("Total length: ", (main_y+front_y+back_y)/in);
 echo ("Total width: ", (main_x+wheel_x*2)/in);
 
 //wheel well cutouts
@@ -70,7 +71,7 @@ wheel_z=(2+5/8)*in;                     //measured
 wheel_from_end=(11+15/16)*in;           //measured
 //angled pieces leading up to wheel well
 back_wheel_opp=wheel_x;                                                                 //derived
-back_wheel_adj=wheel_from_end+back_x;                                                   //derived
+back_wheel_adj=wheel_from_end+back_y;                                                   //derived
 back_wheel_hyp=sqrt(back_wheel_opp*back_wheel_opp+back_wheel_adj*back_wheel_adj);       //derived
 back_wheel_angle=atan(back_wheel_opp/back_wheel_adj);                                   //derived
 front_wheel_opp=wheel_x;                                                                //derived
@@ -80,7 +81,7 @@ front_wheel_angle=atan(front_wheel_opp/front_wheel_adj);                        
 
 //router bit diameter
 router_d=1/8*in;                        //measured
-router_r=router_d/2;                    //fixed
+router_r=router_d/2;                    //derived
 
 //holes for motorcycle chock mounts
 chock_z=5/16*in;                        //measured
@@ -91,12 +92,12 @@ chock_bolt_r=chock_bolt_d/2;            //derived
 chock_bolt_gap=(1+5/16)*in/2;           //measured
 
 //bike chock sizes
-grom_chock_x=8*in;
-grom_chock_y=7*in;
-grom_l=66*in;
-fifty_chock_x=(5+5/8)*in;
-fifty_chock_y=7*in;
-fifty_l=64*in;
+grom_chock_x=8*in;                      //measured
+grom_chock_y=7*in;                      //measured
+grom_l=66*in;                           //measured
+fifty_chock_x=(5+5/8)*in;               //measured
+fifty_chock_y=7*in;                     //measured
+fifty_l=64*in;                          //measured
 
 //countersinks for tie downs
 tie_d=0.25*in;                          //measured
@@ -107,54 +108,58 @@ tie_hole_r=tie_hole_d/2;                //derived
 //tie down locations
 tie_from_side=2.3*in;                   //arbitrary
 tie_handlebars=45*in;                   //arbitrary
-tie_fifty=fifty_l-48*in-back_x;         //arbitrary
+tie_fifty=fifty_l-48*in-back_y;         //arbitrary
 tie_grom=-1.5*in;                       //arbitrary
 tie_front_from_center=21*in/2;          //arbitrary
 tie_front=main_y+3*in;                  //arbitrary
 
+//bolt holes for securing front to trailer tongue
+front_bolt_from_center=3.5*in/2;        //arbitrary
+front_bolt_front=main_y+front_y-2*in;   //arbitrary
+front_bolt_back=main_y+front_y-8*in;    //arbitrary
 
-side_h=12*in;
+//holes to run a bike lock or chain through
+bike_lock_w=1.5*in;                     //arbitrary
+bike_lock_l=3*in;                       //arbitrary
+bike_lock_from_center=6*in/2;           //arbitrary
+bike_lock_y=main_y-4*in;                //arbitrary
+bike_lock_fillet=1/4*in;                //arbitrary
 
-tounge_bolt_gap=3.5*in;
-tounge_top=main_x+back_x+front_y-2*in;
-tounge_bottom=main_x+back_x+front_y-8*in;
+//trailer sides (applies to end and side)
+sides_height=12*in;                     //arbitrary
+sides_thick=main_z;                     //arbitrary
+//locking pieces between sides
+lock=3*in;                              //arbitrary
+lock_opp=lock;                          //derived
+lock_adj=sides_height;                  //derived
+lock_angle=atan(lock_opp/lock_adj);     //derived
+//defines how much of the lock stays on side
+lock_h=sides_height*2/3;                //arbitrary
 
-bike_lock_w=1.5*in;
-bike_lock_l=3*in;
-bike_lock_gap=6*in;
-bike_lock_y=main_y-4*in;
-bike_lock_fillet=1/4*in;
+side_l=main_y+back_y-slot_to_edge+sides_thick/2+lock;
 
-overlap=3*in;
-overlap_opp=overlap;
-overlap_adj=side_h;
-overlap_angle=atan(overlap_opp/overlap_adj);
-overlap_h=side_h*2/3;
+//spikes at that lock sides to trailer
+spike_bolt_d=base_bolt_d;               //measured
+spike_bolt_r=spike_bolt_d/2;            //derived
+spike_bolt_from_base=(1+3/16)*in;       //measured
+spike_l=slot_l-cut_edge_gapp;           //derived
+//how tapered is the spike
+spike_point_difference=0.75*in;         //arbitrary
+spike_point_d=spike_l-spike_point_difference*2;  //derived
+spike_point_r=spike_point_d/2;          //derived
+spike_max_depth=2*in;                   //measured
+spike_opp=spike_point_difference;                               //derived
+spike_adj=spike_bolt_from_base;                                 //derived
+spike_hyp=sqrt((spike_opp*spike_opp)+(spike_adj*spike_adj));    //derived
+spike_angle=atan(spike_opp/spike_adj);                          //derived
+//special holes for ends not on a rail
+back_spike_bolt_from_base=(3/16+1/8)*in;                        
 
-side_z=main_z;
-end_z=side_z;
-side_l=main_y+back_x-slot_to_edge+end_z/2+overlap;
-
-//distance from bottom side of bed to center of bolt hole
-spike_bolt_d=base_bolt_d;
-spike_bolt_r=spike_bolt_d/2;
-spike_bolt_depth=(1+3/16)*in;
-spike_l=slot_l-cut_edge_gapp;
-spike_point_difference=0.75*in;
-spike_point_d=spike_l-spike_point_difference*2;
-spike_point_r=spike_point_d/2;
-spike_max_d=2*in;
-
-spike_opp=spike_point_difference;
-spike_adj=spike_bolt_depth;
-spike_hyp=sqrt((spike_opp*spike_opp)+(spike_adj*spike_adj));
-spike_angle=atan(spike_opp/spike_adj);
-back_spike_bolt_depth=(3/16+1/8)*in;
-
-end_w=main_x-(slot_to_edge-side_z/2)*2+overlap*2;
+end_w=main_x-(slot_to_edge-sides_thick/2)*2+lock*2;
 echo("end_w: ", end_w/in);
-end_h=side_h;
+end_height=sides_height;
 
+//pattern across the sides
 pat_d=2*in;
 pat_r=pat_d/2;
 pat_delta=4*in;
@@ -162,13 +167,13 @@ pat_l=30;
 pat_h=9;
 wall=1.5*in;
 
+//holes along the edges for straps
 strap_hole_d=0.5*in;
 strap_hole_r=strap_hole_d/2;
 strap_wall=3/4*in+strap_hole_r;
 strap_fillet=1/8*in;
-
 back_strap_hole_count=7;
-back_strap_gap=main_x/back_strap_hole_count;
+strap_gap=main_x/back_strap_hole_count;
 
 
 
@@ -221,36 +226,44 @@ module wheel_wells(){
     wheel_well(-wheel_x);
 }
 
+module tie_hole(y) {
+    translate([0,y,-pad])
+    cylinder(r=tie_hole_r,h=main_z+padd);
+}
+
+module tie_countersink(y) {
+    translate([0,y,main_z-tie_d])
+    cylinder(r1=tie_w/2,r2=tie_w/2+tie_hole_d+pad,h=tie_d+pad);
+}
+
 module tie_down(x,y){
-    translate([-tie_w/2+x,-tie_l/2+y,0]) {
+    translate([x,-tie_l/2+y,0]) {
         hull() {
-            translate([tie_w/2,0,main_z-tie_d])
-            cylinder(r1=tie_w/2,r2=tie_w/2+tie_hole_d+pad,h=tie_d+pad);
-            translate([tie_w/2,tie_l,main_z-tie_d])
-            cylinder(r1=tie_w/2,r2=tie_w/2+tie_hole_d+pad,h=tie_d+pad);
+            tie_countersink(0);
+            tie_countersink(tie_l);
         }
-        translate([tie_w/2,0,-pad])
-        cylinder(r=tie_hole_r,h=main_z+padd);
-        translate([tie_w/2,tie_l,-pad])
-        cylinder(r=tie_hole_r,h=main_z+padd);
+        tie_hole(0);
+        tie_hole(tie_l);
     }
 }
 
-module chock_hole(x,y){
-    translate([x,y,main_z-chock_z])
-    cylinder(r=chock_big_r,h=chock_z+pad);
+module chock_bolt(x) {
+    translate([x,0,-pad])
+    cylinder(r=chock_bolt_r,h=main_z+padd);
+}
 
-    translate([x-chock_bolt_gap,y,-pad])
-    cylinder(r=chock_bolt_r,h=main_z+padd);
-    translate([x+chock_bolt_gap,y,-pad])
-    cylinder(r=chock_bolt_r,h=main_z+padd);
-    translate([x,y,-pad])
-    cylinder(r=chock_bolt_r,h=main_z+padd);
-    
+module chock_hole(x,y){
+    translate([x,y,0]) {
+        translate([0,0,main_z-chock_z])
+        cylinder(r=chock_big_r,h=chock_z+pad);
+        chock_bolt(0);
+        chock_bolt(chock_bolt_gap);
+        chock_bolt(-chock_bolt_gap);
+    }
 }
 
 module chock(x,y,l) {
-    translate([half_x,-back_x+l,0]) {
+    translate([half_x,-back_y+l,0]) {
         chock_hole(-x/2,0);
         chock_hole(x/2,0);
         chock_hole(-x/2,-y);
@@ -266,67 +279,73 @@ module fifty_chock() {
     chock(fifty_chock_x,fifty_chock_y,fifty_l);
 }
 
-module tounge_bolts(y) {
-    bolt(half_x-tounge_bolt_gap/2,y);
-    bolt(half_x+tounge_bolt_gap/2,y);
+module front_bolts(y) {
+    bolt(half_x-front_bolt_from_center,y);
+    bolt(half_x+front_bolt_from_center,y);
 }
 
-module bike_lock_hole() {
+module bike_lock_hole(y) {
+    translate([half_x,y,-pad])
+    cylinder(r=bike_lock_w/2,h=main_z+padd);
+}
+
+module bike_lock_holes() {
     hull() {
-        translate([half_x,(bike_lock_l-bike_lock_w)/2,-pad])
-        cylinder(r=bike_lock_w/2,h=main_z+padd);
-        translate([half_x,-(bike_lock_l-bike_lock_w)/2,-pad])
-        cylinder(r=bike_lock_w/2,h=main_z+padd);
+        bike_lock_hole((bike_lock_l-bike_lock_w)/2);
+        bike_lock_hole(-(bike_lock_l-bike_lock_w)/2);
     }
 }
 module bike_lock(x,y) {
     translate([x,y,0]) {
-        bike_lock_hole();
+        bike_lock_holes();
         translate([0,0,main_z+padd-bike_lock_fillet])
         minkowski() {
-            bike_lock_hole();
+            bike_lock_holes();
             cylinder(r1=0,r2=main_z+padd,h=main_z+padd);
         }
     }
 }
 
 module bike_locks(y) {
-    bike_lock(-bike_lock_gap/2,y);
-    bike_lock(bike_lock_gap/2,y);
+    bike_lock(-bike_lock_from_center,y);
+    bike_lock(bike_lock_from_center,y);
+}
+
+module spike_positive() {
+    //square piece inside base
+    translate([0,-spike_l/2,0])
+    cube([sides_thick,spike_l,main_z]);
+    minkowski() {
+        intersection() {
+            translate([0,spike_point_r-spike_l/2,0])
+            rotate([spike_angle,0,0])
+            translate([0,0,-spike_hyp])
+            cube([sides_thick/2,spike_l,spike_hyp]);
+            
+            translate([0,-spike_point_r+spike_l/2,0])
+            rotate([-spike_angle,0,0])
+            translate([0,-spike_l,-spike_hyp])
+            cube([sides_thick/2,spike_l,spike_hyp]);
+        }
+        rotate([0,90,0])
+        cylinder(r=spike_point_r,h=sides_thick/2);
+    }
+}
+
+module spike_bolt_hole(z) {
+    translate([-pad,0,z])
+    rotate([0,90,0])
+    cylinder(r=spike_bolt_r,h=sides_thick+padd);
 }
 
 module spike(y) {
     translate([0,y,-main_z])
     difference() {
-        union() {
-            translate([0,-spike_l/2,0])
-            cube([side_z,spike_l,main_z]);
-
-
-            minkowski() {
-                intersection() {
-                    translate([0,spike_point_r-spike_l/2,0])
-                    rotate([spike_angle,0,0])
-                    translate([0,0,-spike_hyp])
-                    cube([side_z/2,spike_l,spike_hyp]);
-                    
-                    translate([0,-spike_point_r+spike_l/2,0])
-                    rotate([-spike_angle,0,0])
-                    translate([0,-spike_l,-spike_hyp])
-                    cube([side_z/2,spike_l,spike_hyp]);
-                }
-                rotate([0,90,0])
-                cylinder(r=spike_point_r,h=side_z/2);
-            }
-        }
-        translate([-pad,0,-spike_bolt_depth])
-        rotate([0,90,0])
-        cylinder(r=spike_bolt_r,h=side_z+padd);
-        translate([-pad,0,-back_spike_bolt_depth])
-        rotate([0,90,0])
-        cylinder(r=spike_bolt_r,h=side_z+padd);
-        translate([-pad,-slot_l/2,-spike_point_d-spike_max_d])
-        cube([side_z+padd,slot_l,spike_point_d]);
+        spike_positive();
+        spike_bolt_hole(-spike_bolt_from_base);
+        spike_bolt_hole(-back_spike_bolt_from_base);
+        translate([-pad,-slot_l/2,-spike_point_d-spike_max_depth])
+        cube([sides_thick+padd,slot_l,spike_point_d]);
     }
 }
 
@@ -335,31 +354,32 @@ module rotated_spike(y) {
     spike(-y);
 }
 
-module end_cuts() {
-    translate([-pad,main_y+back_x-plywood_h_gap-end_z/2-slot_to_edge,overlap_h-cut_edge_gap])
-    cube([side_z+padd,end_z+plywood_h_gap*2,side_h-overlap_h+cut_edge_gap+pad]);
-    translate([-pad,back_x+slot_to_edge-end_z/2-plywood_h_gap,overlap_h-cut_edge_gap])
-    cube([side_z+padd,end_z+plywood_h_gap*2,side_h-overlap_h+cut_edge_gap+pad]);
-    translate([-pad,back_x+center_slot_from_end-end_z/2-plywood_h_gap,overlap_h-cut_edge_gap])
-    cube([side_z+padd,end_z+plywood_h_gap*2,side_h-overlap_h+cut_edge_gap+pad]);
-    translate([-pad,overlap-plywood_h_gap,overlap_h-cut_edge_gap])
-    cube([side_z+padd,end_z+plywood_h_gap*2,side_h-overlap_h+cut_edge_gap+pad]);
+module side_lock(y) {
+    translate([-pad,y,lock_h-cut_edge_gap])
+    cube([sides_thick+padd,sides_thick+plywood_h_gapp,sides_height-lock_h+cut_edge_gap+pad]);
+}
+
+module side_locks() {
+    side_lock(main_y+back_y-plywood_h_gap-sides_thick/2-slot_to_edge);
+    side_lock(back_y+slot_to_edge-sides_thick/2-plywood_h_gap);
+    side_lock(back_y+center_slot_from_end-sides_thick/2-plywood_h_gap);
+    side_lock(lock-plywood_h_gap);
 }
 
 module pattern() {
     translate([0,pat_delta/2,pat_delta/2])
-    for(pat_x=[0:pat_delta:side_h]){
-        for(pat_y=[0:pat_delta:main_y+back_x]){
+    for(pat_x=[0:pat_delta:sides_height]){
+        for(pat_y=[0:pat_delta:main_y+back_y]){
             translate([-pad,pat_y,pat_x])
             rotate([0,90,0])
-            cylinder(r=pat_r,h=side_z+padd);
+            cylinder(r=pat_r,h=sides_thick+padd);
         }
     }
-    for(pat_x=[0:pat_delta:side_h]){
-        for(pat_y=[0:pat_delta:main_y+back_x]){
+    for(pat_x=[0:pat_delta:sides_height]){
+        for(pat_y=[0:pat_delta:main_y+back_y]){
             translate([-pad,pat_y,pat_x])
             rotate([0,90,0])
-            cylinder(r=pat_r,h=side_z+padd);
+            cylinder(r=pat_r,h=sides_thick+padd);
         }
     }
 }
@@ -369,25 +389,25 @@ module side_pattern() {
         intersection() {
             pattern();
             translate([-pad,wall,wall])
-            cube([side_z+padd,side_l-wall*2-overlap,side_h-wall*2]);
+            cube([sides_thick+padd,side_l-wall*2-lock,sides_height-wall*2]);
         }
         minkowski() {
-            end_cuts();
+            side_locks();
             rotate([0,90,0])
-            cylinder(r=wall,h=side_z);
+            cylinder(r=wall,h=sides_thick);
         }
     }
 }
 
-module side(where){
-    translate([where-side_z/2,0,main_z]) {
-        translate([0,-back_x,0])
+module side(x){
+    translate([x-sides_thick/2,0,main_z]) {
+        translate([0,-back_y,0])
         difference() {
-            cube([side_z,side_l,side_h]);
-            translate([-pad,side_l-overlap,0])
-            rotate([-overlap_angle,0,0])
-            cube([side_z+padd,overlap*2,side_h*2]);
-            end_cuts();
+            cube([sides_thick,side_l,sides_height]);
+            translate([-pad,side_l-lock,0])
+            rotate([-lock_angle,0,0])
+            cube([sides_thick+padd,lock*2,sides_height*2]);
+            side_locks();
             side_pattern();
         }
         spike(side_slot_from_end);
@@ -397,40 +417,43 @@ module side(where){
 
 module end_pattern() {
     intersection() {
-        translate([overlap+wall,-pad,wall])
-        cube([end_w-overlap*2-wall*2,end_z+padd,end_h-wall*2]);
-        translate([overlap,end_z,0])
+        translate([lock+wall,-pad,wall])
+        cube([end_w-lock*2-wall*2,sides_thick+padd,end_height-wall*2]);
+        translate([lock,sides_thick,0])
         rotate([0,0,-90])
         pattern();
     }
 }
 
 module end(y) {
-    translate([slot_to_edge-side_z/2-overlap,y-end_z/2,main_z]) {
+    translate([slot_to_edge-sides_thick/2-lock,y-sides_thick/2,main_z]) {
         difference() {
-            cube([end_w,end_z,end_h]);
-            translate([overlap,-pad,0])
-            rotate([0,-overlap_angle,0])
-            translate([-overlap*2,0,0])
-            cube([overlap*2,end_z+padd,end_h*2]);
-            translate([end_w-overlap,-pad,0])
-            rotate([0,overlap_angle,0])
-            cube([overlap*2,end_z+padd,end_h*2]);
-            translate([overlap+slot_to_edge-side_z/2-plywood_h_gap*2,-pad,0])
-            cube([side_z+plywood_h_gap*2,end_z+padd,overlap_h+cut_edge_gap]);
+            cube([end_w,sides_thick,end_height]);
+            //near angle cut
+            translate([lock,-pad,0])
+            rotate([0,-lock_angle,0])
+            translate([-lock*2,0,0])
+            cube([lock*2,sides_thick+padd,end_height*2]);
+            //far angle cut
+            translate([end_w-lock,-pad,0])
+            rotate([0,lock_angle,0])
+            cube([lock*2,sides_thick+padd,end_height*2]);
+            //near lock cut
+            translate([lock+slot_to_edge-sides_thick/2-plywood_h_gap*2,-pad,0])
+            #cube([sides_thick+plywood_h_gap*2,sides_thick+padd,lock_h+cut_edge_gap]);
 
             translate([slot_to_edge,-pad,0])
-            cube([overlap,end_z+padd,wheel_z]);
-            translate([main_x-slot_to_edge+overlap,-pad,0])
-            cube([overlap,end_z+padd,wheel_z]);
+            cube([lock,sides_thick+padd,wheel_z]);
+            translate([main_x-slot_to_edge+lock,-pad,0])
+            cube([lock,sides_thick+padd,wheel_z]);
 
             //cut end for wheel well clearance
-            translate([overlap+main_x-side_z/2-plywood_h_gap*2-slot_to_edge,-pad,0])
-            cube([side_z+plywood_h_gapp,end_z+padd,overlap_h+cut_edge_gap]);
+            translate([lock+main_x-sides_thick/2-plywood_h_gap*2-slot_to_edge,-pad,0])
+            cube([sides_thick+plywood_h_gapp,sides_thick+padd,lock_h+cut_edge_gap]);
             end_pattern();
         }
-        rotated_spike(end_slot_from_side+overlap-slot_to_edge+side_z/2);
-        rotated_spike(main_x-end_slot_from_side+overlap-slot_to_edge+side_z/2);
+        rotated_spike(end_slot_from_side+lock-slot_to_edge+sides_thick/2);
+        rotated_spike(main_x-end_slot_from_side+lock-slot_to_edge+sides_thick/2);
     }
 }
 
@@ -442,9 +465,9 @@ module strap_hole(x,y) {
 }
 
 module back_strap_holes() {
-    translate([-back_strap_gap/2,0,0])
-    for(x=[back_strap_gap:back_strap_gap:back_strap_gap*back_strap_hole_count]) {
-        strap_hole(x,-back_x+strap_wall);
+    translate([-strap_gap/2,0,0])
+    for(x=[strap_gap:strap_gap:strap_gap*back_strap_hole_count]) {
+        strap_hole(x,-back_y+strap_wall);
     }
 }
 
@@ -460,9 +483,9 @@ module base() {
                 translate([0,-front_hyp,0])
                 difference() {
                     cube([front_hyp,front_hyp,main_z]);
-                    strap_hole(back_strap_gap/2,front_hyp-strap_wall);
-                    strap_hole(back_strap_gap/2+back_strap_gap,front_hyp-strap_wall);
-                    strap_hole(back_strap_gap/2+back_strap_gap*2,front_hyp-strap_wall);
+                    strap_hole(strap_gap/2,front_hyp-strap_wall);
+                    strap_hole(strap_gap/2+strap_gap,front_hyp-strap_wall);
+                    strap_hole(strap_gap/2+strap_gap*2,front_hyp-strap_wall);
                 }
 
                 translate([main_x,0,0])
@@ -470,28 +493,28 @@ module base() {
                 translate([-front_hyp,-front_hyp,0])
                 difference() {
                     cube([front_hyp,front_hyp,main_z]);
-                    strap_hole(front_hyp-back_strap_gap/2,front_hyp-strap_wall);
-                    strap_hole(front_hyp-back_strap_gap/2-back_strap_gap,front_hyp-strap_wall);
-                    strap_hole(front_hyp-back_strap_gap/2-back_strap_gap*2,front_hyp-strap_wall);
+                    strap_hole(front_hyp-strap_gap/2,front_hyp-strap_wall);
+                    strap_hole(front_hyp-strap_gap/2-strap_gap,front_hyp-strap_wall);
+                    strap_hole(front_hyp-strap_gap/2-strap_gap*2,front_hyp-strap_wall);
                 }
             }
-            //back_xeft_angle
-            translate([0,-back_x,0])
+            //back_yeft_angle
+            translate([0,-back_y,0])
             rotate([0,0,back_wheel_angle])
             difference() {
                 cube([back_wheel_hyp,back_wheel_hyp,main_z]);
-                strap_hole(strap_wall,back_wheel_hyp-back_strap_gap/2);
-                strap_hole(strap_wall,back_wheel_hyp-back_strap_gap/2-back_strap_gap);
+                strap_hole(strap_wall,back_wheel_hyp-strap_gap/2);
+                strap_hole(strap_wall,back_wheel_hyp-strap_gap/2-strap_gap);
             }
 
             //back_right_angle
-            translate([main_x,-back_x,0])
+            translate([main_x,-back_y,0])
             rotate([0,0,-back_wheel_angle])
             translate([-back_wheel_hyp,0,0])
             difference() {
                 cube([back_wheel_hyp,back_wheel_hyp,main_z]);
-                strap_hole(back_wheel_hyp-strap_wall,back_wheel_hyp-back_strap_gap/2);
-                strap_hole(back_wheel_hyp-strap_wall,back_wheel_hyp-back_strap_gap/2-back_strap_gap);
+                strap_hole(back_wheel_hyp-strap_wall,back_wheel_hyp-strap_gap/2);
+                strap_hole(back_wheel_hyp-strap_wall,back_wheel_hyp-strap_gap/2-strap_gap);
             }
 
             //front left
@@ -500,8 +523,8 @@ module base() {
             translate([0,-front_wheel_hyp,0])
             difference() {
                 cube([back_wheel_hyp,back_wheel_hyp,main_z]);
-                strap_hole(strap_wall,back_strap_gap/2);
-                strap_hole(strap_wall,back_strap_gap/2+back_strap_gap);
+                strap_hole(strap_wall,strap_gap/2);
+                strap_hole(strap_wall,strap_gap/2+strap_gap);
             }
 
             //front right
@@ -510,13 +533,13 @@ module base() {
             translate([-front_wheel_hyp,-front_wheel_hyp,0])
             difference() {
                 cube([back_wheel_hyp,back_wheel_hyp,main_z]);
-                strap_hole(back_wheel_hyp-strap_wall,back_strap_gap/2);
-                strap_hole(back_wheel_hyp-strap_wall,back_strap_gap/2+back_strap_gap);
+                strap_hole(back_wheel_hyp-strap_wall,strap_gap/2);
+                strap_hole(back_wheel_hyp-strap_wall,strap_gap/2+strap_gap);
             }
 
             //back_extension
-            translate([0,-back_x,0])
-            cube([main_x,back_x,main_z]);
+            translate([0,-back_y,0])
+            cube([main_x,back_y,main_z]);
         }
         rail_bolt(rail_hole_side,rail_hole_end);
         rail_bolt(main_x-rail_hole_side,rail_hole_end);
@@ -559,8 +582,8 @@ module base() {
         rotated_slot(end_slot_from_side,center_slot_from_end);
         rotated_slot(main_x-end_slot_from_side,center_slot_from_end);
 
-        rotated_slot(end_slot_from_side,-back_x+overlap+slot_w/2-(slot_w/2-end_z/2));
-        rotated_slot(main_x-end_slot_from_side,-back_x+overlap+slot_w/2-(slot_w/2-end_z/2));
+        rotated_slot(end_slot_from_side,-back_y+lock+slot_w/2-(slot_w/2-sides_thick/2));
+        rotated_slot(main_x-end_slot_from_side,-back_y+lock+slot_w/2-(slot_w/2-sides_thick/2));
 
         wheel_wells();
 
@@ -578,8 +601,8 @@ module base() {
         bike_locks(bike_lock_y);
         back_strap_holes();
 
-        tounge_bolts(tounge_top);
-        tounge_bolts(tounge_bottom);
+        front_bolts(front_bolt_front);
+        front_bolts(front_bolt_back);
     }
 }
 
@@ -588,5 +611,5 @@ color("cyan") side(main_x-slot_to_edge);
 color("lime") end(main_y-slot_to_edge);
 //color("lime") end(slot_to_edge);
 //color("lime") end(center_slot_from_end);
-color("lime") end(-back_x+overlap+end_z/2);
+color("lime") end(-back_y+lock+sides_thick/2);
 base();
