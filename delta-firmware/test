@@ -1,8 +1,0 @@
-for STTYF in 'stty -F' 'stty --file' 'stty -f' 'stty <' ; \
-	  do $STTYF /dev/tty >/dev/null 2>&1 && break ; \
-	done ; \
-	$STTYF /dev/ttyACM0  hupcl ; \
-	(sleep 0.1 2>/dev/null || sleep 1) ; \
-	$STTYF /dev/ttyACM0 -hupcl 
-/usr/bin/avrdude -q -V -p atmega2560 -C /etc/avrdude.conf -c arduino -b 115200 -P /dev/ttyACM0  \
-		-U flash:w:build-cli/delta-firmware.hex:i
