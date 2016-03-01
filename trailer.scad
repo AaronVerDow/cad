@@ -150,12 +150,13 @@ lock_h=sides_height*2/3;                //arbitrary
 side_l=main_y+back_y-slot_to_edge+sides_thick/2+lock;
 
 //spikes at that lock sides to trailer
+spike_gap=3/16*in;
 spike_bolt_d=base_bolt_d;               //measured
 spike_bolt_r=spike_bolt_d/2;            //derived
 spike_bolt_from_base=(1+3/16)*in;       //measured
-spike_l=slot_l-cut_edge_gapp;           //derived
+spike_l=slot_l-cut_edge_gapp-spike_gap*2;           //derived
 //how tapered is the spike
-spike_point_difference=0.75*in;         //arbitrary
+spike_point_difference=0.5*in;         //arbitrary
 spike_point_d=spike_l-spike_point_difference*2;  //derived
 spike_point_r=spike_point_d/2;          //derived
 spike_max_depth=2*in;                   //measured
@@ -419,27 +420,46 @@ module bike_locks(y) {
 
 module spike_positive() {
     //square piece inside base
+    if(3d)
     translate([-main_z,-spike_l/2,0])
     cube([main_z,spike_l,sides_thick]);
+    if(2d)
+    translate([-main_z,-spike_l/2])
+    square([main_z,spike_l]);
     minkowski() {
         intersection() {
             translate([-main_z,spike_point_r-spike_l/2,0])
             rotate([0,0,-spike_angle])
-            translate([-spike_hyp,0,0])
-            cube([spike_hyp,spike_l,sides_thick/2]);
+            translate([-spike_hyp,0,0]) {
+                if(3d)
+                cube([spike_hyp,spike_l,sides_thick/2]);
+                if(2d)
+                square([spike_hyp,spike_l]);
+            }
             
             translate([-main_z,-spike_point_r+spike_l/2,0])
             rotate([0,0,spike_angle])
-            translate([-spike_hyp,-spike_l,0])
-            cube([spike_hyp,spike_l,sides_thick/2]);
+            translate([-spike_hyp,-spike_l,0]) {
+                if(3d)
+                cube([spike_hyp,spike_l,sides_thick/2]);
+                if(2d)
+                square([spike_hyp,spike_l]);
+            }
         }
+        if(3d)
         cylinder(r=spike_point_r,h=sides_thick/2);
+        if(2d)
+        circle(r=spike_point_r);
     }
 }
 
 module spike_bolt_hole(x) {
+    if(3d)
     translate([x-main_z,0,-pad])
     cylinder(r=spike_bolt_r,h=sides_thick+padd);
+    if(2d)
+    translate([x-main_z,0])
+    circle(r=spike_bolt_r);
 }
 
 module spike(y) {
@@ -448,8 +468,12 @@ module spike(y) {
         spike_positive();
         spike_bolt_hole(-spike_bolt_from_base);
         spike_bolt_hole(-back_spike_bolt_from_base);
+        if(3d)
         translate([-spike_point_d-spike_max_depth-main_z,-slot_l/2,-pad])
         cube([spike_point_d,slot_l,sides_thick+padd]);
+        if(2d)
+        translate([-spike_point_d-spike_max_depth-main_z,-slot_l/2])
+        square([spike_point_d,slot_l]);
     }
 }
 
@@ -459,8 +483,12 @@ module rotated_spike(y) {
 }
 
 module side_lock(y) {
+    if(3d)
     translate([lock_h-cut_edge_gap,y,-pad])
     cube([sides_height-lock_h+cut_edge_gap+pad,sides_thick+plywood_h_gapp,sides_thick+padd]);
+    if(2d)
+    translate([lock_h-cut_edge_gap,y])
+    square([sides_height-lock_h+cut_edge_gap+pad,sides_thick+plywood_h_gapp]);
 }
 
 module side_locks() {
@@ -474,14 +502,22 @@ module pattern() {
     translate([pat_delta/2,pat_delta/2,0])
     for(pat_x=[0:pat_delta:sides_height]){
         for(pat_y=[0:pat_delta:main_y+back_y]){
+            if(3d)
             translate([pat_x,pat_y,-pad])
             cylinder(r=pat_r,h=sides_thick+padd);
+            if(2d)
+            translate([pat_x,pat_y])
+            circle(r=pat_r);
         }
     }
     for(pat_x=[0:pat_delta:sides_height]){
         for(pat_y=[0:pat_delta:main_y+back_y]){
+            if(3d)
             translate([pat_x,pat_y,-pad])
             cylinder(r=pat_r,h=sides_thick+padd);
+            if(2d)
+            translate([pat_x,pat_y])
+            circle(r=pat_r);
         }
     }
 }
@@ -490,23 +526,59 @@ module side_pattern() {
     difference() {
         intersection() {
             pattern();
+            if(3d)
             translate([wall,wall,-pad])
             cube([sides_height-wall*2,side_l-wall*2-lock,sides_thick+padd]);
+            if(2d)
+            translate([wall,wall])
+            square([sides_height-wall*2,side_l-wall*2-lock]);
         }
+        if(3d)
         minkowski() {
             side_locks();
             cylinder(r=wall,h=sides_thick);
         }
+        //WTF OpenScad
+        if(2d) {
+            minkowski() {
+                side_lock(main_y+back_y-plywood_h_gap-sides_thick/2-slot_to_edge);
+                circle(r=wall);
+            }
+            minkowski() {
+                side_lock(back_y+slot_to_edge-sides_thick/2-plywood_h_gap);
+                circle(r=wall);
+            }
+            minkowski() {
+                side_lock(back_y+center_slot_from_end-sides_thick/2-plywood_h_gap);
+                circle(r=wall);
+            }
+            minkowski() {
+                side_lock(lock-plywood_h_gap);
+                circle(r=wall);
+            }
+        }
     }
 }
 
-module side(x){
+module draw_side(x){
+    translate([x+sides_thick/2,0,main_z])
+    rotate([0,-90,0])
+    side();
+}
+
+module side(){
     translate([0,-back_y,0])
     difference() {
-        cube([sides_height,side_l,sides_thick]);
+        if(3d)cube([sides_height,side_l,sides_thick]);
+        if(2d)square([sides_height,side_l]);
+        if(3d)
         translate([0,side_l-lock,-pad])
-        rotate([0,0,lock_angle])
+        rotate([0,0,lock_angle]) 
         cube([sides_height*2,lock*2,sides_thick+padd]);
+        if(2d)
+        translate([0,side_l-lock])
+        rotate([0,0,lock_angle]) 
+        square([sides_height*2,lock*2]);
         side_locks();
         side_pattern();
     }
@@ -777,10 +849,12 @@ module base_bottom() {
 
 //translate([0,0,-0.75*in])color("magenta") plywood();
 
-color("cyan") side(slot_to_edge);
+color("cyan") draw_side(slot_to_edge);
+color("cyan") draw_side(main_x-slot_to_edge);
 //color("cyan") side(main_x-slot_to_edge);
 //color("lime") end(main_y-slot_to_edge);
 //color("lime") end(slot_to_edge);
 //color("lime") end(center_slot_from_end);
 //color("lime") end(-back_y+lock+sides_thick/2);
+base();
 //testing();
