@@ -1,9 +1,9 @@
 drill=true;
 pocket=false;
 fillet=false;
-2d=false;
 3d=true;
-
+2d=false;
+patterns=true;
 //convert mm to in
 //in=25.4;                                //fixed
 //$fn=120;
@@ -28,14 +28,14 @@ back_y=8*in;                            //arbitrary
 //dimensions of the trailer base
 main_x=40.375*in;                       //measured
 main_y=48.125*in;                       //measured
-main_z=0.75*in;
+main_z=0.5*in;
 half_x=main_x/2;                        //derived
 half_y=main_x/2;                        //derived
 total_w=47*in;                          //arbitrary
 
 //holes for the trailer rail bolts
 //this lets the plywood sit flat
-rail_hole_side=(7/16)*in;           //measured
+rail_hole_side=(14/16)*in;           //not tested
 rail_hole_end=17/16*in;                 //measured
 rail_hole_center=(24+1/16)*in;          //measured
 rail_bolt_d=(1+1/8)*in;                    //measured
@@ -137,7 +137,7 @@ bike_lock_y=main_y-6*in;                //arbitrary
 bike_lock_fillet=1/4*in;                //arbitrary
 
 //trailer sides (applies to end and side)
-sides_height=12*in;                     //arbitrary
+sides_height=18*in;                     //arbitrary
 sides_thick=main_z;                     //arbitrary
 //locking pieces between sides
 lock=3*in;                              //arbitrary
@@ -153,19 +153,27 @@ side_l=main_y+back_y-slot_to_edge+sides_thick/2+lock;
 spike_gap=3/16*in;
 spike_bolt_d=base_bolt_d;               //measured
 spike_bolt_r=spike_bolt_d/2;            //derived
-spike_bolt_from_base=(1+3/16)*in;       //measured
 spike_l=slot_l-cut_edge_gapp-spike_gap*2;           //derived
 //how tapered is the spike
 spike_point_difference=0.5*in;         //arbitrary
 spike_point_d=spike_l-spike_point_difference*2;  //derived
 spike_point_r=spike_point_d/2;          //derived
 spike_max_depth=2*in;                   //measured
+
+
+spike_bolt_from_base=(1+3/16)*in;       //measured
 spike_opp=spike_point_difference;                               //derived
 spike_adj=spike_bolt_from_base;                                 //derived
 spike_hyp=sqrt((spike_opp*spike_opp)+(spike_adj*spike_adj));    //derived
 spike_angle=atan(spike_opp/spike_adj);                          //derived
+
+end_spike_bolt_from_base=1.5*in;       //measured
+end_spike_opp=spike_point_difference;                               //derived
+end_spike_adj=end_spike_bolt_from_base;                                 //derived
+end_spike_hyp=sqrt((end_spike_opp*end_spike_opp)+(end_spike_adj*end_spike_adj));    //derived
+end_spike_angle=atan(end_spike_opp/end_spike_adj);                          //derived
 //special holes for ends not on a rail
-back_spike_bolt_from_base=(3/16+1/8)*in;                        
+back_spike_bolt_from_base=1/2*in;                        
 
 end_w=main_x-(slot_to_edge-sides_thick/2)*2+lock*2;
 echo("end_w: ", end_w/in);
@@ -418,6 +426,42 @@ module bike_locks(y) {
     bike_lock(bike_lock_from_center,y);
 }
 
+module end_spike_positive() {
+    //square piece inside base
+    if(3d)
+    translate([-main_z,-spike_l/2,0])
+    cube([main_z,spike_l,sides_thick]);
+    if(2d)
+    translate([-main_z,-spike_l/2])
+    square([main_z,spike_l]);
+    minkowski() {
+        intersection() {
+            translate([-main_z,spike_point_r-spike_l/2,0])
+            rotate([0,0,-end_spike_angle])
+            translate([-end_spike_hyp,0,0]) {
+                if(3d)
+                cube([end_spike_hyp,spike_l,sides_thick/2]);
+                if(2d)
+                square([end_spike_hyp,spike_l]);
+            }
+            
+            translate([-main_z,-spike_point_r+spike_l/2,0])
+            rotate([0,0,end_spike_angle])
+            translate([-end_spike_hyp,-spike_l,0]) {
+                if(3d)
+                cube([end_spike_hyp,spike_l,sides_thick/2]);
+                if(2d)
+                square([end_spike_hyp,spike_l]);
+            }
+        }
+        if(3d)
+        cylinder(r=spike_point_r,h=sides_thick/2);
+        if(2d)
+        circle(r=spike_point_r);
+    }
+}
+
+
 module spike_positive() {
     //square piece inside base
     if(3d)
@@ -462,12 +506,20 @@ module spike_bolt_hole(x) {
     circle(r=spike_bolt_r);
 }
 
+module end_spike(y) {
+    translate([0,y,0])
+    difference() {
+        end_spike_positive();
+        spike_bolt_hole(-end_spike_bolt_from_base);
+        spike_bolt_hole(-back_spike_bolt_from_base);
+    }
+}
+
 module spike(y) {
     translate([0,y,0])
     difference() {
         spike_positive();
         spike_bolt_hole(-spike_bolt_from_base);
-        spike_bolt_hole(-back_spike_bolt_from_base);
         if(3d)
         translate([-spike_point_d-spike_max_depth-main_z,-slot_l/2,-pad])
         cube([spike_point_d,slot_l,sides_thick+padd]);
@@ -480,6 +532,11 @@ module spike(y) {
 module rotated_spike(y) {
     rotate([0,0,90])
     spike(-y);
+}
+
+module rotated_end_spike(y) {
+    rotate([0,0,90])
+    end_spike(-y);
 }
 
 module side_lock(y) {
@@ -580,6 +637,7 @@ module side(){
         rotate([0,0,lock_angle]) 
         square([sides_height*2,lock*2]);
         side_locks();
+        if(patterns)
         side_pattern();
     }
     spike(side_slot_from_end);
@@ -587,44 +645,103 @@ module side(){
 }
 
 module end_pattern() {
-    intersection() {
-        translate([lock+wall,-pad,wall])
-        cube([end_w-lock*2-wall*2,sides_thick+padd,end_height-wall*2]);
-        translate([lock,sides_thick,0])
-        rotate([0,0,-90])
-        pattern();
+    difference() {
+        intersection() {
+            union() {
+                if(3d)
+                translate([lock+wall,wall,-pad])
+                cube([end_w-lock*2-wall*2,end_height-wall*2,sides_thick+padd]);
+                if(2d)
+                translate([lock+wall,wall])
+                square([end_w-lock*2-wall*2,end_height-wall*2]);
+            }
+            translate([lock,0,0])
+            mirror([0,1,0])
+            rotate([0,0,-90])
+            pattern();
+        }
+        minkowski() {
+            circle(r=wall);
+            end_lock(lock+slot_to_edge-sides_thick/2-plywood_h_gap*2);
+        }
+        minkowski() {
+            //end_locks();
+            //dammit openscad
+            end_lock(lock+main_x-sides_thick/2-plywood_h_gap*2-slot_to_edge);
+            circle(r=wall);
+        }
     }
 }
 
-module end(y) {
-    translate([slot_to_edge-sides_thick/2-lock,y-sides_thick/2,main_z]) {
-        difference() {
-            cube([end_w,sides_thick,end_height]);
-            //near angle cut
-            translate([lock,-pad,0])
-            rotate([0,-lock_angle,0])
-            translate([-lock*2,0,0])
-            cube([lock*2,sides_thick+padd,end_height*2]);
-            //far angle cut
-            translate([end_w-lock,-pad,0])
-            rotate([0,lock_angle,0])
-            cube([lock*2,sides_thick+padd,end_height*2]);
-            //near lock cut
-            translate([lock+slot_to_edge-sides_thick/2-plywood_h_gap*2,-pad,0])
-            #cube([sides_thick+plywood_h_gap*2,sides_thick+padd,lock_h+cut_edge_gap]);
+module draw_end(y) {
+    translate([0,y+sides_thick/2,main_z])
+    rotate([90,0,0])
+    end();
+}
 
-            translate([slot_to_edge,-pad,0])
-            cube([lock,sides_thick+padd,wheel_z]);
-            translate([main_x-slot_to_edge+lock,-pad,0])
-            cube([lock,sides_thick+padd,wheel_z]);
+module end_lock(x) {
+    if(3d)
+    translate([x,-pad,-pad])
+    cube([sides_thick+plywood_h_gap*2,lock_h+cut_edge_gap+pad,sides_thick+padd]);
+    if(2d)
+    translate([x,-pad,0])
+    square([sides_thick+plywood_h_gap*2,lock_h+cut_edge_gap+pad]);
+}
+
+module end_locks(){
+    end_lock(lock+slot_to_edge-sides_thick/2-plywood_h_gap*2);
+    end_lock(lock+main_x-sides_thick/2-plywood_h_gap*2-slot_to_edge);
+}
+
+module end() {
+    translate([slot_to_edge-sides_thick/2-lock,0,0]) {
+        difference() {
+            if(3d)
+            cube([end_w,end_height,sides_thick]);
+            if(2d)
+            square([end_w,end_height]);
+            //near angle cut
+            if(3d)
+            translate([lock,0,-pad])
+            rotate([0,0,lock_angle])
+            translate([-lock*2,0,0])
+            cube([lock*2,end_height*2,sides_thick+padd]);
+            if(2d)
+            translate([lock,0,0])
+            rotate([0,0,lock_angle])
+            translate([-lock*2,0,0])
+            square([lock*2,end_height*2]);
+            //far angle cut
+            if(3d)
+            translate([end_w-lock,0,-pad])
+            rotate([0,0,-lock_angle])
+            cube([lock*2,end_height*2,sides_thick+padd]);
+            if(2d)
+            translate([end_w-lock,0,0])
+            rotate([0,0,-lock_angle])
+            square([lock*2,end_height*2]);
+
+            end_locks();
 
             //cut end for wheel well clearance
-            translate([lock+main_x-sides_thick/2-plywood_h_gap*2-slot_to_edge,-pad,0])
-            cube([sides_thick+plywood_h_gapp,sides_thick+padd,lock_h+cut_edge_gap]);
+            if(3d)
+            translate([slot_to_edge,0,-pad])
+            cube([lock,wheel_z,sides_thick+padd]);
+            if(2d)
+            translate([slot_to_edge,0,0])
+            square([lock,wheel_z]);
+            if(3d)
+            translate([main_x-slot_to_edge+lock,0,-pad])
+            cube([lock,wheel_z,sides_thick+padd]);
+            if(2d)
+            translate([main_x-slot_to_edge+lock,0,0])
+            square([lock,wheel_z]);
+
+            if(patterns)
             end_pattern();
         }
-        rotated_spike(end_slot_from_side+lock-slot_to_edge+sides_thick/2);
-        rotated_spike(main_x-end_slot_from_side+lock-slot_to_edge+sides_thick/2);
+        rotated_end_spike(end_slot_from_side+lock-slot_to_edge+sides_thick/2);
+        rotated_end_spike(main_x-end_slot_from_side+lock-slot_to_edge+sides_thick/2);
     }
 }
 
@@ -788,7 +905,7 @@ module base() {
         rotated_slot(end_slot_from_side,-back_y+lock+slot_w/2-(slot_w/2-sides_thick/2));
         rotated_slot(main_x-end_slot_from_side,-back_y+lock+slot_w/2-(slot_w/2-sides_thick/2));
 
-        wheel_wells();
+        #wheel_wells();
 
         tie_down(tie_from_side,tie_handlebars);
         tie_down(main_x-tie_from_side,tie_handlebars);
@@ -831,8 +948,12 @@ module testing() {
     }
 }
 
+plywood_x=4*12*in+1*in;
+plywood_y=8*12*in+1*in;
+plywood_z=0.75*in;
+
 module plywood() {
-    cube([48*in,12*8*in,0.75*in]);
+    cube([plywood_x,plywood_y,plywood_z]);
 }
 
 module base_bottom() {
@@ -849,12 +970,143 @@ module base_bottom() {
 
 //translate([0,0,-0.75*in])color("magenta") plywood();
 
-color("cyan") draw_side(slot_to_edge);
-color("cyan") draw_side(main_x-slot_to_edge);
-//color("cyan") side(main_x-slot_to_edge);
-//color("lime") end(main_y-slot_to_edge);
-//color("lime") end(slot_to_edge);
-//color("lime") end(center_slot_from_end);
-//color("lime") end(-back_y+lock+sides_thick/2);
-base();
+//side();
+//end();
+
+//color("cyan") draw_side(slot_to_edge);
+//color("cyan") draw_side(main_x-slot_to_edge);
+//color("lime") draw_end(main_y-slot_to_edge);
+//color("lime") draw_end(slot_to_edge);
+//color("lime") draw_end(center_slot_from_end);
+//color("lime") draw_end(-back_y+lock+sides_thick/2);
+hook_wall=6*in;
+hook_end=4.5*in;
+hook_grip=8*in;
+
+axle=wheel_from_end+wheel_y/2;
+plywood_center=axle-10*in;
+
+side_to_hook=plywood_x/2-main_x/2+end_slot_from_side;
+side_to_end=9*in;
+front_to_hook=plywood_y/2-main_y+side_slot_from_end+plywood_center;
+front_to_end=18*in;
+back_to_hook=plywood_y/2+side_slot_from_end-plywood_center;
+back_to_end=12*in;
+
+back_ply_opp=hook_wall/2;
+back_ply_adj=back_to_hook+hook_end-side_slot_from_end-back_y;
+back_ply_angle=atan(back_ply_opp/back_ply_adj);
+
+side_ply_opp=hook_wall/2;
+side_ply_adj=side_to_hook+hook_end-end_slot_from_side;
+side_ply_angle=atan(side_ply_opp/side_ply_adj);
+
+front_ply_opp=hook_wall/2;
+front_ply_adj=front_to_hook+hook_end-side_slot_from_end;
+front_ply_angle=atan(front_ply_opp/front_ply_adj);
+
+module hook(to_hook,to_end) {
+    difference() {
+        union() {
+            translate([0,to_hook,0])
+            cube([hook_wall+hook_grip,hook_end,sides_thick]);
+            translate([0,-to_end,0])
+            cube([hook_wall,to_end+to_hook,sides_thick]);
+        }
+        translate([0,to_hook+hook_end,-pad])
+        rotate([0,0,-lock_angle])
+        cube([(hook_wall+hook_grip)*2,hook_end*2,sides_thick+padd]);
+    }
+}
+module side_hook_slot(y) {
+        translate([-pad,y-sides_thick/2-plywood_h_gap,-pad])
+        cube([hook_wall/2+cut_edge_gap+pad,sides_thick+plywood_h_gapp,sides_thick+padd]);
+}
+
+module end_hook_slot(y) {
+        translate([hook_wall/2-cut_edge_gap,y-sides_thick/2-plywood_h_gap-slot_to_edge,-pad])
+        cube([hook_wall/2+cut_edge_gap+pad,sides_thick+plywood_h_gapp,sides_thick+padd]);
+}
+
+module front_hook() {
+    spike(0);
+    difference() {
+        hook(front_to_hook,front_to_end);
+        side_hook_slot(side_slot_from_end-slot_to_edge);
+        translate([0,side_slot_from_end,0])
+        rotate([0,0,-front_ply_angle])
+        translate([-hook_wall,0,-pad])
+        cube([hook_wall,front_ply_adj*1.5,main_z+padd]);
+    }
+}
+
+module back_hook() {
+    spike(0);
+    mirror([0,1,0])
+    difference() {
+        hook(back_to_hook,back_to_end);
+        side_hook_slot(side_slot_from_end-slot_to_edge);
+        translate([0,side_slot_from_end+back_y,0])
+        rotate([0,0,-back_ply_angle])
+        translate([-hook_wall,0,-pad])
+        cube([hook_wall,back_ply_adj*1.5,main_z+padd]);
+    }
+}
+
+module draw_back_hook(x) {
+    translate([sides_thick/2+x,side_slot_from_end,main_z])
+    rotate([0,-90,0])
+    back_hook(18*in);
+}
+
+module draw_front_hook(x) {
+    translate([sides_thick/2+x,main_y-side_slot_from_end,main_z])
+    rotate([0,-90,0])
+    front_hook(18*in);
+}
+module draw_front_hooks() {
+    draw_front_hook(slot_to_edge);
+    draw_front_hook(main_x-slot_to_edge);
+}
+
+module draw_back_hooks() {
+    draw_back_hook(slot_to_edge);
+    draw_back_hook(main_x-slot_to_edge);
+}
+
+module end_hook() {
+    end_spike(0);
+    difference() {
+        hook(side_to_hook,side_to_end);
+        end_hook_slot(end_slot_from_side);
+        translate([0,end_slot_from_side,0])
+        rotate([0,0,-side_ply_angle])
+        translate([-hook_wall,0,-pad])
+        cube([hook_wall,side_ply_adj*1.5,main_z+padd]);
+    }
+}
+
+module side_end_hook(y) {
+    translate([end_slot_from_side,sides_thick/2+y,main_z])
+    rotate([0,-90,90])
+    end_hook();
+}
+module side_end_hooks() {
+    side_end_hook(slot_to_edge);
+    side_end_hook(main_y-slot_to_edge);
+}
+module draw_all_hooks() {
+    draw_back_hooks();
+    draw_front_hooks();
+    side_end_hooks();
+    color("cyan")
+    translate([-plywood_x/2+main_x/2,plywood_center-plywood_y/2,hook_wall+main_z])
+    plywood();
+}
+//front_hook();
 //testing();
+//base();
+//end_hook();
+//end();
+projection()
+back_hook();
