@@ -1,12 +1,21 @@
+//Written by Aaron VerDow
+//Use at your own risk
+
+//hide drill holes if doing true 3d routing
+//in the end, I did not
 drill=true;
-pocket=false;
+//fillet certain edges (not practical with cheap plywood)
 fillet=false;
+
+//sorry, 2d conversion was done while drunk and angry
+//I originally drew in 3d and the final parts were too complex to project to 2d
 3d=true;
 2d=false;
+
+//patterend holes in the sides?
 patterns=true;
-//convert mm to in
-//in=25.4;                                //fixed
-//$fn=120;
+
+//convert in to mm
 in=25.4;
 
 //used to pad negative shapes for cleaner drawings
@@ -71,6 +80,7 @@ front_adj=(main_x-front_x)/2;           //derived
 front_hyp=sqrt(front_opp*front_opp+front_adj*front_adj);    //derived
 front_angle=atan(front_opp/front_adj);  //derived
 
+//make sure you don't end up larger than a sheet of plywood
 echo ("Total length: ", (main_y+front_y+back_y)/in);
 echo ("Total width: ", (main_x+wheel_x*2)/in);
 
@@ -176,7 +186,8 @@ end_spike_angle=atan(end_spike_opp/end_spike_adj);                          //de
 back_spike_bolt_from_base=1/2*in;                        
 
 end_w=main_x-(slot_to_edge-sides_thick/2)*2+lock*2;
-echo("end_w: ", end_w/in);
+//size check
+echo("End width: ", end_w/in);
 end_height=sides_height;
 
 //pattern across the sides
@@ -195,9 +206,50 @@ strap_fillet=1/8*in;
 back_strap_hole_count=7;
 strap_gap=main_x/back_strap_hole_count;
 
+//a full sheet of plywood
+plywood_x=4*12*in+1*in;
+plywood_y=8*12*in+1*in;
+plywood_z=0.75*in;
 
+//measurements for plywood hooks
+hook_wall=6*in;
+hook_end=4.5*in;
+hook_grip=8*in;
 
+axle=wheel_from_end+wheel_y/2;
+plywood_center=axle-10*in;
 
+side_to_hook=plywood_x/2-main_x/2+end_slot_from_side;
+side_to_end=9*in;
+front_to_hook=plywood_y/2-main_y+side_slot_from_end+plywood_center;
+front_to_end=18*in;
+back_to_hook=plywood_y/2+side_slot_from_end-plywood_center;
+back_to_end=12*in;
+
+back_ply_opp=hook_wall/2;
+back_ply_adj=back_to_hook+hook_end-side_slot_from_end-back_y;
+back_ply_angle=atan(back_ply_opp/back_ply_adj);
+
+side_ply_opp=hook_wall/2;
+side_ply_adj=side_to_hook+hook_end-end_slot_from_side;
+side_ply_angle=atan(side_ply_opp/side_ply_adj);
+
+front_ply_opp=hook_wall/2;
+front_ply_adj=front_to_hook+hook_end-side_slot_from_end;
+front_ply_angle=atan(front_ply_opp/front_ply_adj);
+
+//3d printed front support
+printed_wall=1.5*in;
+base_to_tounge_top=2*in;
+base_to_tounge_bottom=4*in;
+top_printed=3*in;
+tounge_w=(2+5/8)*in;
+tounge_h=2*in;
+
+//abandon hope all ye who uncomment here
+//$fn=120;
+
+//big holes so the bolts in the trailer don't make the bed stick up
 module rail_bolt(x,y) {
     if(3d)
     translate([x,y,-pad])
@@ -207,6 +259,7 @@ module rail_bolt(x,y) {
     circle(r=rail_bolt_r);
 }
 
+//standard bolt hole used to attach trailer to bed
 module bolt(x,y) {
     if(3d)
     translate([x,y,-pad])
@@ -221,6 +274,10 @@ module bolt(x,y) {
     }
 }
 
+//"slots" are holes that the sides plug into.  They line up with slots in the trailer rails.
+
+//drill corners of slots so extra material left by router bit does not stop spike
+//probably not needed with the tolerences here
 module corner(x,y){
     if(drill) {
         if(3d)
@@ -232,12 +289,15 @@ module corner(x,y){
     }
 }
 
+//assemble four slot corners
 module slot_corners() {
     corner(router_r/2,router_r/2);
     corner(slot_w-router_r/2,router_r/2);
     corner(router_r/2,slot_l-router_r/2);
     corner(slot_w-router_r/2,slot_l-router_r/2);
 }
+
+//the square hole part of a slot
 module slot_hole() {
     if(3d)
     translate([0,0,-pad])
@@ -258,6 +318,8 @@ module slot_hole() {
         }
     }
 }
+
+//an individual, assembled slot hole
 module slot(x,y) {
     translate([-slot_w/2+x,-slot_l/2+y,0]) {
         slot_hole();
@@ -270,6 +332,7 @@ module rotated_slot(x,y) {
     slot(y,-x);
 }
 
+//a boxed representation of a wheel well
 module wheel_well(x){
     if(3d)
     translate([x,wheel_from_end,-pad])
@@ -284,6 +347,9 @@ module wheel_wells(){
     wheel_well(-wheel_x);
 }
 
+//"tie" reprents the the countersunk tie down points aka D-rings.
+
+//a single hole for tie down bolts
 module tie_hole(y) {
     if(3d)
     translate([0,y,-pad])
@@ -293,6 +359,7 @@ module tie_hole(y) {
     circle(r=tie_hole_r);
 }
 
+//the countersunk part of a tie down point
 module tie_countersink(y) {
     translate([0,y,main_z-tie_d])
     if(fillet) {
@@ -308,7 +375,7 @@ module tie_countersink(y) {
     }
 }
 
-
+//an assembled tie down point
 module tie_down(x,y){
     translate([x,-tie_l/2+y,0]) {
         if(3d) {
@@ -332,6 +399,9 @@ module tie_down(x,y){
     }
 }
 
+//"chock" refers to the holes used to quick mount a motorcycle chock.
+
+//an individual bolt hole for a chock assembly
 module chock_bolt(x) {
     if(drill) {
         if(3d)
@@ -349,6 +419,7 @@ module chock_bolts() {
     chock_bolt(-chock_bolt_gap);
 }
 
+//an assembled, individual chock hole
 module chock_hole(x,y){
     translate([x,y,0]) {
         if(3d) {
@@ -365,6 +436,8 @@ module chock_hole(x,y){
     }
 }
 
+//draw complete chock mounting points
+//four is too many, only back holes needed unless you buy extra hardware
 module chock(x,y,l) {
     translate([half_x,-back_y+l,0]) {
         chock_hole(-x/2,0);
@@ -374,19 +447,47 @@ module chock(x,y,l) {
     }
 }
 
+//a chock sized for Honda Grom (6.5")
 module grom_chock() {
     chock(grom_chock_x,grom_chock_y,grom_l);
 }
 
+//a chock sized for Honda CRF50 (3.5")
 module fifty_chock() {
     chock(fifty_chock_x,fifty_chock_y,fifty_l);
 }
 
+//bolt holes for 3d printed support
 module front_bolts(y) {
     bolt(half_x-front_bolt_from_center,y);
     bolt(half_x+front_bolt_from_center,y);
 }
 
+// this is a 3d printable piece to give the front some support on the trailer tounge
+module front_printed() {
+    difference() {
+        union() {
+            translate([-front_bolt_from_center,0,0])
+            cylinder(r=printed_wall,h=top_printed);
+            translate([front_bolt_from_center,0,0])
+            cylinder(r=printed_wall,h=top_printed);
+            translate([-front_bolt_from_center,-printed_wall,0])
+            cube([front_bolt_from_center*2,printed_wall*2,top_printed]);
+        }
+        translate([-tounge_w/2,-printed_wall-pad,base_to_tounge_top])
+        cube([tounge_w,printed_wall*2+padd,tounge_h]);
+        translate([-front_bolt_from_center,0,-pad])
+        cylinder(r=base_bolt_r,h=top_printed+padd);
+        translate([front_bolt_from_center,0,-pad])
+        cylinder(r=base_bolt_r,h=top_printed+padd);
+    }
+}
+
+//"bike_lock" referrs to holes designed to run a bike lock through the bed
+//this allows a bike to easily be locked around one of the trailer rails
+//the modules on this one got a little weird
+
+//a cylinder used to assmble a bike lock hole
 module bike_lock_hole(y) {
     if(3d)
     translate([half_x,y,-pad])
@@ -396,12 +497,15 @@ module bike_lock_hole(y) {
     circle(r=bike_lock_w/2);
 }
 
+//an individual bike lock hole
 module bike_lock_holes() {
     hull() {
         bike_lock_hole((bike_lock_l-bike_lock_w)/2);
         bike_lock_hole(-(bike_lock_l-bike_lock_w)/2);
     }
 }
+
+//an individual bike lock hole, plus fillet
 module bike_lock(x,y) {
     translate([x,y,0]) {
         bike_lock_holes();
@@ -421,11 +525,15 @@ module bike_lock(x,y) {
     }
 }
 
+//draw a pair of assembled bike lock holes
 module bike_locks(y) {
     bike_lock(-bike_lock_from_center,y);
     bike_lock(bike_lock_from_center,y);
 }
 
+//A "spike" is the pointy piece on the sides that extends below the trailer base into a slot.
+
+//positive space for end piece spike
 module end_spike_positive() {
     //square piece inside base
     if(3d)
@@ -461,7 +569,7 @@ module end_spike_positive() {
     }
 }
 
-
+//positive space for spike to a side piece
 module spike_positive() {
     //square piece inside base
     if(3d)
@@ -497,6 +605,7 @@ module spike_positive() {
     }
 }
 
+//hole for quick release pin or bolt that attaches spike to rail
 module spike_bolt_hole(x) {
     if(3d)
     translate([x-main_z,0,-pad])
@@ -506,6 +615,7 @@ module spike_bolt_hole(x) {
     circle(r=spike_bolt_r);
 }
 
+//assembled spike for end pieces
 module end_spike(y) {
     translate([0,y,0])
     difference() {
@@ -515,6 +625,7 @@ module end_spike(y) {
     }
 }
 
+//assembled spike for side pieces
 module spike(y) {
     translate([0,y,0])
     difference() {
@@ -529,16 +640,15 @@ module spike(y) {
     }
 }
 
-module rotated_spike(y) {
-    rotate([0,0,90])
-    spike(-y);
-}
-
+//end spike was a hasty fix...
 module rotated_end_spike(y) {
     rotate([0,0,90])
     end_spike(-y);
 }
 
+//"lock" refers to a slot in a side that allows another side piece to slide in
+
+//empty space in a side piece slot
 module side_lock(y) {
     if(3d)
     translate([lock_h-cut_edge_gap,y,-pad])
@@ -548,6 +658,7 @@ module side_lock(y) {
     square([sides_height-lock_h+cut_edge_gap+pad,sides_thick+plywood_h_gapp]);
 }
 
+//all side piece slots
 module side_locks() {
     side_lock(main_y+back_y-plywood_h_gap-sides_thick/2-slot_to_edge);
     side_lock(back_y+slot_to_edge-sides_thick/2-plywood_h_gap);
@@ -555,6 +666,7 @@ module side_locks() {
     side_lock(lock-plywood_h_gap);
 }
 
+//basic circle pattern for sides and ends
 module pattern() {
     translate([pat_delta/2,pat_delta/2,0])
     for(pat_x=[0:pat_delta:sides_height]){
@@ -579,6 +691,7 @@ module pattern() {
     }
 }
 
+//pattern cut down for sides (so the circles don't touch the edges)
 module side_pattern() {
     difference() {
         intersection() {
@@ -617,12 +730,16 @@ module side_pattern() {
     }
 }
 
+//"draw" always calls another module, but adds some transformations to make it look better
+
+//draw a side piece for assembled model
 module draw_side(x){
     translate([x+sides_thick/2,0,main_z])
     rotate([0,-90,0])
     side();
 }
 
+//individual, assembled trailer side
 module side(){
     translate([0,-back_y,0])
     difference() {
@@ -644,6 +761,7 @@ module side(){
     spike(main_y-side_slot_from_end);
 }
 
+//generic pattern cut down for end pieces
 module end_pattern() {
     difference() {
         intersection() {
@@ -673,12 +791,14 @@ module end_pattern() {
     }
 }
 
+//draw an end piece for assebled model
 module draw_end(y) {
     translate([0,y+sides_thick/2,main_z])
     rotate([90,0,0])
     end();
 }
 
+//negative space for individual end piece lock
 module end_lock(x) {
     if(3d)
     translate([x,-pad,-pad])
@@ -688,11 +808,13 @@ module end_lock(x) {
     square([sides_thick+plywood_h_gap*2,lock_h+cut_edge_gap+pad]);
 }
 
+//draw all end locks
 module end_locks(){
     end_lock(lock+slot_to_edge-sides_thick/2-plywood_h_gap*2);
     end_lock(lock+main_x-sides_thick/2-plywood_h_gap*2-slot_to_edge);
 }
 
+//individual end piece
 module end() {
     translate([slot_to_edge-sides_thick/2-lock,0,0]) {
         difference() {
@@ -745,6 +867,7 @@ module end() {
     }
 }
 
+//strap holes are the holes around the edge of the trailer
 module strap_hole(x,y) {
     if(3d)
     translate([x,y,-pad])
@@ -758,6 +881,7 @@ module strap_hole(x,y) {
     }
 }
 
+//draw strap holes along back of trailer
 module back_strap_holes() {
     translate([-strap_gap/2,0,0])
     for(x=[strap_gap:strap_gap:strap_gap*back_strap_hole_count]) {
@@ -765,6 +889,7 @@ module back_strap_holes() {
     }
 }
 
+//trailer base
 module base() {
     difference(){
         union() {
@@ -926,85 +1051,11 @@ module base() {
     }
 }
 
-test_x=13*in;
-test_y=6*in;
-
-module testing() {
-    difference() {
-        translate([0,-test_y/2,0])
-        cube([test_x,test_y,main_z]);
-        translate([1*in,0,0])
-        rail_bolt(0,0);
-        translate([3*in,0,0])
-        tie_down(0,0);
-        translate([5*in,0,0])
-        bolt(0,0);
-        translate([7.5*in,0,0])
-        slot(0,0);
-        translate([10*in,0,0])
-        chock_hole(0,0);
-        translate([12*in,0,0])
-        strap_hole(0,0);
-    }
-}
-
-plywood_x=4*12*in+1*in;
-plywood_y=8*12*in+1*in;
-plywood_z=0.75*in;
-
 module plywood() {
     cube([plywood_x,plywood_y,plywood_z]);
 }
 
-module base_bottom() {
-    difference(){
-        translate([wheel_x,back_y,0])
-        base();
-        translate([0,-pad,pad])
-        plywood();
-    }
-}
-//base_bottom();
-//translate([wheel_x,back_y,0])
-//base();
-
-//translate([0,0,-0.75*in])color("magenta") plywood();
-
-//side();
-//end();
-
-//color("cyan") draw_side(slot_to_edge);
-//color("cyan") draw_side(main_x-slot_to_edge);
-//color("lime") draw_end(main_y-slot_to_edge);
-//color("lime") draw_end(slot_to_edge);
-//color("lime") draw_end(center_slot_from_end);
-//color("lime") draw_end(-back_y+lock+sides_thick/2);
-hook_wall=6*in;
-hook_end=4.5*in;
-hook_grip=8*in;
-
-axle=wheel_from_end+wheel_y/2;
-plywood_center=axle-10*in;
-
-side_to_hook=plywood_x/2-main_x/2+end_slot_from_side;
-side_to_end=9*in;
-front_to_hook=plywood_y/2-main_y+side_slot_from_end+plywood_center;
-front_to_end=18*in;
-back_to_hook=plywood_y/2+side_slot_from_end-plywood_center;
-back_to_end=12*in;
-
-back_ply_opp=hook_wall/2;
-back_ply_adj=back_to_hook+hook_end-side_slot_from_end-back_y;
-back_ply_angle=atan(back_ply_opp/back_ply_adj);
-
-side_ply_opp=hook_wall/2;
-side_ply_adj=side_to_hook+hook_end-end_slot_from_side;
-side_ply_angle=atan(side_ply_opp/side_ply_adj);
-
-front_ply_opp=hook_wall/2;
-front_ply_adj=front_to_hook+hook_end-side_slot_from_end;
-front_ply_angle=atan(front_ply_opp/front_ply_adj);
-
+//a partially built plywood hook (used for both end and side)
 module hook(to_hook,to_end) {
     difference() {
         union() {
@@ -1018,16 +1069,23 @@ module hook(to_hook,to_end) {
         cube([(hook_wall+hook_grip)*2,hook_end*2,sides_thick+padd]);
     }
 }
+
+
+//I switched "lock" and "slot" here...
+
+//negative space for a side hook interlocking slot
 module side_hook_slot(y) {
         translate([-pad,y-sides_thick/2-plywood_h_gap,-pad])
         cube([hook_wall/2+cut_edge_gap+pad,sides_thick+plywood_h_gapp,sides_thick+padd]);
 }
 
+//negative space for an end hook interlocking slot
 module end_hook_slot(y) {
         translate([hook_wall/2-cut_edge_gap,y-sides_thick/2-plywood_h_gap-slot_to_edge,-pad])
         cube([hook_wall/2+cut_edge_gap+pad,sides_thick+plywood_h_gapp,sides_thick+padd]);
 }
 
+//plywood hook off the front of the trailer
 module front_hook() {
     spike(0);
     difference() {
@@ -1040,6 +1098,7 @@ module front_hook() {
     }
 }
 
+//plywood hook off the back of the trailer
 module back_hook() {
     spike(0);
     mirror([0,1,0])
@@ -1064,6 +1123,7 @@ module draw_front_hook(x) {
     rotate([0,-90,0])
     front_hook(18*in);
 }
+
 module draw_front_hooks() {
     draw_front_hook(slot_to_edge);
     draw_front_hook(main_x-slot_to_edge);
@@ -1086,15 +1146,20 @@ module end_hook() {
     }
 }
 
+//I named these "side_end" because of the possiblity of building a "side_center" over the wheel well
+
+//plywood hook that hangs off the side of the trailer
 module side_end_hook(y) {
     translate([end_slot_from_side,sides_thick/2+y,main_z])
     rotate([0,-90,90])
     end_hook();
 }
+
 module side_end_hooks() {
     side_end_hook(slot_to_edge);
     side_end_hook(main_y-slot_to_edge);
 }
+
 module draw_all_hooks() {
     draw_back_hooks();
     draw_front_hooks();
@@ -1103,10 +1168,11 @@ module draw_all_hooks() {
     translate([-plywood_x/2+main_x/2,plywood_center-plywood_y/2,hook_wall+main_z])
     plywood();
 }
-//front_hook();
-//testing();
-//base();
-//end_hook();
-//end();
-projection()
-back_hook();
+
+color("cyan") draw_side(slot_to_edge);
+color("cyan") draw_side(main_x-slot_to_edge);
+color("lime") draw_end(main_y-slot_to_edge);
+//color("lime") draw_end(slot_to_edge);
+//color("lime") draw_end(center_slot_from_end);
+color("lime") draw_end(-back_y+lock+sides_thick/2);
+base();
