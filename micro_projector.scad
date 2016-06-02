@@ -27,6 +27,9 @@ difference(){
     projector_frame();
     rotate([angle,0,0])
     cube([p_x+walll+padd,p_y*2+walll+padd,p_y]);
+    rotate([angle,0,0])
+    translate([grip+wall,grip+wall,-p_y])
+    cube([p_x-gripp,p_y-gripp,wall+pad+p_y]);
 }
 
 rotate([angle,0,0])
