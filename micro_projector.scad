@@ -1,16 +1,16 @@
 $fn=90;
-p_x=120;
-p_y=40;
-p_z=80;
+p_x=154;
+p_y=38;
+p_z=90;
 wall=4;
 walll=wall*2;
 pad=0.1;
 padd=pad*2;
 
-grip=wall*1.5;
+grip=6;
 gripp=grip*2;
 
-angle=20;
+angle=15;
 hyp=p_y+walll;
 opp=sin(angle)*hyp;
 adj=cos(angle)*hyp;

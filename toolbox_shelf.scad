@@ -79,5 +79,5 @@ module side2d() {
 }
 
 //side2d();
-shelf2d();
-//assembled();
+//shelf2d();
+assembled();

@@ -12,9 +12,19 @@ hole_dia = 5;
 hole_inset = 8;
 wedge_x_offset = 6;
 
+
+//shop broom
+handle_dia = 30;
+//light saber
+handle_dia = 25.4;
+// weed eater? shovel?
 handle_dia = 40;
+// rake
+handle_dia = 25;
+// ?
+handle_dia = 32;
 mount_height = 100;
-wall = 4;
+wall = 10;
 drop = 10;
 tab_thickness = 8;
 hole_dia = 5;
@@ -75,13 +85,13 @@ difference()
 	cylinder(h=tab_thickness,r=hole_dia/2,$fn=fn);
 
 	//cut backside relief pocket
-	translate([0,0,mount_height-hole_inset])
-	rotate([0,90,0])
-	cylinder(h=2,r=6,$fn=fn);
+	//translate([0,0,mount_height-hole_inset])
+	//rotate([0,90,0])
+	//cylinder(h=2,r=6,$fn=fn);
 
-	translate([0,0,hole_inset])
-	rotate([0,90,0])
-	cylinder(h=2,r=6,$fn=fn);
+	//translate([0,0,hole_inset])
+	//rotate([0,90,0])
+	//cylinder(h=2,r=6,$fn=fn);
 
 	//cut front side counter bore
 	translate([tab_thickness-2.5,0,mount_height-hole_inset])

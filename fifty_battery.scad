@@ -1,6 +1,6 @@
 $fn=60;
 bat_x=137;
-bat_y=65;
+bat_y=64;
 bat_kerf=3;
 bat_bot_x=bat_x-bat_kerf;
 bat_bot_y=bat_y-bat_kerf;
@@ -31,19 +31,22 @@ lid_gap=0.5;
 //bars(bar_d);
 //battery();
 
-screw_d=5;
-screw_r=screw_d/2;
 screw_wall=4;
-screw_wall_d=screw_d+screw_wall*2;
-screw_wall_r=screw_r+screw_wall;
 screw_count=3;
 
 screw_head_d=12;
 screw_head_h=4;
 screw_loose_d=6.5;
+screw_d=screw_loose_d;
+screw_r=screw_d/2;
+screw_wall_d=screw_d+screw_wall*2;
+screw_wall_r=screw_r+screw_wall;
 
-//color("cyan") bottom_box();
-top_box();
+nut_d=12;
+nut_h=15;
+
+color("cyan") bottom_box();
+//top_box();
 
 
 module top_box(){
@@ -97,11 +100,21 @@ module bottom_box() {
     difference() {
         minkowski() {
             battery();
-            sphere(r=bat_wall);
+            rotate([0,90,0])
+            cylinder(r=bat_wall,h=5);
         }
         cut_top();
         battery();
         bars();
+        translate([-pad,-bat_y/2-bat_wall*2,-bat_z+pad])
+        cube([(bat_x-top_x)/2+pad,bat_y+bat_wall*4,bat_z]);
+        translate([top_x+(bat_x-top_x)/2,-bat_y/2-bat_wall*2,-bat_z+pad])
+        cube([(bat_x-top_x)/2+pad+bat_wall,bat_y+bat_wall*4,bat_z]);
+        translate([bat_x/2-top_x/2,0,0])
+        screws();
+        mirror([0,1,0])
+        translate([bat_x/2-top_x/2,0,0])
+        screws();
     }
     bottom_side_with_screws();
     mirror([0,1,0])
@@ -135,6 +148,10 @@ module screw(x) {
     translate([x,bar_gap/2+bar_r+bar_wall+pad,-bar_r-screw_wall_r])
     rotate([90,0,0])
     cylinder(d=screw_loose_d,h=bar_wall+padd);
+
+    translate([x,bat_y/2+nut_h-pad,-bar_r-screw_wall_r])
+    rotate([90,0,0])
+    cylinder(d=nut_d,h=nut_h,$fn=6);
 }
 
 module bottom_side() {

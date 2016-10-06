@@ -9,6 +9,9 @@ pivot_d=20;
 pivot_r=pivot_d/2;
 screw_d=5;
 screw_r=screw_d/2;
+screw_head=15;
+
+bar_gap=5;
 
 catch_plate_w=30;
 catch_plate_d=15;
@@ -17,7 +20,7 @@ catch_plate_r=catch_plate_w/2;
 catch_d=bar_h/2;
 backboard=bar_h;
 catch_arm_h=25;
-catch_gap=50;
+catch_gap=bar_w+bar_gap*2;
 
 safety=11;
 
@@ -31,7 +34,7 @@ guide_t=10;
 small_slot=9;
 large_slot=13;
 slot_d=8;
-guide_d=36;
+guide_d=bar_w+bar_gap;
 guide_h=150+guide_w;
 center_h=40;
 center_gap=2;
@@ -210,38 +213,55 @@ module pivot() {
         cylinder(r=screw_r,h=bar_w/2+bar_w+pivot_gap*2+padd);
     }
 }
+module catch_bolt(z) {
+    translate([catch_plate_r,-pad-catch_plate_d,z])
+    rotate([-90,0,0])
+    cylinder(r=screw_r,h=catch_plate_d+padd);
+    mirror([0,1,0])
+    translate([catch_plate_r,catch_plate_d,z])
+    rotate([-90,0,0])
+    cylinder(d=screw_head,h=catch_plate_d*5+padd);
+}
+
+module catch_bolts() {
+        catch_bolt(-catch_plate_r);
+        catch_bolt(-catch_plate_h);
+        catch_bolt(-(catch_plate_h-catch_plate_r)/2-catch_plate_r);
+}
+
+catch_radius=9;
+
 module catch() {
     difference() {
-        union() {
-            translate([catch_plate_r,0,catch_plate_h-catch_plate_r])
-            rotate([-90,0,0])
-            cylinder(r=catch_plate_r,h=catch_plate_d);
-            translate([catch_plate_r,0,-catch_plate_r])
-            rotate([-90,0,0])
-            cylinder(r=catch_plate_r,h=catch_plate_d);
-            translate([0,0,-catch_plate_r])
-            cube([catch_plate_w,catch_plate_d,catch_plate_h]);
+        minkowski() {
+        sphere(r=catch_radius);
+        hull() {
+            difference() {
+                translate([catch_radius,-catch_plate_max_d+catch_plate_d,-catch_radius])
+                rotate([-45,0,0])
+                cube([catch_plate_w-catch_radius*2,ramp_l,ramp_l]);
+                //fuck this noise
+                translate([0,-ramp_l*2,-ramp_l+10])
+                cube([catch_plate_w*2-catch_radius*2,ramp_l*3,ramp_l]);
+                
+            }
+            union() {
+                translate([catch_radius,-catch_gap,0])
+                cube([catch_plate_w-catch_radius*2,catch_gap,catch_arm_h]);
+                translate([catch_plate_r,-catch_plate_d,-catch_plate_h])
+                rotate([-90,0,0])
+                cylinder(r=catch_plate_r-catch_radius,h=catch_plate_d);
+            }
         }
-        translate([catch_plate_r,-pad,catch_plate_h-catch_plate_r])
-        rotate([-90,0,0])
-        cylinder(r=screw_r,h=catch_plate_d+padd);
-        translate([catch_plate_r,-pad,-catch_plate_r])
-        rotate([-90,0,0])
-        cylinder(r=screw_r,h=catch_plate_d+padd);
-    }
-    translate([0,-catch_gap,0])
-    cube([catch_plate_w,catch_gap,catch_arm_h]);
-    difference() {
-        translate([0,-catch_plate_max_d+catch_plate_d,0])
-        rotate([-45,0,0])
-        cube([catch_plate_w,ramp_l,ramp_l]);
-        translate([-pad,-pad-catch_plate_max_d+catch_plate_d,-ramp_l])
-        cube([catch_plate_w+padd,catch_plate_max_d+padd,ramp_l]);
-        translate([-pad,-catch_gap,0])
+        }
+        //translate([-pad,-pad-catch_plate_max_d+catch_plate_d,-ramp_l])
+        //#cube([catch_plate_w+padd,catch_plate_max_d*2+padd,ramp_l+pad]);
+        translate([-pad,-catch_gap,catch_arm_h])
         //this one is mess, don't care
         cube([catch_plate_w+padd,catch_plate_max_d+padd,ramp_l]);
-        translate([-pad,-catch_plate_max_d+catch_plate_d,-pad])
-        cube([catch_plate_w+padd,safety,safety+pad]);
+        translate([-pad,0,-catch_plate_h-pad-catch_plate_r])
+        cube([catch_plate_w+padd,catch_gap+pad,catch_plate_h*2+padd+catch_plate_r]);
+        catch_bolts();
     }
 }
 
@@ -305,33 +325,36 @@ module push_plate() {
     cube([push_plate_w,push_plate_l,push_plate_h],center=true);
 }
 
-//push();
-//color("red")
-//translate([0,0,-push_plate_h/2])
-//push_plate();
+module assembled_push() {
+    push();
+    color("red")
+    translate([0,0,-push_plate_h/2])
+    push_plate();
+}
 
-//translate([-bar_l+bar_h*2,lever_pivot_to_bar-bar_w,0]) {
-    //lever();
-    //translate([-10,0,0])
-    //mirror([1,0,0])
-    //mount();
-//}
+module garbage() {
+    translate([-bar_l+bar_h*2,lever_pivot_to_bar-bar_w,0]) {
+        lever();
+        translate([-10,0,0])
+        mirror([1,0,0])
+        mount();
+    }
+}
 
-//translate([0,100,0])
-rotate([180,0,0])
-washer();
-
-//translate([40,100,0])
-//spacer();
-//
-//translate([-guide_w,-bar_w*2-pivot_gap,0])
-//guide();
-//translate([0,0,-catch_arm_h])
-//color("cyan")
+module assembled() {
+    translate([-guide_w,-guide_d-guide_t,0])
+    guide();
+    translate([0,0,-catch_arm_h])
+    color("cyan")
+    catch();
+    translate([-bar_l/12*11,-bar_w-pivot_gap,0]) {
+        color("lime")
+        bar();
+        color("magenta")
+        pivot();
+    }
+}
 //catch();
-//translate([-bar_l/12*11,-bar_w-pivot_gap,0]) {
-    //color("lime")
-    //bar();
-    //color("magenta")
-    //pivot();
-//}
+
+guide();
+//assembled();

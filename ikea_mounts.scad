@@ -77,5 +77,5 @@ module lamp() {
     }
 }
 
-//mount();
+mount();
 lamp();
