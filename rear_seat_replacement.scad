@@ -1,16 +1,16 @@
-seat_x=48;
-seat_y=6;
+main_r=1;
+seat_x=46;
+seat_y=main_r+0.1;
 trunk_x=38;
 trunk_y=22;
 total_y=43;
 gap_x=trunk_x;
-gap_y=11;
+gap_y=14;
 gas_x=3;
-gas_y=11;
+gas_y=11.5;
 gas_y_delta=5.5;
 pad=0.1;
 
-main_r=2;
 gas_r=1.5;
 gas_tail=1;
 $fn=60;
@@ -46,8 +46,6 @@ module cut() {
             translate([gas_r,gas_y-gas_r])
             circle(r=gas_r);
             translate([gas_r,gas_r+gas_tail])
-            circle(r=gas_r);
-            translate([gas_r*2,gas_r])
             circle(r=gas_r);
         }
     }
