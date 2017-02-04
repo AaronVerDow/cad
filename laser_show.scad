@@ -37,7 +37,8 @@ module spinner() {
 
 shaft_od=17;
 magnet=10.1;
-magnet_h=5.5;
+shaft_h=7;
+magnet_h=2.5;
 module magnet() {
     difference() {
         cylinder(d=shaft_od,h=shaft_h);
