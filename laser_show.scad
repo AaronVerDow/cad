@@ -36,9 +36,9 @@ module spinner() {
 }
 
 shaft_od=17;
-magnet=10.1;
+magnet=11.5;
 shaft_h=7;
-magnet_h=2.5;
+magnet_h=3.3;
 module magnet() {
     difference() {
         cylinder(d=shaft_od,h=shaft_h);
@@ -46,9 +46,9 @@ module magnet() {
         cylinder(d=shaft,h=shaft_h+pad*2);
         translate([0,0,-pad])
         cylinder(d=magnet,h=magnet_h+pad);
-        translate([0,0,(shaft_h-magnet_h)/2+magnet_h])
+        translate([0,0,magnet_h+screw/2])
         rotate([0,90,0])
-        cylinder(d=screw,h=shaft_od);
+        #cylinder(d=screw,h=shaft_od);
     }
 }
 
