@@ -22,13 +22,22 @@ hole_y=15;
 
 angle=atan((base_y2-base_y1)/base_x);
 
-labels=[
+left_labels=[
     "NAV LT",
     "ANC LT",
     "CRYST LT",
     "TRANS LT",
     "ENG LT",
     "DOCK LT"
+];
+
+right_labels=[
+    "BLOWER",
+    "BILGE",
+    "WIPER",
+    "DEFOG",
+    "ACC",
+    "HORN"
 ];
 
 pad=0.1;
@@ -73,7 +82,7 @@ module plate() {
     }
 }
 
-module letters() {
+module letters(labels) {
     translate([0,list_bottom+light*lights-light/2])
     for (i=[0:1:lights-1]) {
         translate([list_x/2,-i*light])
@@ -83,11 +92,29 @@ module letters() {
 plate_h=3;
 letter_h=0.5;
 
-difference() {
-    linear_extrude(height=plate_h)
-    plate();
+module left() {
+    difference() {
+        linear_extrude(height=plate_h)
+        plate();
 
-    translate([0,0,plate_h-letter_h])
-    linear_extrude(height=letter_h+pad)
-    letters();
+        translate([0,0,plate_h-letter_h])
+        linear_extrude(height=letter_h+pad)
+        letters(left_labels);
+    }
 }
+
+module right() {
+    difference() {
+        linear_extrude(height=plate_h)
+        translate([list_x,0,0])
+        mirror([1,0,0])
+        plate();
+
+        translate([0,0,plate_h-letter_h])
+        linear_extrude(height=letter_h+pad)
+        letters(right_labels);
+    }
+}
+
+//left();
+right();
