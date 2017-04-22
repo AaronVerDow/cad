@@ -18,7 +18,7 @@
  */
 // tuneable constants
 
-teeth = 34;			// Number of teeth, standard Mendel T5 belt = 8, gives Outside Diameter of 11.88mm
+teeth = 36;			// Number of teeth, standard Mendel T5 belt = 8, gives Outside Diameter of 11.88mm
 profile = 6;		// 1=MXL 2=40DP 3=XL 4=H 5=T2.5 6=T5 7=T10 8=AT5 9=HTD_3mm 10=HTD_5mm 11=HTD_8mm 12=GT2_2mm 13=GT2_3mm 14=GT2_5mm
 
 motor_shaft = 3;	// NEMA17 motor shaft exact diameter = 5
@@ -32,7 +32,7 @@ retainer_ht = 1.5;	// height of retainer flange over pulley, standard = 1.5
 idler = 1;			// Belt retainer below teeth, 0 = No, 1 = Yes
 idler_ht = 1.5;		// height of idler flange over pulley, standard = 1.5
 
-pulley_t_ht = 18;	// length of toothed part of pulley, standard = 12
+pulley_t_ht = 11;	// length of toothed part of pulley, standard = 12
 pulley_b_ht = idler_ht;		// pulley base height, standard = 8. Set to same as idler_ht if you want an idler but no pulley.
 pulley_b_dia = 20;	// pulley base diameter, standard = 20
 no_of_nuts = 1;		// number of captive nuts required, standard = 1
@@ -41,12 +41,13 @@ nut_shaft_distance = 1.2;	// distance between inner face of nut and shaft, can b
 
 
 
-bearing=20;
-axle=25;
-$fn=70;
+bearing=24;
+axle=20;
+axle2=25;
+$fn=120;
 
-tri=34;
-tri_side=120;
+tri=30;
+tri_side=80;
 tri_h=8;
 
 pad=0.1;
@@ -54,8 +55,8 @@ padd=pad*2;
 
 pulley_h=10;
 
-screw=4;
-screw_offset=(tri-bearing)/4+bearing/2+1;
+screw=4.5;
+screw_offset=(tri-bearing)/4+bearing/2+2;
 screw_head=10;
 screw_head_h=(screw_head-screw)/2;
 
@@ -66,6 +67,11 @@ nut_h=5;
 back_h=10;
 total_h=back_h+pulley_t_ht+idler_ht+retainer_ht;
 
+tri_r=4;
+
+inset=50;
+inset2=42;
+inset_h=5;
 
 module side(z) {
     translate([0,-tri_side/2+tri/2,0])
@@ -73,12 +79,16 @@ module side(z) {
 }
 
 module tri(z) {
-    intersection() {
-        side(z);
-        rotate([0,0,120])
-        side(z);
-        rotate([0,0,240])
-        side(z);
+    minkowski() {
+        sphere(r=tri_r);
+        translate([0,0,tri_r])
+        intersection() {
+            side(z-tri_r*2);
+            rotate([0,0,120])
+            side(z-tri_r*2);
+            rotate([0,0,240])
+            side(z-tri_r*2);
+        }
     }
 }
 
@@ -87,7 +97,9 @@ module front() {
         rotate([0,0,180])
         tri(front_h);
         translate([0,0,-pad])
-        cylinder(h=nut_h+pad,r=nut/2);
+        cylinder(h=nut_h+pad,d=nut);
+        translate([0,0,-pad])
+        cylinder(h=front_h+padd,d=bearing);
         for(angle=[0:120:240]) {
             rotate([0,0,angle])
             translate([0,screw_offset,-pad]) {
@@ -104,24 +116,63 @@ module back() {
         union() {
             translate([0,0,back_h])
             pulley ( "T5" , T5_pulley_dia , 1.19 , 3.264 ); 
-            tri(back_h);
+            difference() {
+                tri(back_h+tri_r);
+                translate([0,0,back_h+pad])
+                cylinder(d=200,h=tri_r*2);
+            }
         }
         translate([0,0,-pad])
-        cylinder(h=total_h+padd,r=axle/2);
+        cylinder(h=total_h+padd,d1=axle,d2=axle2);
+        translate([0,0,-pad])
+        cylinder(h=total_h+padd,d1=axle,d2=axle2);
+        translate([0,0,total_h-inset_h])
+        cylinder(h=inset_h+pad,d2=inset,d1=inset2);
         for(angle=[0:120:240]) {
             rotate([0,0,angle])
             translate([0,screw_offset,-pad]) {
-                cylinder(h=total_h+padd,r=screw/2);
-                translate([0,0,total_h-screw_head_h])
-                cylinder(h=screw_head_h+padd,r2=screw_head/2+pad,r1=screw/2-pad);
+                cylinder(h=total_h+padd,d=screw);
+                translate([0,0,total_h-screw_head_h-inset_h])
+                cylinder(h=screw_head_h+padd,d2=screw_head+padd,d1=screw-padd);
             }
         }
     }
 }
 
-translate([0,0,-30])
-front();
-back();
+wheel=70.5;
+wheel_h=55;
+false_axle=7.7;
+false_axle_h=15;
+wheel_wall=tri_r;
+
+module wheel_jig() {
+    difference() {
+        union() {
+            translate([0,0,wheel_h-back_h])
+            tri(back_h+tri_r);
+            translate([0,0,wheel_h-wheel_h/3*2])
+            cylinder(h=wheel_h/3*2,d=false_axle);
+            translate([0,0,wheel_h-false_axle_h])
+            cylinder(h=false_axle_h,d1=false_axle,d2=false_axle*3);
+            difference() {
+                cylinder(d=wheel+wheel_wall*2,h=wheel_h+wheel_wall);
+                translate([0,0,-pad])
+                cylinder(d=wheel,h=wheel_h+pad);
+            }
+        }
+        for(angle=[0:120:240]) {
+            rotate([0,0,angle])
+            translate([0,screw_offset,-pad]) {
+                cylinder(h=wheel_h*2+padd,d=screw);
+            }
+        }
+    }
+}
+
+//translate([0,0,-30])
+//front();
+//back();
+wheel_jig();
 
 
 //	********************************

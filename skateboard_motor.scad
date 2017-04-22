@@ -1,4 +1,5 @@
 wall=8;
+$fn=90;
 total_h=wall*2.5;
 truck=21;
 truck_l=40;

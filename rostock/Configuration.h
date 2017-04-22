@@ -361,9 +361,10 @@ const bool Z_MAX_ENDSTOP_INVERTING = true; // set to true to invert the logic of
 // For deltabots this means top and center of the cartesian print volume.
 #define MANUAL_X_HOME_POS 0
 #define MANUAL_Y_HOME_POS 0
-#define MANUAL_Z_HOME_POS 389.4 // For delta: Distance between nozzle and print surface after homing.
+#define MANUAL_Z_HOME_POS 388.1 // For delta: Distance between nozzle and print surface after homing.
 //389.7 is calibrated to a sheet of paper
 //this is too tight for volcano, guess 389.4
+//new bed 388.1
 
 //// MOVEMENT SETTINGS
 #define NUM_AXIS 4 // The axis order in all axis related arrays is X, Y, Z, E

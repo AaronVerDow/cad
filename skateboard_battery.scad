@@ -1,16 +1,16 @@
 batt_x=140;
 batt_y=68;
-batt_z=24;
+batt_z=25;
 $fn=90;
 
-max_y=120;
+max_y=130;
 
 pad=0.1;
 padd=pad*2;
 
 outer=max_y;
 outer_offset=0;
-outer_scale=0.6;
+outer_scale=0.52;
 wall=3;
 
 big_hole=max_y-20;
