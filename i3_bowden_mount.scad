@@ -5,8 +5,10 @@ wall=3;
 screw=4;
 pad=0.1;
 padd=pad*2;
+$fn=90;
 
 
+rotate([90,0,0])
 difference() {
     union() {
         hull() {

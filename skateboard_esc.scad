@@ -2,6 +2,7 @@ screw=5;
 esc_x=34;
 esc_y=55;
 esc_z=8;
+$fn=90;
 
 rec_x=32.5;
 rec_y=22;
