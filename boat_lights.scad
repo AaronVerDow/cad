@@ -1,7 +1,9 @@
 list_top=5;
 lights=6;
 light=155/(lights-1);
-list_bottom=5;
+list_bottom=15;
+
+$fn=90;
 
 list_y=list_top+light*lights+list_bottom;
 
@@ -78,7 +80,7 @@ module negative() {
 module plate() {
     difference() {
         positive();
-        negative();
+        //negative();
     }
 }
 
@@ -92,7 +94,7 @@ module letters(labels) {
 plate_h=3;
 letter_h=0.5;
 
-module left() {
+module left3d() {
     difference() {
         linear_extrude(height=plate_h)
         plate();
@@ -103,7 +105,7 @@ module left() {
     }
 }
 
-module right() {
+module right3d() {
     difference() {
         linear_extrude(height=plate_h)
         translate([list_x,0,0])
@@ -116,5 +118,24 @@ module right() {
     }
 }
 
-//left();
+
+module left() {
+    difference() {
+        plate();
+        letters(left_labels);
+    }
+}
+
+module right() {
+    difference() {
+        translate([list_x,0,0])
+        mirror([1,0,0])
+        plate();
+
+        letters(right_labels);
+    }
+}
+
+translate([base_x,0,0])
+left();
 right();
