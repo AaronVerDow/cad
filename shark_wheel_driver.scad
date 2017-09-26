@@ -17,6 +17,7 @@
  * @using 1 x m3x10 set screw or 1 x m3x8 grub screw
  */
 // tuneable constants
+$fn=90;
 
 teeth = 36;			// Number of teeth, standard Mendel T5 belt = 8, gives Outside Diameter of 11.88mm
 profile = 6;		// 1=MXL 2=40DP 3=XL 4=H 5=T2.5 6=T5 7=T10 8=AT5 9=HTD_3mm 10=HTD_5mm 11=HTD_8mm 12=GT2_2mm 13=GT2_3mm 14=GT2_5mm
@@ -42,9 +43,9 @@ nut_shaft_distance = 1.2;	// distance between inner face of nut and shaft, can b
 
 
 bearing=24;
-axle=20;
-axle2=25;
-$fn=120;
+axle=27;
+axle2=axle;
+//$fn=120;
 
 tri=30;
 tri_side=80;
@@ -56,7 +57,7 @@ padd=pad*2;
 pulley_h=10;
 
 screw=4.5;
-screw_offset=(tri-bearing)/4+bearing/2+2;
+screw_offset=(tri-bearing)/4+bearing/2+4;
 screw_head=10;
 screw_head_h=(screw_head-screw)/2;
 
@@ -95,7 +96,9 @@ module tri(z) {
 module front() {
     difference() {
         rotate([0,0,180])
-        tri(front_h);
+        tri(front_h+tri_r);
+        translate([-50,-50,front_h])
+        cube([100,100,tri_r*2]);
         translate([0,0,-pad])
         cylinder(h=nut_h+pad,d=nut);
         translate([0,0,-pad])
@@ -124,8 +127,8 @@ module back() {
         }
         translate([0,0,-pad])
         cylinder(h=total_h+padd,d1=axle,d2=axle2);
-        translate([0,0,-pad])
-        cylinder(h=total_h+padd,d1=axle,d2=axle2);
+        //translate([0,0,-pad])
+        //cylinder(h=total_h+padd,d1=axle,d2=axle2);
         translate([0,0,total_h-inset_h])
         cylinder(h=inset_h+pad,d2=inset,d1=inset2);
         for(angle=[0:120:240]) {
@@ -169,10 +172,10 @@ module wheel_jig() {
     }
 }
 
-//translate([0,0,-30])
-//front();
+//translate([0,0,-10])
+front();
 //back();
-wheel_jig();
+//wheel_jig();
 
 
 //	********************************
