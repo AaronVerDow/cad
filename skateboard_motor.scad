@@ -1,29 +1,39 @@
 wall=8;
 $fn=90;
-total_h=wall*2.5;
-truck=21;
-truck_l=40;
-truck_total=truck+wall*2;
+filament=1.6;
+total_h=wall*3+10;
+truck_x=19;
+truck_y=18;
+truck_round=4.7;
+truck_x_sub=truck_x-truck_round;
+// how far bolt is from truck
+truck_l=20;
+truck_total_x=truck_x+wall*2;
+truck_total_y=truck_y+wall*2;
+truck_total_x_sub=truck_x_sub+wall;
 motor_mount=25;
 motor=53;
-motor_wall=0;
+motor_wall=filament*3;
 motor_shaft=15;
-angle=60;
+angle=65;
 pad=0.1;
 padd=pad*2;
 screw=5;
-motor_h=4;
-motor_mount_wall=4;
+motor_h=20;
+//how tall what the motor bolts to is
+motor_mount_wall=5;
 motor_total=motor+motor_wall*2;
-belt=47.5;
-slide=4;
-truck_bolt=48;
-truck_bolt_offset=4;
-truck_bolt_side_offset=4;
+belt=43.5;
+slide=5;
+//truck_bolt=48;
+//truck_bolt_offset=4;
+//truck_bolt_side_offset=4;
 bolt=10;
-bolt_head=15;
-bolt_head_h=wall/2;
-bolt_delta=8;
+bolt_head=16.5;
+bolt_head_h=3;
+bolt_delta=0;
+gap=2;
+truck_small=15;
 
 
 
@@ -75,20 +85,46 @@ module mount() {
     difference() {
         union() {
             hull() {
-                cylinder(h=total_h,d=truck_total);
-                translate([truck_l,-truck_total/2+bolt_delta/2,total_h/2])
+                translate([-(truck_x-truck_round)/2,0,0])
+                scale([(truck_round+wall)*2/truck_total_x,1,1])
+                cylinder(h=total_h,d=truck_total_y);
+                translate([-(truck_x-truck_round)/2,-truck_total_y/2,0])
+                cube([truck_total_x_sub,truck_total_y,total_h]);
+                //cylinder(h=total_h,d=truck_total);
+                translate([truck_l,-truck_total_y/2+bolt_delta/2,total_h/2])
                 rotate([-90,0,0])
-                cylinder(d=total_h,h=truck_total-bolt_delta);
+                cylinder(d=total_h,h=truck_total_y-bolt_delta);
                 rotate([0,0,angle])
-                translate([-belt,0,total_h-motor_h])
-                cylinder(h=motor_h,d=motor_total);
+                hull() {
+                    translate([-belt,0,total_h-motor_h])
+                    cylinder(h=motor_h,d=motor_total);
+                    translate([-belt-slide,0,total_h-motor_h])
+                    cylinder(h=motor_h,d=motor_total);
+                }
             }
         }
-        translate([0,0,-pad])
+        translate([-(truck_x-truck_round)/2,0,-pad])
+        scale([truck_round/truck_y*2,1,1])
+        cylinder(h=total_h+padd,d=truck_y);
+        translate([-(truck_x-truck_round)/2,-truck_y/2,-pad])
+        cube([truck_x_sub,truck_y,total_h+padd]);
+        difference() {
+            translate([0,-truck_small/2,-pad])
+            cube([truck_l*2,truck_small,total_h+padd]);
+            translate([truck_l-bolt/2,-truck_y/2,(total_h-bolt)/2])
+            cube([bolt+truck_l,truck_y,total_h]);
+        }
+        translate([0,-truck_small/2,-(total_h-bolt)/2])
+        difference() {
+            cube([truck_l+bolt/2,truck_small,total_h]);
+            translate([truck_l,0,(total_h-bolt)+bolt/2])
+            cube([bolt/2,truck_small,bolt/2]);
+        }
         hull() {
-            cylinder(h=total_h+padd,d=truck);
+            cylinder(h=total_h+padd,d=gap);
+            //cylinder(h=total_h+padd,d=truck);
             translate([truck_l*2,0,0])
-            cylinder(h=total_h+padd,d=truck-bolt_delta*2);
+            cylinder(h=total_h+padd,d=gap);
         }
         rotate([0,0,angle])
         translate([-belt,0,0])
@@ -98,13 +134,13 @@ module mount() {
         //rotate([-90,0,0])
         //cylinder(h=wall*2,d=truck_bolt);
 
-        translate([truck_l,-truck_total/2-truck_total,total_h/2])
+        translate([truck_l,-truck_total_y/2-truck_total_y,total_h/2])
         rotate([-90,0,0])
-        cylinder(d=bolt,h=truck_total*2+pad);
+        cylinder(d=bolt,h=truck_total_y*2+pad);
 
-        translate([truck_l,-truck_total*2.5+bolt_head_h,total_h/2])
+        translate([truck_l,-truck_total_y*2.5+bolt_head_h,total_h/2])
         rotate([-90,0,0])
-        cylinder(d=bolt_head,h=truck_total*2+pad,$fn=6);
+        cylinder(d=bolt_head,h=truck_total_y*2+pad,$fn=6);
     }
 }
 mount();
