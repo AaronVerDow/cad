@@ -8,8 +8,8 @@ box_x=183-gapp;
 box_y=128-gapp;
 box_z=43-gap-big_cards;
 
-card_x=56+gapp;
-card_y=87+gapp;
+card_x=55+gapp;
+card_y=88+gapp;
 
 shell=10+gapp;
 shell_z=30;
