@@ -94,6 +94,8 @@ module mount() {
                 translate([truck_l,-truck_total_y/2+bolt_delta/2,total_h/2])
                 rotate([-90,0,0])
                 cylinder(d=total_h,h=truck_total_y-bolt_delta);
+                translate([truck_l,-truck_total_y/2+bolt_delta/2,total_h/2])
+                cube([total_h/2,truck_total_y-bolt_delta,total_h/2]);
                 rotate([0,0,angle])
                 hull() {
                     translate([-belt,0,total_h-motor_h])
@@ -139,8 +141,9 @@ module mount() {
         cylinder(d=bolt,h=truck_total_y*2+pad);
 
         translate([truck_l,-truck_total_y*2.5+bolt_head_h,total_h/2])
-        rotate([-90,0,0])
+        rotate([-90,90,0])
         cylinder(d=bolt_head,h=truck_total_y*2+pad,$fn=6);
     }
 }
+rotate([180,0,0])
 mount();

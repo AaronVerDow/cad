@@ -1,8 +1,8 @@
 z = 90;
 boxes = [
     [25],
-    [10, 40],
     [60, 30],
+    [10, 40],
 ];
 
 function my_sum(i, total=0) =
@@ -29,9 +29,9 @@ screw_offset=z/5;
 
 difference() {
     hull()
-    all_shapes(wall, wall);
+    all_shapes(wall*2, wall*2);
     translate([0,0,wall])
-    all_shapes(wall, 0);
+    all_shapes(wall*2, 0);
     for (n = [screw_offset, z-screw_offset]) {
         translate([(my_sum(len(boxes)-1)+wall*2*len(boxes)+wall)/2,0,n])
         rotate([-90,0,0]) {
