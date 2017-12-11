@@ -4,11 +4,11 @@ gapp=gap*2;
 pad=0.1;
 padd=pad*2;
 big_cards=8;
-box_x=183-gapp;
-box_y=128-gapp;
+box_x=181-gapp;
+box_y=126-gapp;
 box_z=43-gap-big_cards;
 
-card_x=55+gapp;
+card_x=57+gapp;
 card_y=88+gapp;
 
 shell=10+gapp;
@@ -26,7 +26,7 @@ shelf_y=box_y-card_wall-card_y;
 
 shell_wall=(box_x-shell*shells_x)/(shells_x+1);
 shell_y_wall=(shelf_y-shell*shells_y)/(shells_y+1);
-shell_grip=12;
+shell_grip=6;
 
 
 difference() {
