@@ -12,7 +12,7 @@ card_x=57+gapp;
 card_y=88+gapp;
 
 shell=10+gapp;
-shell_z=30;
+shell_z=28.5;
 
 cards=3;
 shells_x=10;
@@ -26,7 +26,7 @@ shelf_y=box_y-card_wall-card_y;
 
 shell_wall=(box_x-shell*shells_x)/(shells_x+1);
 shell_y_wall=(shelf_y-shell*shells_y)/(shells_y+1);
-shell_grip=6;
+shell_grip=12;
 
 
 difference() {
