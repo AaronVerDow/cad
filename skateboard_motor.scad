@@ -35,6 +35,8 @@ bolt_delta=0;
 gap=2;
 truck_small=15;
 
+wires=20;
+wire_h=5;
 
 
 module motor_negative() {
@@ -85,18 +87,23 @@ module mount() {
     difference() {
         union() {
             hull() {
+                // grips truck
                 translate([-(truck_x-truck_round)/2,0,0])
                 scale([(truck_round+wall)*2/truck_total_x,1,1])
                 cylinder(h=total_h,d=truck_total_y);
+                // square
                 translate([-(truck_x-truck_round)/2,-truck_total_y/2,0])
                 cube([truck_total_x_sub,truck_total_y,total_h]);
                 //cylinder(h=total_h,d=truck_total);
+                // holds bolt for truck
                 translate([truck_l,-truck_total_y/2+bolt_delta/2,total_h/2])
                 rotate([-90,0,0])
                 cylinder(d=total_h,h=truck_total_y-bolt_delta);
+                // square end of holding bolt
                 translate([truck_l,-truck_total_y/2+bolt_delta/2,total_h/2])
                 cube([total_h/2,truck_total_y-bolt_delta,total_h/2]);
                 rotate([0,0,angle])
+                // motor hole
                 hull() {
                     translate([-belt,0,total_h-motor_h])
                     cylinder(h=motor_h,d=motor_total);
@@ -105,17 +112,21 @@ module mount() {
                 }
             }
         }
+        // profile of truck
         translate([-(truck_x-truck_round)/2,0,-pad])
         scale([truck_round/truck_y*2,1,1])
         cylinder(h=total_h+padd,d=truck_y);
+        // square of above
         translate([-(truck_x-truck_round)/2,-truck_y/2,-pad])
         cube([truck_x_sub,truck_y,total_h+padd]);
+        // notch 
         difference() {
             translate([0,-truck_small/2,-pad])
             cube([truck_l*2,truck_small,total_h+padd]);
             translate([truck_l-bolt/2,-truck_y/2,(total_h-bolt)/2])
             cube([bolt+truck_l,truck_y,total_h]);
         }
+        // more notch
         translate([0,-truck_small/2,-(total_h-bolt)/2])
         difference() {
             cube([truck_l+bolt/2,truck_small,total_h]);
@@ -143,6 +154,11 @@ module mount() {
         translate([truck_l,-truck_total_y*2.5+bolt_head_h,total_h/2])
         rotate([-90,90,0])
         cylinder(d=bolt_head,h=truck_total_y*2+pad,$fn=6);
+
+        rotate([0,0,angle])
+        translate([-belt,0,motor_h-wire_h])
+        rotate([0,-90,-angle])
+        #cylinder(d=wires, h=motor);
     }
 }
 rotate([180,0,0])
