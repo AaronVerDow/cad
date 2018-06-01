@@ -1,20 +1,20 @@
-groove=10;
+groove=12;
 groove_h=37;
 // how wide the stand is
-stand=26;
+stand=28;
 
 // flat section at top of the stand
-platform=75;
+platform=73;
 // rounded part
-cup_w=43;
-cup_h=15*2;
+cup_w=38;
+cup_h=18*2;
 // bottom groove in jack stand
 bottom_groove=10;
 
 pad=0.1;
 padd=pad*2;
 
-wall=5;
+wall=6;
 walll=wall*2;
 $fn=200;
 
