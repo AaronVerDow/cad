@@ -13,7 +13,7 @@ below_plate=10;
 wall=filament*2;
 grip=wall;
 lip=1.6;
-backing=filament;
+backing=filament*2;
 
 screw_gap_x=7*in;
 screw_gap_y=4.75*in;
@@ -197,5 +197,5 @@ module sides() {
     }
 }
 
-//rotate([0,90,0])
+rotate([0,-90,0])
 positive();
