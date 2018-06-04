@@ -8,18 +8,18 @@ plate_r=1/2*in;
 plate_d=plate_r*2;
 
 screw_cover=layers*4;
-screw_grip=layers*2;
-below_plate=5;
+screw_grip=layers*4;
+below_plate=10;
 
 screw_gap_x=7*in;
-screw_gap_y=plate_y-1*in;
+screw_gap_y=4.75*in;
 screw=6.5;
 screw_head=screw;
 screw_head_h=0;
 
 
-hole_x=plate_x-1.5*in;
-hole_y=plate_y-1.5*in;
+hole_x=plate_x-1*in;
+hole_y=plate_y-2*in;
 hole_d=5;
 hole_r=hole_d/2;
 
