@@ -42,6 +42,8 @@ plate_d=hole_d+cover/2+outer_wall*2;
 plate_r=plate_d/2;
 joint_buffer=4;
 joint=(plate_y-hole_y)/2+joint_buffer*2;
+
+sup=plate_y/2;
 module positive() {
     difference() {
         union() {
@@ -71,9 +73,15 @@ module supports() {
         }
         half();
     }
+    ear(0);
+    ear(plate_y);
+}
+module ear(y) {
+    translate([plate_x/2,y,0])
+    rotate([0,-90,0])
+    cylinder(d=80,h=filament);
 }
 module support(y) {
-    sup=plate_y/2;
     translate([plate_x/2,y,0])
     rotate([0,45,0])
     translate([-sup/2,-filament/2,-sup/2])
