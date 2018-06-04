@@ -57,8 +57,16 @@ module positive() {
         screws();
         center_hole();
         half();
+        filament_saver();
+
     }
     supports();
+}
+
+module filament_saver() {
+    translate([plate_x/2,plate_y/2,-pad])
+    scale([(plate_x-cover*4)/screw_gap_y,1,1])
+    cylinder(d=screw_gap_y,h=backing+padd);
 }
 module half() {
     translate([plate_x/2,-plate_y/2,-plate_y/2])
@@ -67,9 +75,8 @@ module half() {
 module supports() {
     difference() {
         union() {
-            support(plate_y*7/8);
-            support(plate_y/2);
-            support(plate_y/8);
+            support(plate_y*9/10);
+            support(plate_y/10);
         }
         half();
     }
@@ -185,5 +192,5 @@ module sides() {
     }
 }
 
-rotate([0,90,0])
+//rotate([0,90,0])
 positive();
