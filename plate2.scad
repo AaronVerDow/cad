@@ -12,8 +12,8 @@ below_plate=10;
 
 wall=filament*2;
 grip=wall;
-lip=1.3;
-backing=wall;
+lip=1.6;
+backing=filament;
 
 screw_gap_x=7*in;
 screw_gap_y=4.75*in;
@@ -64,9 +64,9 @@ module positive() {
 }
 
 module filament_saver() {
-    translate([plate_x/2,plate_y/2,-pad])
-    scale([(plate_x-cover*4)/screw_gap_y,1,1])
-    cylinder(d=screw_gap_y,h=backing+padd);
+    translate([plate_x/4,plate_y/2,-pad])
+    scale([(plate_x/2-cover*2)/screw_gap_x,(screw_gap_y-screw*2)/screw_gap_x,1])
+    cylinder(d=screw_gap_x,h=backing+padd);
 }
 module half() {
     translate([plate_x/2,-plate_y/2,-plate_y/2])
@@ -78,18 +78,23 @@ module supports() {
             support(plate_y*9/10);
             support(plate_y/10);
         }
-        half();
+        translate([-plate_x/2,0,pad])
+        cube([plate_x,plate_y*2,plate_y*2]);
+        translate([-plate_x-outer_wall,0,-plate_y])
+        cube([plate_x,plate_y*2,plate_y*2]);
     }
-    ear(0);
-    ear(plate_y);
+    translate([-outer_wall,-sup/2,-sup/2+total_h])
+    cube([layers,plate_y+sup,sup/2]);
 }
+
 module ear(y) {
-    translate([plate_x/2,y,0])
-    rotate([0,-90,0])
+    translate([-outer_wall,y,0])
+    rotate([0,90,0])
     cylinder(d=80,h=filament);
 }
+
 module support(y) {
-    translate([plate_x/2,y,0])
+    translate([-outer_wall,y,0])
     rotate([0,45,0])
     translate([-sup/2,-filament/2,-sup/2])
     cube([sup,filament,sup]);
