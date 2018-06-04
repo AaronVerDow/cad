@@ -4,6 +4,7 @@ in=25.4;
 plate_y=6*in;
 plate_y=158;
 //plate_x=12*in;
+$fn=200;
 
 screw_cover=layers*4;
 screw_grip=layers*4;
@@ -43,17 +44,40 @@ joint_buffer=4;
 joint=(plate_y-hole_y)/2+joint_buffer*2;
 module positive() {
     difference() {
-        translate([plate_r,plate_r,0])
-        minkowski() {
-            cube([plate_x-plate_d,plate_y-plate_d,total_h/2]);
-            cylinder(d=plate_d+outer_wall*2,h=total_h/2);
+        union() {
+            translate([plate_r,plate_r,0])
+            minkowski() {
+                cube([plate_x-plate_d,plate_y-plate_d,total_h/2]);
+                cylinder(d=plate_d+outer_wall*2,h=total_h/2);
+            }
         }
         plate();
         screws();
         center_hole();
-        translate([plate_x/2,-plate_y/2,-total_h/2])
-        cube([plate_x,plate_y*2,total_h*2]);
+        half();
     }
+    supports();
+}
+module half() {
+    translate([plate_x/2,-plate_y/2,-plate_y/2])
+    cube([plate_x,plate_y*2,plate_y*2]);
+}
+module supports() {
+    difference() {
+        union() {
+            support(plate_y*7/8);
+            support(plate_y/2);
+            support(plate_y/8);
+        }
+        half();
+    }
+}
+module support(y) {
+    sup=plate_y/2;
+    translate([plate_x/2,y,0])
+    rotate([0,45,0])
+    translate([-sup/2,-filament/2,-sup/2])
+    cube([sup,filament,sup]);
 }
 
 module plate() {
@@ -153,4 +177,5 @@ module sides() {
     }
 }
 
+rotate([0,90,0])
 positive();
