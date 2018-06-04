@@ -2,16 +2,16 @@ filament=1.2;
 layers=0.4;
 in=25.4;
 plate_y=6*in;
-plate_y=155;
+plate_y=158;
 plate_x=12*in;
 plate_r=1/2*in;
 plate_d=plate_r*2;
 
-screw_cover=layers*2;
+screw_cover=layers*4;
 screw_grip=layers*2;
 below_plate=5;
 
-screw_gap_x=(7+3/8)*in;
+screw_gap_x=7*in;
 screw_gap_y=plate_y-1*in;
 screw=6.5;
 screw_head=screw;
