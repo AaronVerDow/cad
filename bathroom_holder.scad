@@ -1,8 +1,20 @@
-z = 90;
+z = 50;
+$fn=200;
+
+//bathroom holder
 boxes = [
     [25],
     [60, 30],
     [10, 40],
+];
+
+//bathroom holder
+boxes = [
+    [21],
+    [21],
+    [21],
+    [21],
+    [21],
 ];
 
 function my_sum(i, total=0) =
@@ -22,7 +34,7 @@ module all_shapes(move=0, grow=0) {
     }
 }
 
-wall=1.8;
+wall=1.2;
 screw=3;
 head=10;
 screw_offset=z/5;
