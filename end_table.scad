@@ -1,34 +1,78 @@
-top = 36; //diameter
-bottom = 25; //diameter
-shelf_count = 2;
+square_top=30;
+shelves = [2, 1];
+// 0 = round
+// 1 = square
+// 2 = leg_supports (square)
+shelf_count = len(shelves);
+leg_layers=1;
 leg_count = 4;
-leg_height = 8;
-top_height = 28; //top to ground
+leg_height = 5.5; // bottom shelf
+top_height = 18; //top to ground
 min_leg = 2; //smallest size a leg can be
 plywood = 0.5;
 gap = 1/16;
 gapp = gap*2;
 pad = 0.1;
 padd = pad*2;
+leg_thick=plywood*leg_layers;
 
+leg_support=4;
+
+top = sqrt(2*pow((square_top/2),2))*2-leg_thick/2-gap; //diameter
+bottom = top-6; //diameter
 leg_angle = atan((top-bottom)/2/top_height);
+echo("top is", top);
 
 $fn=120;
 
 
-module shelf(diameter,leg_width) {
+module shelf(type, diameter,leg_width) {
+    if (type == 0)
+    round_shelf(diameter, leg_width);
+    if (type == 1)
+    square_shelf(diameter, leg_width);
+    if (type == 2)
+    square_shelf_leg_supports(diameter, leg_width);
+}
+
+module round_shelf(diameter,leg_width) {
     difference() {
-        circle(r=diameter/2);
+        circle(d=diameter);
+        leg_slots(diameter, leg_width);
+    }
+}
+
+module square_shelf(diameter,leg_width) {
+    difference() {
+        hull() {
+            leg_slots(diameter, leg_width);
+        }
+        leg_slots(diameter, leg_width);
+    }
+}
+
+module square_shelf_leg_supports(diameter,leg_width) {
+    intersection() {
+        square_shelf(diameter, leg_width);
         for(i=[0:leg_count-1]) {
             rotate(i*360/leg_count)
-            translate([-plywood/2-gap,-diameter/2])
-            square([plywood+gapp,leg_width]);
+            translate([-leg_support/2,-diameter/2])
+            square([leg_support,diameter/2]);
         }
     }
 }
 
+
+module leg_slots(diameter, leg_width) {
+    for(i=[0:leg_count-1]) {
+        rotate(i*360/leg_count)
+        translate([-leg_thick/2-gap,-diameter/2])
+        square([leg_thick+gapp,leg_width]);
+    }
+}
+
 module shelf_number(i) {
-        shelf(tan(leg_angle)*((top_height-leg_height)/(shelf_count-1)*i+leg_height)*2+bottom,(tan(leg_angle)*((top_height-leg_height)/(shelf_count-1)*i+leg_height)+min_leg)/2+gap/2);
+        shelf(shelves[i], tan(leg_angle)*((top_height-leg_height)/(shelf_count-1)*i+leg_height)*2+bottom,(tan(leg_angle)*((top_height-leg_height)/(shelf_count-1)*i+leg_height)+min_leg)/2+gap/2);
 }
 
 module assemble_shelves() {
@@ -42,7 +86,11 @@ module assemble_shelves() {
 module assemble_legs() {
     for(i=[0:leg_count-1]) {
         rotate(i*360/leg_count)
-        leg_3d();
+        translate([-leg_thick/2-plywood/2,0,0])
+        for(l=[1:leg_layers]) {
+            translate([plywood*l,0,0])
+            leg_3d();
+        }
     }
 }
 
@@ -99,5 +147,5 @@ module plate() {
     }
 }
 
-//assemble();
-plate();
+assemble();
+//plate();
