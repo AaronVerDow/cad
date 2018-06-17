@@ -13,17 +13,24 @@ max_y=side_a+side_b+groove;
 edge=5;
 
 screw=5;
-screws=6;
+screws=4;
 screw_h=16;
 screw_head=10;
 screw_head_h=3;
 screw_head_lip=1;
 
-raft=30;
-raft_d=puck+raft*2;
 layer_h=0.4;
 
-$fn=200;
+magnet=10; 
+magnet_pad=layer_h*2; 
+magnet_h=max_z-magnet_pad;
+magnet_offset=puck/3;
+
+raft=30;
+raft_d=puck+raft*2;
+
+
+$fn=100;
 
 module jack_adapter() {
     intersection() {
@@ -31,9 +38,22 @@ module jack_adapter() {
             puck();
             groove();
             screws();
+            magnets();
         }
         binding_box();
     }
+}
+
+module magnets() {
+    translate([0,magnet_offset,0])
+    magnet();
+    translate([0,-magnet_offset,0])
+    magnet();
+}
+
+module magnet() {
+    translate([0,0,-pad])
+    cylinder(d=magnet,h=magnet_h+pad);
 }
 
 module binding_box() {
@@ -80,4 +100,4 @@ module raft() {
 }
 
 jack_adapter();
-raft();
+//raft();
