@@ -9,26 +9,27 @@ wall=filament; // bow hanger
 
 body=screw+wall*2;
 
-head_d=4; // key hanger
-head_d=3; // bow hanger
+layer_h=0.4;
+head_d=3; 
 head_r=head_d/2;
+head_h=1;
 
 height=33;
 height=40;
 height=17;
-height=55;
+height=58;
 
 
 base=20;
 base_r=(base-body)/2;
-base_h=1;
+base_h=layer_h*2;
 total_base_h=base_h+base_r;
 
 $fn=90;
 pad=0.1;
 padd=pad*2;
 
-//mirror([0,0,1])
+mirror([0,0,1])
 difference() {
     union() {
         translate([0,0,head_r])
@@ -36,7 +37,7 @@ difference() {
         hull() {
             translate([0,0,head_d/2])
             rotate_extrude(angle=360, convexity=2) {
-                translate([body/2-1,0,0])
+                translate([body/2,0,0])
                 circle(d=head_d);
             }
             translate([0,0,head_r])
@@ -47,7 +48,9 @@ difference() {
     translate([0,0,-pad])
     cylinder(h=height+padd,d=screw);
     translate([0,0,-pad])
-    cylinder(h=screw_head_h+padd,d2=screw,d1=screw_head);
+    cylinder(d=screw_head,h=head_h+pad);
+    translate([0,0,head_h])
+    cylinder(h=screw_head_h+pad,d2=screw,d1=screw_head);
 }
 
 module base() {
