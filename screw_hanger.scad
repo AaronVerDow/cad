@@ -1,17 +1,23 @@
-screw=7;
-screw_head=10.5;
+screw=7; // key hangers
+screw=6; // bow hanger
+screw_head=10.5; // key hangers
+screw_head=9.5; //bow hanger
 screw_head_h=(screw_head-screw)/2;
 filament=1.2;
-wall=filament*2;
+wall=filament*2; // key hanger
+wall=filament; // bow hanger
 
 body=screw+wall*2;
 
-head_d=4;
+head_d=4; // key hanger
+head_d=3; // bow hanger
 head_r=head_d/2;
 
 height=33;
 height=40;
 height=17;
+height=55;
+
 
 $fn=90;
 pad=0.1;
