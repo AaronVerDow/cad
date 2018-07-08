@@ -19,11 +19,16 @@ height=17;
 height=55;
 
 
+base=20;
+base_r=(base-body)/2;
+base_h=1;
+total_base_h=base_h+base_r;
+
 $fn=90;
 pad=0.1;
 padd=pad*2;
 
-mirror([0,0,1])
+//mirror([0,0,1])
 difference() {
     union() {
         translate([0,0,head_r])
@@ -37,9 +42,20 @@ difference() {
             translate([0,0,head_r])
             cylinder(h=head_r*1.5,d=body);
         }
+        base();
     }
     translate([0,0,-pad])
     cylinder(h=height+padd,d=screw);
     translate([0,0,-pad])
     cylinder(h=screw_head_h+padd,d2=screw,d1=screw_head);
+}
+
+module base() {
+    translate([0,0,height-total_base_h])
+    rotate_extrude(angle=360, convexity=2)
+    difference() {
+        square([base/2,total_base_h]);
+        translate([base/2,0])
+        circle(base_r);
+    }
 }
