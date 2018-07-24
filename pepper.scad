@@ -1,15 +1,16 @@
 filament=1.2;
-wall=filament*2;
-$fn=200;
+wall=filament*4;
+$fn=50;
+
+display="";
 
 //cap
 top_wall=3;
 shaft=7;
-shaft_h=0;
-knob=21.5;
+knob=22;
 knob_h=29;
-knob_lip=26;
-knob_lip_h=4;
+knob_lip=26.5;
+knob_lip_h=4.5;
 //cap
 
 knob_lock=knob_lip; 
@@ -17,26 +18,34 @@ knob_lock_w=8.5;
 
 // body
 top_hole=knob_lip;
-silo=38;
+silo=36;
 top_hole_h=(silo-top_hole)/2;
-silo_h=110-top_hole_h;
-grinder=silo;
+silo_h=110;
+grinder=39.8;
 grinder_h=34;
-chute=41.5;
-chute_h=10;
+chute=42;
+chute_h=3;
+flair_h=19;
 // body
 
 
-grinder_lock=chute; 
+grinder_lock=42; 
 grinder_lock_w=12.5; 
+//grinder_h=34(grinder_lock-grinder)/2;
 
-base_h=chute_h+grinder_h+silo_h+top_hole_h;
+grinder_h=37;
+
+base_h=flair_h+chute_h+grinder_h+silo_h;
 profile_d=base_h*4;
 profile_r=profile_d/2;
 base_min=silo+wall*2;
 base_max=100;
 
+
 cap=base_min+6;
+cap_offset=6;
+shaft_wall=2;
+shaft_h=cap-cap_offset-shaft_wall;
 cap_h=knob_lip_h+knob_h+shaft_h+top_wall;
 
 extrusion_width=1.2;
@@ -60,7 +69,7 @@ module lock(diameter, width, height) {
 }
 
 module cap_positive() {
-    translate([0,0,cap/2-6])
+    translate([0,0,cap/2-cap_offset])
     sphere(d=cap);
 }
 module cap() {
@@ -70,6 +79,7 @@ module cap() {
         cap_positive();
         shaft();
         knob();
+
         knob_lip();
         translate([0,0,-cap])
         cylinder(d=cap,h=cap);
@@ -78,12 +88,12 @@ module cap() {
 
 module shaft() {
     translate([0,0,-pad])
-    cylinder(d=shaft,h=knob_lip_h+knob_h+shaft_h+pad);
+    cylinder(d=shaft,h=shaft_h+pad);
 }
 module knob() {
     translate([0,0,knob_lip_h-pad]) {
         cylinder(d=knob,h=knob_h+pad);
-        locks(knob_lock, knob_lock_w, grinder_h, 3);
+        locks(knob_lock, knob_lock_w, knob_h, 3);
     }
 }
 module knob_lip() {
@@ -98,22 +108,21 @@ module base() {
         chute();
         grinder();
         silo();
-        top_hole();
     }
 }
 
-module top_hole() {
-    translate([0,0,chute_h+grinder_h-pad+silo_h+pad])
-    cylinder(d1=silo,d2=top_hole-padd,h=top_hole_h+pad);
-}
 
 module silo() {
-    translate([0,0,chute_h+grinder_h-pad])
-    cylinder(d=silo,h=silo_h+padd);
+    intersection() {
+        rotate_extrude()
+        base_profile(-wall);
+        translate([0,0,flair_h+chute_h+grinder_h-pad])
+        cylinder(d2=top_hole, d1=top_hole+silo_h*2,h=silo_h+padd);
+    }
 }
 
 module grinder() {
-    translate([0,0,chute_h-pad]) {
+    translate([0,0,flair_h+chute_h-pad]) {
         cylinder(d=grinder,h=grinder_h+padd);
         locks(grinder_lock, grinder_lock_w, grinder_h, 2);
     }
@@ -121,13 +130,19 @@ module grinder() {
 
 module chute() {
     translate([0,0,-pad])
-    cylinder(d=chute,h=chute_h+pad);
+    cylinder(d=chute,h=flair_h+chute_h+pad);
+    translate([0,0,-pad])
+    intersection() {
+        rotate_extrude()
+        base_profile(-wall);
+        cylinder(d2=chute, d1=chute+flair_h*2,h=flair_h);
+    }
 }
 
-module base_profile() {
+module base_profile(diff=0) {
     difference() {
         square([base_max/2,base_h]);
-        translate([profile_r+base_min/2,base_h/2])
+        translate([profile_r+base_min/2+diff,base_h/2])
         circle(d=profile_d);
     }
 }
@@ -142,4 +157,17 @@ module assembled() {
     cap();
 }
 
-assembled();
+module base_to_print() {
+    $fn=200;
+    rotate([0,180,0])
+    base();
+}
+
+module cap_to_print() {
+    $fn=200;
+    cap();
+}
+
+if (display == "") assembled();
+if (display == "pepper_base.stl") base_to_print();
+if (display == "pepper_cap.stl") cap_to_print();

@@ -1,20 +1,13 @@
-z = 50;
-$fn=200;
+z = 90;
 
 //bathroom holder
 boxes = [
-    [25],
-    [60, 30],
-    [10, 40],
-];
-
-//bathroom holder
-boxes = [
-    [21],
-    [21],
-    [21],
-    [21],
-    [21],
+    [21], // marker
+    [32.5], // flonaise
+    [10, 36], // comb
+    [55, 30], // toothpaste
+    [25], // toothbrush 
+    [25], // toothbrush
 ];
 
 function my_sum(i, total=0) =
@@ -39,17 +32,28 @@ screw=3;
 head=10;
 screw_offset=z/5;
 
-difference() {
-    hull()
-    all_shapes(wall*2, wall*2);
-    translate([0,0,wall])
-    all_shapes(wall*2, 0);
-    for (n = [screw_offset, z-screw_offset]) {
-        translate([(my_sum(len(boxes)-1)+wall*2*len(boxes)+wall)/2,0,n])
-        rotate([-90,0,0]) {
-            cylinder(d=head,h=100);
-            translate([0,0,-wall*2])
-            cylinder(d=screw,h=100);
+module assembled() {
+    difference() {
+        hull()
+        all_shapes(wall*2, wall*2);
+        translate([0,0,wall])
+        all_shapes(wall*2, 0);
+        for (n = [screw_offset, z-screw_offset]) {
+            translate([(my_sum(len(boxes)-1)+wall*2*len(boxes)+wall)/2,0,n])
+            rotate([-90,0,0]) {
+                cylinder(d=head,h=100);
+                translate([0,0,-wall*2])
+                cylinder(d=screw,h=100);
+            }
         }
     }
 }
+
+module fine() {
+    $fn=200;
+    assembled();
+}
+
+display="";
+if (display == "") assembled();
+if (display == "bathroom_holder.stl") fine();
