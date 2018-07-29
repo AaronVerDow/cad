@@ -113,6 +113,7 @@ module spaced() {
 
 module label(string) {
     translate([base,-screw_head/2,0])
+    linear_extrude(pad)
     text(string, height=screw_head);
     children();
 }
@@ -137,8 +138,8 @@ module timeline() {
             head_2d();
             #screw();
         }
-        label("screw_head")
-        screw_head();
+        label("screw")screw();
+        label("screw_head")screw_head();
     }
 }
 
