@@ -17,25 +17,24 @@ knob_lock=knob_lip;
 knob_lock_w=8.5; 
 
 // body
-top_hole=knob_lip;
+lid_h=3;
+lid_top=knob_lip;
+lid_bottom=lid_top-lid_h;
 silo=36;
-top_hole_h=(silo-top_hole)/2;
-silo_h=110;
+silo_h=107;
 grinder=39.8;
 grinder_h=34;
 chute=42;
 chute_h=3;
 flair_h=19;
 // body
-
-
 grinder_lock=42; 
 grinder_lock_w=12.5; 
 //grinder_h=34(grinder_lock-grinder)/2;
 
 grinder_h=37;
 
-base_h=flair_h+chute_h+grinder_h+silo_h;
+base_h=flair_h+chute_h+grinder_h+silo_h+lid_h;
 profile_d=base_h*4;
 profile_r=profile_d/2;
 base_min=silo+wall*2;
@@ -64,7 +63,7 @@ module lock(diameter, width, height) {
     intersection() {
         cylinder(d=diameter, h=height);
         translate([0,-width/2,-pad])
-        cube([diameter/2+pad,width,height+padd]);
+       cube([diameter/2+pad,width,height+padd]);
     }
 }
 
@@ -103,45 +102,73 @@ module knob_lip() {
 
 module base() {
     difference() {
-        rotate_extrude()
-        base_profile();
-        chute();
-        grinder();
-        silo();
+		base_positive();
+		base_negative();
     }
+}
+
+module base_positive() {
+	rotate_extrude()
+	base_profile();
+}
+
+module lid_bottom(p=0) {
+	translate([0,0,-p])
+	cylinder(d=lid_bottom, h=lid_h/2+p*2);
+	translate([0,0,lid_h/2]) children();
+}
+
+module lid_top(p=0) {
+	cylinder(d=lid_top, h=lid_h/2+p);
+	translate([0,0,lid_h/2]) children();
+}
+
+module lid() {
+	difference() {
+		lid_bottom()
+		lid_top();
+		translate([0,0,-pad])
+		cylinder(d=shaft,h=lid_h+padd);
+	}
 }
 
 
 module silo() {
-    intersection() {
-        rotate_extrude()
-        base_profile(-wall);
-        translate([0,0,flair_h+chute_h+grinder_h-pad])
-        cylinder(d2=top_hole, d1=top_hole+silo_h*2,h=silo_h+padd);
-    }
-}
-
-module grinder() {
-    translate([0,0,flair_h+chute_h-pad]) {
-        cylinder(d=grinder,h=grinder_h+padd);
-        locks(grinder_lock, grinder_lock_w, grinder_h, 2);
-    }
+	cylinder(d2=lid_bottom-padd, d1=lid_bottom+silo_h*2,h=silo_h+pad);
+	translate([0,0,silo_h]) children();
 }
 
 module chute() {
     translate([0,0,-pad])
-    cylinder(d=chute,h=flair_h+chute_h+pad);
-    translate([0,0,-pad])
-    intersection() {
-        rotate_extrude()
-        base_profile(-wall);
-        cylinder(d2=chute, d1=chute+flair_h*2,h=flair_h);
-    }
+    cylinder(d=chute,h=chute_h+pad);
+	translate([0,0,chute_h]) children();
+}
+module grinder() {
+	chute()
+	grinder_body()
+	children();
 }
 
-module base_profile(diff=0) {
+module grinder_body() {
+    translate([0,0,-pad]) {
+        cylinder(d=grinder,h=grinder_h+padd);
+        locks(grinder_lock, grinder_lock_w, grinder_h, 2);
+    }
+	translate([0,0,grinder_h]) children();
+}
+
+module flair() {
+    translate([0,0,-pad])
+	cylinder(d2=chute-padd, d1=chute+flair_h*2+padd,h=flair_h+padd);
+	translate([0,0,flair_h]) children();
+}
+
+
+module base_profile(diff=0, p=0) {
     difference() {
-        square([base_max/2,base_h]);
+		translate([0,-p])
+        square([base_max/2,base_h+p*2]);
+		$fn=100;
         translate([profile_r+base_min/2+diff,base_h/2])
         circle(d=profile_d);
     }
@@ -168,6 +195,64 @@ module cap_to_print() {
     cap();
 }
 
-if (display == "") assembled();
+module base_negative_raw() {
+	flair()
+    grinder()
+	silo()
+	lid_bottom(pad)
+	lid_top(pad);
+}
+
+module base_negative() {
+    intersection() {
+        rotate_extrude()
+        base_profile(-wall, pad);
+		base_negative_raw();
+	}
+}
+
+module timeline() {
+    module spaced(x=0, y=0) {
+        for( i= [0:1:$children-1])
+        translate([x*i,y*i,0])
+        children(i);
+    }
+
+    module label(string) {
+		rotate([0,0,45])
+        translate([30,0,0])
+        linear_extrude(pad)
+        text(string);
+        children();
+    }
+
+	spaced(y=base_min*2) {
+		label("assembled") assembled();
+		label("base_negative") {
+			#base_positive();
+			base_negative();
+		}	
+		label("");
+        label("base_negative_raw") #base_negative_raw();
+		label("");
+        label("flair") #flair();
+		spaced(x=80) {
+			label("grinder") #grinder();
+			label("chute") #chute();
+			label("grinder_body") #grinder_body();
+		}
+		label("");
+        label("silo") #silo();
+		label("");
+		spaced(x=40) {
+			label("lid") lid();
+			label("lid_top") #lid_top();
+			label("lid_bottom") #lid_bottom();
+		}
+        label("base_profile") base_profile();
+	}
+}
+ 
+if (display == "") timeline();
 if (display == "pepper_base.stl") base_to_print();
 if (display == "pepper_cap.stl") cap_to_print();
