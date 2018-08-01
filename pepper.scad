@@ -37,7 +37,7 @@ grinder_h=37;
 base_h=flair_h+chute_h+grinder_h+silo_h+lid_h;
 profile_d=base_h*4;
 profile_r=profile_d/2;
-base_min=silo+wall*2;
+base_min=grinder+wall*2;
 base_max=100;
 
 
@@ -61,9 +61,13 @@ module locks(diameter, width, height, count) {
 
 module lock(diameter, width, height) {
     intersection() {
-        cylinder(d=diameter, h=height);
+        union() {
+            cylinder(d=diameter, h=height);
+            translate([0,0,height])
+            cylinder(d1=diameter, d2=diameter/2, h=diameter/4);
+        }
         translate([0,-width/2,-pad])
-       cube([diameter/2+pad,width,height+padd]);
+        cube([diameter/2+pad,width,height+height/4+padd]);
     }
 }
 
@@ -71,17 +75,17 @@ module cap_positive() {
     translate([0,0,cap/2-cap_offset])
     sphere(d=cap);
 }
+module cap_negative() {
+    shaft();
+    knob();
+    knob_lip();
+    translate([0,0,-cap])
+    cylinder(d=cap,h=cap);
+}
 module cap() {
     difference() {
-        //rotate_extrude()
-        //cap_profile();
         cap_positive();
-        shaft();
-        knob();
-
-        knob_lip();
-        translate([0,0,-cap])
-        cylinder(d=cap,h=cap);
+        cap_negative();
     }
 }
 
@@ -90,14 +94,23 @@ module shaft() {
     cylinder(d=shaft,h=shaft_h+pad);
 }
 module knob() {
-    translate([0,0,knob_lip_h-pad]) {
+    translate([0,0,-pad]) {
         cylinder(d=knob,h=knob_h+pad);
-        locks(knob_lock, knob_lock_w, knob_h, 3);
+        locks(knob_lock, knob_lock_w, knob_h+pad-(knob_lock-knob)/2, 3);
+    }
+    translate([0,0,knob_h]) {
+        cylinder(d1=knob, d2=0, h=knob/2);
+        children();
     }
 }
+
 module knob_lip() {
     translate([0,0,-pad])
     cylinder(d=knob_lip,h=knob_lip_h+pad);
+    translate([0,0,knob_lip_h]) {
+        cylinder(d2=knob_lip/2, d1=knob_lip, h=knob_lip/4);
+        children();
+    }
 }
 
 module base() {
@@ -123,25 +136,48 @@ module lid_top(p=0) {
 	translate([0,0,lid_h/2]) children();
 }
 
+module lid_shaft() {
+    translate([0,0,-pad])
+    cylinder(d=shaft,h=lid_h+padd);
+}
+
 module lid() {
 	difference() {
-		lid_bottom()
-		lid_top();
-		translate([0,0,-pad])
-		cylinder(d=shaft,h=lid_h+padd);
+		lid_bottom() lid_top();
+        lid_shaft();
 	}
 }
 
 
+module lid_to_print() {
+    $fn=200;
+    rotate([180,0,0])
+    lid();
+}
+
+
 module silo() {
-	cylinder(d2=lid_bottom-padd, d1=lid_bottom+silo_h*2,h=silo_h+pad);
+    module top() {
+        cylinder(d2=lid_bottom-padd, d1=lid_bottom+silo_h*2+padd,h=silo_h+padd);
+    }
+    module bottom() {
+        cylinder(d2=grinder+silo_h*2+padd, d1=grinder-padd,h=silo_h+padd);
+    }
+    translate([0,0,-pad])
+    intersection() {
+        top();
+        bottom();
+    }
 	translate([0,0,silo_h]) children();
 }
 
 module chute() {
     translate([0,0,-pad])
     cylinder(d=chute,h=chute_h+pad);
-	translate([0,0,chute_h]) children();
+	translate([0,0,chute_h]) {
+        cylinder(d2=chute/2,d1=chute,h=chute/4);
+        children();
+    }
 }
 module grinder() {
 	chute()
@@ -149,12 +185,18 @@ module grinder() {
 	children();
 }
 
+module grinder_locks() {
+    locks(grinder_lock, grinder_lock_w, grinder_h-(grinder_lock-grinder)/2+pad, 2);
+}
 module grinder_body() {
     translate([0,0,-pad]) {
-        cylinder(d=grinder,h=grinder_h+padd);
-        locks(grinder_lock, grinder_lock_w, grinder_h, 2);
+        cylinder(d=grinder,h=grinder_h+pad);
+        grinder_locks();
     }
-	translate([0,0,grinder_h]) children();
+	translate([0,0,grinder_h]) {
+        cylinder(d1=grinder,d2=grinder/2,h=grinder/4);
+        children();
+    }
 }
 
 module flair() {
@@ -180,6 +222,8 @@ module cap_profile() {
 
 module assembled() {
     base();
+    translate([0,0,base_h+10])
+    lid();
     translate([0,0,base_h+50])
     cap();
 }
@@ -211,6 +255,8 @@ module base_negative() {
 	}
 }
 
+module test_overlap() {if ($children > 1 ) { for (i = [0 : $children - 2]) { for (j = [i + 1 : $children - 1]) { intersection() { children(i); children(j); } } } } }
+
 module timeline() {
     module spaced(x=0, y=0) {
         for( i= [0:1:$children-1])
@@ -226,6 +272,17 @@ module timeline() {
         children();
     }
 
+	spaced(x=base_min*2) {
+		label("");
+        label("cap") cap();
+        label("cap_negative") {
+            #cap_positive();
+            cap_negative();
+        }
+        label("shaft") shaft();
+        label("knob") knob();
+        label("knob_lip") knob_lip();
+    }
 	spaced(y=base_min*2) {
 		label("assembled") assembled();
 		label("base_negative") {
@@ -233,21 +290,24 @@ module timeline() {
 			base_negative();
 		}	
 		label("");
-        label("base_negative_raw") #base_negative_raw();
+        label("base_negative_raw")#base_negative_raw();
 		label("");
         label("flair") #flair();
 		spaced(x=80) {
 			label("grinder") #grinder();
 			label("chute") #chute();
 			label("grinder_body") #grinder_body();
+			label("grinder_locks") grinder_locks();
 		}
-		label("");
-        label("silo") #silo();
-		label("");
+        // too big
+		// label(""); label("silo") #silo(); label("");
 		spaced(x=40) {
 			label("lid") lid();
 			label("lid_top") #lid_top();
 			label("lid_bottom") #lid_bottom();
+            label("lid_shaft") {
+                lid_shaft();
+            }
 		}
         label("base_profile") base_profile();
 	}
@@ -256,3 +316,4 @@ module timeline() {
 if (display == "") timeline();
 if (display == "pepper_base.stl") base_to_print();
 if (display == "pepper_cap.stl") cap_to_print();
+if (display == "pepper_lid.stl") lid_to_print();
