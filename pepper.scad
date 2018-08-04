@@ -210,7 +210,7 @@ module base_profile(diff=0, p=0) {
     difference() {
 		translate([0,-p])
         square([base_max/2,base_h+p*2]);
-		$fn=100;
+		$fn=600;
         translate([profile_r+base_min/2+diff,base_h/2])
         circle(d=profile_d);
     }

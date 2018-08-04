@@ -1,16 +1,21 @@
+extrusion_width=1.2;
 pin=14;
 layer_h=0.4;
-hitch=35;
-hitch_r=2.5;
+hitch=32;
+hitch_r=5;
 hitch_d=hitch_r*2;
 pin_depth=45+pin/2;
 depth=100+pin_depth+pin;
 pad=0.1;
 padd=pad*2;
-wall=3;
+wall=extrusion_width*2;
+ring_wall=extrusion_width;
+ring_offset=3;
 finger=20;
 raft=40;
+ring_support=hitch/4;
 
+storage=hitch-wall*2;
 storage_h=depth-pin_depth-wall*2-pin/2; //fill all space
 storage_h=80;
 
@@ -42,9 +47,13 @@ module storage_rotated() {
         storage();
 }
 
+module negative() {
+    pin();
+    supported_ring();
+}
+
 module storage() {
 	storage_d=10;
-	storage=[hitch-wall*2,hitch-wall+pad,depth-pin_depth-wall*2-pin/2];
 
 	inner_storage=hitch-wall*2-storage_d;
 	inner_storage_cube=[inner_storage,hitch,storage_h-storage_d];
@@ -56,19 +65,46 @@ module storage() {
 	}
 }
 
+module supported_ring() {
+    difference() {
+        ring();
+        translate([-hitch/2-padd,0,pin_depth])
+        rotate([0,90,0])
+        cylinder(d=pin+ring_wall*2,h=hitch+padd-ring_offset);
+    }
+}
+module ring() {
+    hull() {
+        translate([-hitch/2+hitch/3,0,pin_depth+storage_h])
+        rotate([0,90,0])
+        cylinder(d=storage,h=hitch*2/3+pad);
+        
+        translate([-hitch/2+hitch/3,0,pin_depth])
+        rotate([0,90,0])
+        cylinder(d=storage,h=hitch*2/3+pad);
+    }
+    hull() {
+        translate([-hitch/2-pad,0,pin_depth+storage_h])
+        rotate([0,90,0])
+        cylinder(d=storage,h=hitch+padd);
+        
+        translate([-hitch/2-pad,0,pin_depth+storage])
+        rotate([0,90,0])
+        cylinder(d=storage,h=hitch+padd);
+    }
+
+}
+
 module assembled() {
     difference() {
 		body();
-		pin();
-		storage_rotated();
+        negative();
     }
 }
 
 module inside_out() {
     #body();
-    storage_rotated();
-    pin();
-    pull();
+    negative();
 }
 
 module timeline() {
@@ -89,15 +125,11 @@ module timeline() {
 	spaced() {
 		label("with_raft") with_raft();
         label("");
-		label("raft") raft();
-        label("");
 		label("assembled") assembled();
 		label("inside_out") inside_out();
-		label("body") body();
-		label("storage_rotated") #storage_rotated();
-		label("storage") #storage();
 		label("pin") #pin();
-		label("pull") #pull();
+        label("ring") #ring();
+        label("supported_ring") #supported_ring();
 	}
 }
 
@@ -116,12 +148,12 @@ module raft() {
         }
         translate([0,hitch/2,hitch/2])
         rotate([0,-90,0])
-        pin();
+        negative();
     }
 }
 
 module with_raft() {
-    #raft();
+    raft();
     translate([0,hitch/2,hitch/2])
     rotate([0,-90,0])
     assembled();
@@ -129,5 +161,8 @@ module with_raft() {
 
 display="";
 if (display == "") timeline();
-if (display == "hide_key.stl") fine() assembled();
+if (display == "hide_key.stl")
+rotate([0,-90,0])
+fine() assembled();
+if (display == "hide_key_on_end.stl") fine() assembled();
 if (display == "hide_key_with_raft.stl") fine() with_raft();
