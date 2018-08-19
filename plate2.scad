@@ -1,66 +1,75 @@
-filament=1.2;
-layers=0.4;
-in=25.4;
-plate_y=6*in;
-plate_y=158;
-//plate_x=12*in;
 $fn=200;
 
-screw_cover=layers*4;
-screw_grip=layers*4;
-below_plate=10;
+extrusion_width=1.2; // << Please adjust this for clean prints
+wall=extrusion_width*2; // thickness of everything
 
-wall=filament*2;
-grip=wall;
-lip=1.6;
-backing=filament*2;
+layer_height=0.4; // used for first layer supports only
+in=25.4; // used for conversion 
 
-screw_gap_x=7*in;
-screw_gap_y=4.75*in;
-screw=6.5;
-screw_head=screw;
-screw_head_h=0;
+plate_y=158; // edge to edge of plate height
 
 
+// top (face) of part
+grip=wall; // thickness of edge that grips plate 
+lip=1.6; // thickness of the outslide lip of plate
+backing=wall; // thickness of holder backing
+// bottom (backing) of part
+
+total_h=grip+lip+backing;
+
+screw_gap_x=7*in; // distance between screws, x
+screw_gap_y=4.75*in; // distance between screws, y
+screw=6.5; // diameter of screw holes
+
+// big "hole" that lets you see the plate
 hole_x=295;
 hole_y=144;
 hole_d=1*in;
 hole_r=hole_d/2;
 
-cover=(plate_y-hole_y)/2;
-
-//foce a uniform border
+cover=(plate_y-hole_y)/2; // how much covers the edge of plate 
+// quick hack to force uniform border
+// x cover was too narrow, based on hole size instead of measurements
 plate_x=cover*2+hole_x;
 
-total_h=grip+lip+backing;
-
-outer_wall=wall;
+// pad negative space for clean differences
 pad=0.1;
 padd=pad*2;
 
-plate_d=hole_d+cover/2+outer_wall*2;
+// diameter of plate edge
+plate_d=hole_d+cover/2+wall*2;
 plate_r=plate_d/2;
-joint_buffer=4;
-joint=(plate_y-hole_y)/2+joint_buffer*2;
 
+// determines size of supports
 sup=plate_y/2;
-module positive() {
-    difference() {
-        union() {
-            translate([plate_r,plate_r,0])
-            minkowski() {
-                cube([plate_x-plate_d,plate_y-plate_d,total_h/2]);
-                cylinder(d=plate_d+outer_wall*2,h=total_h/2);
-            }
-        }
-        plate();
-        screws();
-        center_hole();
-        half();
-        filament_saver();
 
+//plate_holder();
+for_printer();
+
+module plate_holder() {
+    difference() {
+        positive();
+        plate_slot(); // slot edges of plate slides into
+        plate_hole(); // hole so you can see the plate
+        screws();
+        cut_in_half();
+        filament_saver();
     }
-    supports();
+}
+
+module for_printer() {
+    rotate([0,-90,0]) {
+        plate_holder();
+        supports();
+    }
+}
+
+module positive() {
+    translate([plate_r,plate_r,0])
+    minkowski() {
+        cube([plate_x-plate_d,plate_y-plate_d,total_h/2]);
+        cylinder(d=plate_d+wall*2,h=total_h/2);
+    }
 }
 
 module filament_saver() {
@@ -68,134 +77,65 @@ module filament_saver() {
     scale([(plate_x/2-cover*2)/screw_gap_x,(screw_gap_y-screw*2)/screw_gap_x,1])
     cylinder(d=screw_gap_x,h=backing+padd);
 }
-module half() {
+
+module cut_in_half() {
     translate([plate_x/2,-plate_y/2,-plate_y/2])
     cube([plate_x,plate_y*2,plate_y*2]);
 }
-module supports() {
-    difference() {
-        union() {
-            support(plate_y*9/10);
-            support(plate_y/10);
-        }
-        translate([-plate_x/2,0,pad])
-        cube([plate_x,plate_y*2,plate_y*2]);
-        translate([-plate_x-outer_wall,0,-plate_y])
-        cube([plate_x,plate_y*2,plate_y*2]);
-    }
-    translate([-outer_wall,-sup/2,-sup/2+total_h])
-    cube([layers,plate_y+sup,sup/2]);
-}
 
-module ear(y) {
-    translate([-outer_wall,y,0])
-    rotate([0,90,0])
-    cylinder(d=80,h=filament);
+module supports() {
+    // vertical supports
+    support(plate_y*9/10);
+    support(plate_y/10);
+    // first layer "mouse ear"
+    translate([-wall,-sup/2,-sup/2+total_h])
+    cube([layer_height,plate_y+sup,sup/2]);
 }
 
 module support(y) {
-    translate([-outer_wall,y,0])
-    rotate([0,45,0])
-    translate([-sup/2,-filament/2,-sup/2])
-    cube([sup,filament,sup]);
+    difference() {
+        translate([-wall,y,0])
+        rotate([0,45,0])
+        translate([-sup/2,-extrusion_width/2,-sup/2])
+        cube([sup,extrusion_width,sup]);
+        translate([-plate_x/2,0,pad])
+        cube([plate_x,plate_y*2,plate_y*2]);
+        translate([-plate_x-wall,0,-plate_y])
+        cube([plate_x,plate_y*2,plate_y*2]);
+    }
 }
 
-module plate() {
+module plate_slot() {
     translate([plate_r,plate_r,backing])
     minkowski() {
         cube([plate_x-plate_d,plate_y-plate_d,lip/2]);
         cylinder(d=plate_d,h=lip/2);
     }
 }
-module center_hole() {
-    translate([-hole_x/2+plate_x/2,-hole_y/2+plate_y/2,backing])
-    translate([hole_r,hole_r,0])
+
+module plate_hole() {
+    translate([hole_r-hole_x/2+plate_x/2,hole_r-hole_y/2+plate_y/2,backing])
     minkowski() {
         cube([hole_x-hole_d,hole_y-hole_d,total_h/2+pad]);
         cylinder(d=hole_d,h=total_h/2+pad);
     }
 }
+
 module screws() {
     translate([0,-screw_gap_y/2+plate_y/2,0]) {
-        screws_x();
-        translate([0,screw_gap_y,0])
-        screws_x();
+        screws_x(0);
+        screws_x(screw_gap_y);
     }
 }
-module screws_x() {
-    translate([-screw_gap_x/2+plate_x/2,0,-pad]) {
-        screw();
-        translate([screw_gap_x,0,0])
-        screw();
+
+module screws_x(y) {
+    translate([-screw_gap_x/2+plate_x/2,y,0]) {
+        screw(0,0);
+        screw(screw_gap_x,0);
     }
 }
-module screw() {
+
+module screw(x, y) {
+    translate([x,y,-pad])
     cylinder(d=screw,h=total_h+padd);
-    translate([0,0,total_h-screw_head_h])
-    cylinder(d1=screw-padd,d2=screw_head+padd,h=screw_head_h+padd);
 }
-
-module joint_x() {
-    translate([-screw_gap_x/2+plate_x/2,0,0])
-    hull() {
-        joint();
-        translate([screw_gap_x,0,0])
-        joint();
-    }
-}
-module joint() {
-    translate([0,0,-pad])
-    cylinder(d=joint,h=total_h+padd);
-}
-
-module side_grip() {
-    translate([0,0,-padd])
-    cylinder(d=joint,h=screw_grip+below_plate+padd);
-}
-
-module side_grip_x() {
-    translate([-screw_gap_x/2+plate_x/2,0,0]) {
-        hull() {
-            side_grip();
-            translate([-pad,0,0])
-            side_grip();
-        }
-        translate([screw_gap_x,0,0])
-        hull() {
-            side_grip();
-            translate([pad,0,0])
-            side_grip();
-        }
-    }
-}
-
-module bar_negative() {
-        difference() {
-            joint_x();
-            side_grip_x();
-        }
-}
-
-module bars_negative() {
-    translate([0,joint/2-joint_buffer,0])
-    bar_negative();
-    translate([0,plate_y-joint/2+joint_buffer,0])
-    bar_negative();
-}
-
-module bars() {
-    intersection() {
-        positive();
-        bars_negative();
-    }
-}
-
-module sides() {
-    difference() {
-        positive();
-        bars_negative();
-    }
-}
-
-rotate([0,-90,0])
-positive();
