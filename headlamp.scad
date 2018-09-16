@@ -112,11 +112,11 @@ difference() {
     }
     //translate([-tube_outer,screw_h,-tube_outer])
     //cube([tube_outer,zip,tube_gap+tube_outer*2]);
-    translate([diff_x,diff_y,diff_z]) 
+    translate([diff_x,diff_y-pad,diff_z]) 
     rotate([-90,0,0])
     cylinder(d=screw,h=screw_h+padd);
 
-    translate([diff_x,diff_y,diff_z]) 
+    translate([diff_x,diff_y-pad,diff_z]) 
     rotate([0,angle,0])
     translate([0,0,light_gap])
     rotate([-90,0,0])
