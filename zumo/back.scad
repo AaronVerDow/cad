@@ -2,16 +2,18 @@ $fn=90;
 wall=0.6;
 back_x=69;
 back_y=85;
-back_z=9;
+back_z=12;
 
 bezel_x=40;
 bezel_y=23.5;
-bezel_z=3;
+bezel_z=2;
 
 screen_x=31;
 screen_y=14;
+screen_x=bezel_x;
+screen_y=bezel_y;
 
-bezel_y_offset=3;
+bezel_y_offset=-2;
 pad=0.1;
 padd=pad*2;
 
@@ -29,18 +31,24 @@ reset_x=7;
 reset_y=19;
 
 module bezel(pad=0,my_wall=0) {
-    translate([back_x/2-bezel_x/2-my_wall,back_y/2-bezel_y/2-my_wall,wall])
+    translate([back_x/2-bezel_x/2-my_wall,back_y/2-bezel_y/2-my_wall+bezel_y_offset,wall])
     cube([bezel_x+my_wall*2,bezel_y+my_wall*2,bezel_z+pad-wall]);
 }
 
-module screen() {
+module screen_old() {
     translate([0,0,-wall/2])
     minkowski() {
-        translate([back_x/2-screen_x/2,back_y/2-screen_y/2,0])
+        translate([back_x/2-screen_x/2,back_y/2-screen_y/2+bezel_y_offset,0])
         cube([screen_x,screen_y,wall/2]);
         cylinder(d2=pad,d1=wall*4+padd,h=wall+pad);
     }
 }
+
+module screen() {
+    translate([back_x/2-screen_x/2,back_y/2-screen_y/2+bezel_y_offset,-pad])
+    cube([screen_x,screen_y,wall+padd]);
+}
+
 
 module button_profile_top(extra=0) {
     translate([0,0,-pad]) {
@@ -75,6 +83,13 @@ module button(t=0,y=button_y) {
     cylinder(d=button,h=button_d);
 }
 
+switch_d=3.3;
+module switch(w=0,x=0){
+    translate([x,-pad,back_z-switch_d])
+    cube([w,wall+padd,switch_d+pad]);
+
+}
+
 module positive() {
     difference() {
         cube([back_x,back_y,back_z]);
@@ -96,4 +111,6 @@ difference() {
     button_gap(b);
     button_gap(c);
     button_gap(reset_x,reset_y);
+    switch(8,18.5);
+    switch(8,40);
 }
