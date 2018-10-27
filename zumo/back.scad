@@ -1,29 +1,32 @@
 $fn=90;
 wall=0.6;
-back_x=70;
-back_y=80;
-back_z=8;
+back_x=69;
+back_y=85;
+back_z=9;
 
 bezel_x=40;
-bezel_y=34;
-bezel_z=6;
+bezel_y=23.5;
+bezel_z=3;
 
-screen_x=35;
-screen_y=28;
+screen_x=31;
+screen_y=14;
 
 bezel_y_offset=3;
 pad=0.1;
 padd=pad*2;
 
 button=4;
-button_flex=button*1.5;
-button_d=8;
+button_flex=button*1;
+button_d=9;
 button_gap=1;
 
-button_y=10;
-a=10;
-b=30;
-c=50;
+button_y=7.5;
+button_spacing=12.5;
+a=5;
+b=a+button_spacing;
+c=b+button_spacing;
+reset_x=7;
+reset_y=19;
 
 module bezel(pad=0,my_wall=0) {
     translate([back_x/2-bezel_x/2-my_wall,back_y/2-bezel_y/2-my_wall,wall])
@@ -47,24 +50,28 @@ module button_profile_top(extra=0) {
     }
 }
 
-module button_profile(extra=0) {
+module button_profile_bottom(extra=0) {
     translate([0,0,-pad]) {
         cylinder(d=button+extra*2,h=wall+padd);
         translate([-button/2-extra,-button_y+wall,0])
         cube([button+extra*2,button_y-wall,wall+padd]);
     }
 }
+module button_profile(extra=0) {
+    //button_profile_bottom(extra);
+    button_profile_top(extra);
+}
 
-module button_gap(t=0) {
-    translate([t,button_y])
+module button_gap(t=0,y=button_y) {
+    translate([t,y])
     difference() {
         button_profile(button_gap);
         button_profile();
     }
 }
 
-module button(t=0) {
-    translate([t,button_y])
+module button(t=0,y=button_y) {
+    translate([t,y])
     cylinder(d=button,h=button_d);
 }
 
@@ -78,6 +85,7 @@ module positive() {
     button(a);
     button(b);
     button(c);
+    button(reset_x,reset_y);
 }
 
 difference() {
@@ -87,4 +95,5 @@ difference() {
     button_gap(a);
     button_gap(b);
     button_gap(c);
+    button_gap(reset_x,reset_y);
 }
