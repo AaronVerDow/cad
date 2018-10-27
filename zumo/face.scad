@@ -1,22 +1,23 @@
-face_x=120;
-face_y=50;
+$fn=90;
+face_x=98;
+face_y=38;
 
-led=7;
-led_box=11;
-led_box_h=3;
+led=5.5;
+led_box=10;
+led_box_h=3.5;
 
-screw=4;
+screw=2.5;
 
-eye_gap=70;
+eye_gap=50;
 eye_x=eye_gap/2;
 eye_y=face_y-5;
 
-screw_gap=35;
+screw_gap=30;
 screw_x=screw_gap/2;
 screw_y=face_y-7;
 
-ring_center=eye_x-screw_x;
-ring_thick=3;
+ring_center=eye_x-screw_x+3;
+ring_thick=2;
 
 ring_outer=ring_center+ring_thick/2;
 ring_inner=ring_center-ring_thick/2;
@@ -25,15 +26,15 @@ ring_angle=37;
 pad=0.1;
 padd=pad*2;
 
-mouth_x=45;
+mouth_x=35;
 mouth_y=5;
-mouth_offset=5;
+mouth_offset=3.7;
 
 teeth=12;
-tooth_gap=1;
+tooth_gap=0.6;
 
 frown=mouth_y/2;
-frown_angle=15;
+frown_angle=14;
 
 face_thick=0.6;
 face_angle=15;
@@ -153,4 +154,9 @@ module face_3d() {
     }
 }
 
-face();
+module face_to_print() {
+    rotate([90+face_angle,0,0])
+    face_3d();
+}
+
+face_to_print();
