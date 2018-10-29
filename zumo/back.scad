@@ -111,6 +111,6 @@ difference() {
     button_gap(b);
     button_gap(c);
     button_gap(reset_x,reset_y);
-    switch(8,18.5);
-    switch(8,40);
+    switch(8,19);
+    switch(9,40);
 }

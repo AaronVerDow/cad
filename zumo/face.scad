@@ -1,6 +1,6 @@
 $fn=90;
 face_x=98;
-face_y=38;
+face_y=38.7;
 
 led=5.5;
 led_box=10;
@@ -10,7 +10,7 @@ screw=2.5;
 
 eye_gap=50;
 eye_x=eye_gap/2;
-eye_y=face_y-5;
+eye_y=face_y-5.2;
 
 screw_gap=30;
 screw_x=screw_gap/2;
@@ -28,7 +28,7 @@ padd=pad*2;
 
 mouth_x=35;
 mouth_y=5;
-mouth_offset=3.7;
+mouth_offset=4.2;
 
 teeth=12;
 tooth_gap=0.6;
@@ -36,7 +36,7 @@ tooth_gap=0.6;
 frown=mouth_y/2;
 frown_angle=14;
 
-face_thick=0.6;
+face_thick=0.5;
 face_angle=15;
 
 brow_x=ring_inner+ring_thick*2;
@@ -68,7 +68,7 @@ module mouth() {
     translate([-mouth_x/2,mouth_offset])
     difference() {
         square([mouth_x,mouth_y]);
-        teeth();
+        //teeth();
         frown();
     }
 }
@@ -138,7 +138,7 @@ module face() {
     difference() {
         face_positive();
         eyes();
-        screws();
+        //screws();
         mouth();
     }
 }
