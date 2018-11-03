@@ -1,18 +1,18 @@
 // 2.29x0.380
 // 2.280 0.430 front
 hub=58.1;
-hub_h=10;
+hub_h=11.5;
 
-rim=73.1;
+rim=73.2;
 
 pad=0.1;
 padd=pad*2;
 $fn=400;
 
-inner_edge=0.7;
-outer_edge=0.7;
+inner_edge=1;
+outer_edge=1;
 
-flange=3;
+flange=2.7;
 
 difference() {
     // outside
