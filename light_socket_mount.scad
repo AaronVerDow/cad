@@ -1,21 +1,26 @@
-socket=34.5;
+socket=36;
 $fn=90;
-socket_channel=39;
-socket_channel_w=13.5;
+socket_channel=39.2;
+socket_channel_w=15;
 extrusion_width=1.2;
-width=socket_channel_w+extrusion_width*4;
+width=socket_channel_w+extrusion_width*8+1;
 v_gap=0.5;
 tightness=0.5;
 
 height=20;
 screw=5;
 screw_head=10;
-screw_h=27;
+screw_h=28.5;
 wall=15;
 walll=wall*2;
 
+switch=9;
+switch_offset=6;
+
 pad=0.1;
 padd=pad*2;
+
+inside_cut_top=7;
 
 
 module body() {
@@ -41,6 +46,8 @@ module screw() {
         cylinder(d=screw,h=height+socket+walll+padd);
         translate([0,0,screw_h])
         cylinder(d=screw_head,h=height+socket+walll+padd);
+        translate([0,0,screw_h-(screw_head-screw)/2])
+        cylinder(d2=screw_head,d1=screw,h=(screw_head-screw)/2);
     }
 }
 
@@ -57,28 +64,41 @@ module insert() {
     cube([socket_channel,socket_channel_w,height+socket/2+pad]);
 }
 
+module switch() {
+    translate([-socket/2-wall-pad,width/2-switch_offset,height+socket/2])
+    rotate([0,90,0])
+    cylinder(d=switch,h=socket+walll+padd);
+}
+
 module main() {
     difference() {
         body();
         socket();
         screws();
+        switch();
     }
 }
 
 module inside() {
-    intersection() {
-        main();
-        insert();
+    difference() {
+        intersection() {
+            main();
+            insert();
+        }
+        switch();
+        translate([-pad-socket/2-wall,-pad,height+socket/2-inside_cut_top])
+        #cube([socket+walll+padd,width+padd,height]);
     }
 }
 
 
 module outside() {
+    rotate([180,0,0])
     difference() {
         main();
         insert();
     }
 }
 
-outside();
-//inside();
+//outside();
+inside();
