@@ -7,28 +7,28 @@ extrusion_width=1.2;
 layer_height=0.4;
 
 // outer diameter of bigger pipe
-big_pipe=4*in;
+big_pipe=100.4+extrusion_width*2;
 
 // height of bigger pipe
-big_h=1.5*in;
+big_h=25;
 
 // outer diameter of smaller pipe
-small_pipe=3*in;
+small_pipe=100.4;
 
 // height of smaller pipe
-small_h=1.5*in;
+small_h=25;
 
 // how thick is the pipe
 pipe_wall=extrusion_width;
 
 // how thick the gate is
-gate_h=layer_height*3;
+gate_h=layer_height*2;
 
 // diameter of bolts
-bolt=8;
+bolt=6.5;
 
 // make gate bigger than small pipe
-gate_extra=5;
+gate_extra=3;
 
 // diameter of gate
 gate=gate_extra+small_pipe;
@@ -37,17 +37,17 @@ gate=gate_extra+small_pipe;
 gate_grip=10;
 
 // extra space between gate and the plates
-gate_h_gap=0.2;
+gate_h_gap=layer_height;
 
 // extra space around gate
-gate_gap=0.2;
+gate_gap=1;
 
 // padding for clean differences
 pad=0.1;
 padd=pad*2;
 
 // how high are the plates
-side_h=3;
+side_h=layer_height*4;
 
 // general smoothness
 $fn=90;
@@ -59,7 +59,7 @@ big_fn=400;
 bolt_inner_wall=2;
 
 // how close can the bolt get to the edge of the part or the big pipe
-bolt_outer_wall=5;
+bolt_outer_wall=3;
 
 bolt_outer=bolt+bolt_outer_wall*2;
 bolt_offset_from_gate=gate/2+bolt_inner_wall+bolt/2;
