@@ -22,7 +22,7 @@ small_h=25;
 pipe_wall=extrusion_width;
 
 // how thick the gate is
-gate_h=layer_height*2;
+gate_h=layer_height*4;
 
 // diameter of bolts
 bolt=6.5;
@@ -36,6 +36,9 @@ gate=gate_extra+small_pipe;
 // extra on gate to grip
 gate_grip=10;
 
+// round edges on gate
+gate_corner=10;
+
 // extra space between gate and the plates
 gate_h_gap=layer_height;
 
@@ -47,13 +50,13 @@ pad=0.1;
 padd=pad*2;
 
 // how high are the plates
-side_h=layer_height*4;
+side_h=layer_height*6;
 
 // general smoothness
 $fn=90;
 
 // smoothness for pipes
-big_fn=400;
+big_fn=100;
 
 // how close can the bolt get to the gate
 bolt_inner_wall=2;
@@ -93,14 +96,24 @@ module bolts() {
 }
 
 module bolts_of_offset(x,y) {
-	for(i=[0:90:179]) {
-		rotate([0,0,i+45+90])
-		translate([x,0,0])
-		children();
-	}
-	translate([big_pipe/2-bolt_outer/2,-y,0])
+	//for(i=[0:90:179]) {
+		//rotate([0,0,i+45+90])
+		//translate([x,0,0])
+		//children();
+	//}
+	translate([-gate/2-bolt_inner_wall-bolt/2,0,0])
 	children();
-	translate([big_pipe/2-bolt_outer/2,y,0])
+	translate([-gate/2-bolt_inner_wall-bolt/2,-y,0])
+	children();
+	translate([-gate/2-bolt_inner_wall-bolt/2,y,0])
+	children();
+	translate([gate/2+bolt_inner_wall-bolt_outer/2,-y,0])
+	children();
+	translate([gate/2+bolt_inner_wall-bolt_outer/2,y,0])
+	children();
+	translate([0,-y,0])
+	children();
+	translate([0,y,0])
 	children();
 }
 
@@ -121,7 +134,7 @@ module side(pipe, height) {
 	difference() {
 		plate();
 		translate([0,0,-pad])
-		cylinder(d=small_pipe,h=side_h+padd);
+		cylinder(d=small_pipe,h=side_h+padd,$fn=big_fn);
 	}
 }
 
@@ -149,7 +162,13 @@ module full_grip() {
 module assembled_gate(extra=0,extra_h=0) {
 	color("lime") {
 		gate(extra,extra_h);
-		grip();
+        translate([gate/2+gate_grip/2+bolt_inner_wall,-gate/2,gate_h])
+        rotate([-90,0,0])
+        difference() {
+            cylinder(d=gate_grip,h=gate+extra);
+            translate([-pad-gate_grip/2,pad,-pad])
+            cube([gate_grip+padd,gate_grip+padd,gate+extra+padd]);
+        }
 	}
 }
 
@@ -159,6 +178,10 @@ module gate(extra=0,extra_h=0) {
 			cylinder(d=gate+extra,h=gate_h+extra_h);
 			translate([gate+extra,0,0])
 			cylinder(d=gate+extra,h=gate_h+extra_h);
+            translate([-gate/2+gate_corner,-gate/2+gate_corner,0])
+            cylinder(r=gate_corner+extra,h=gate_h+extra_h);
+            translate([-gate/2+gate_corner,gate/2-gate_corner,0])
+            cylinder(r=gate_corner+extra,h=gate_h+extra_h);
 		}
 		hull() {
 			translate([gate_grip,0,0])
