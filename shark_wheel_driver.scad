@@ -74,43 +74,93 @@ inset=50;
 inset2=42;
 inset_h=5;
 
-module side(z) {
+wheel=70.5;
+wheel_h=55;
+false_axle=7.7;
+false_axle_h=15;
+wheel_wall=tri_r;
+
+big_fn=200;
+
+
+// curved sides of triangle
+module side(z=10) {
     translate([0,-tri_side/2+tri/2,0])
-    cylinder(h=z,r=tri_side/2);
+    cylinder(h=z,r=tri_side/2,$fn=big_fn);
 }
 
-module tri(z) {
+// triangle, not rounded
+module tri_inner(z=10) {
+    intersection() {
+        side(z-tri_r*2);
+        rotate([0,0,120])
+        side(z-tri_r*2);
+        rotate([0,0,240])
+        side(z-tri_r*2);
+    }
+}
+
+// triangle to fit shark wheel
+module tri(z=10) {
     minkowski() {
         sphere(r=tri_r);
         translate([0,0,tri_r])
-        intersection() {
-            side(z-tri_r*2);
-            rotate([0,0,120])
-            side(z-tri_r*2);
-            rotate([0,0,240])
-            side(z-tri_r*2);
-        }
+        tri_inner(z);
+    }
+}
+
+module negative_z() {
+    translate([-50,-50,-tri_r*2])
+    cube([100,100,tri_r*2]);
+}
+
+module screw_shaft() {
+    translate([0,screw_offset,-pad])
+    cylinder(h=total_h+padd,d=screw);
+}
+
+module screw_head() {
+    translate([0,screw_offset,total_h-screw_head_h-inset_h-pad])
+    cylinder(h=screw_head_h+padd,d2=screw_head+padd,d1=screw-padd);
+}
+
+module screw(angle=0) {
+    rotate([0,0,angle]) { 
+        screw_shaft();
+        screw_head();
+    }
+}
+
+module screws() {
+    for(angle=[0:120:240]) {
+        screw(angle);
+    }
+
+}
+
+module front_covered() {
+    difference() {
+        translate([0,0,-tri_r])
+        rotate([0,0,180])
+        tri(front_h+tri_r);
+
+        negative_z();
+
+        // nut
+        translate([0,0,front_h-nut_h+pad])
+        cylinder(h=nut_h+pad,d=nut);
+
+        screws();
     }
 }
 
 module front() {
     difference() {
-        rotate([0,0,180])
-        tri(front_h+tri_r);
-        translate([-50,-50,front_h])
-        cube([100,100,tri_r*2]);
-        translate([0,0,-pad])
-        cylinder(h=nut_h+pad,d=nut);
+        front_covered();
+
+        // center hole
         translate([0,0,-pad])
         cylinder(h=front_h+padd,d=bearing);
-        for(angle=[0:120:240]) {
-            rotate([0,0,angle])
-            translate([0,screw_offset,-pad]) {
-                cylinder(h=front_h+padd,r=screw/2);
-                //translate([0,0,front_h-screw_head_h])
-                //cylinder(h=screw_head_h+padd,r2=screw_head/2+pad,r1=screw/2-pad);
-            }
-        }
     }
 }
 
@@ -118,65 +168,72 @@ module back() {
     difference() {
         union() {
             translate([0,0,back_h])
-            pulley ( "T5" , T5_pulley_dia , 1.19 , 3.264 ); 
-            difference() {
-                tri(back_h+tri_r);
-                translate([0,0,back_h+pad])
-                cylinder(d=200,h=tri_r*2);
-            }
+            pulley("T5", T5_pulley_dia, 1.19, 3.264); 
+            tri(back_h+tri_r);
         }
+
+        // center hole
         translate([0,0,-pad])
         cylinder(h=total_h+padd,d1=axle,d2=axle2);
-        //translate([0,0,-pad])
-        //cylinder(h=total_h+padd,d1=axle,d2=axle2);
+
+        // cut in pulley
         translate([0,0,total_h-inset_h])
         cylinder(h=inset_h+pad,d2=inset,d1=inset2);
-        for(angle=[0:120:240]) {
-            rotate([0,0,angle])
-            translate([0,screw_offset,-pad]) {
-                cylinder(h=total_h+padd,d=screw);
-                translate([0,0,total_h-screw_head_h-inset_h])
-                cylinder(h=screw_head_h+padd,d2=screw_head+padd,d1=screw-padd);
-            }
-        }
+
+        screws();
+
     }
 }
 
-wheel=70.5;
-wheel_h=55;
-false_axle=7.7;
-false_axle_h=15;
-wheel_wall=tri_r;
+
+module jig_outer() {
+    difference() {
+        cylinder(d=wheel+wheel_wall*2,h=wheel_h+wheel_wall);
+        translate([0,0,wheel_wall])
+        cylinder(d=wheel,h=wheel_h+pad);
+    }
+
+}
+
+module jig_tri() {
+    difference() {
+        translate([0,0,-tri_r])
+        tri(back_h+tri_r);
+        translate([0,0,pad]) 
+        negative_z();
+    }
+}
+
+module jig_axle() {
+    cylinder(h=wheel_h/3*2,d=false_axle);
+    cylinder(h=false_axle_h,d2=false_axle,d1=false_axle*3);
+}
+
+module jig_positive() {
+    jig_axle();
+    jig_tri();
+    jig_outer();
+}
 
 module wheel_jig() {
     difference() {
-        union() {
-            translate([0,0,wheel_h-back_h])
-            tri(back_h+tri_r);
-            translate([0,0,wheel_h-wheel_h/3*2])
-            cylinder(h=wheel_h/3*2,d=false_axle);
-            translate([0,0,wheel_h-false_axle_h])
-            cylinder(h=false_axle_h,d1=false_axle,d2=false_axle*3);
-            difference() {
-                cylinder(d=wheel+wheel_wall*2,h=wheel_h+wheel_wall);
-                translate([0,0,-pad])
-                cylinder(d=wheel,h=wheel_h+pad);
-            }
-        }
-        for(angle=[0:120:240]) {
-            rotate([0,0,angle])
-            translate([0,screw_offset,-pad]) {
-                cylinder(h=wheel_h*2+padd,d=screw);
-            }
-        }
+        jig_positive();
+        screws();
     }
 }
 
-//translate([0,0,-10])
-//front();
-back();
-//wheel_jig();
+module exploded() {
+    translate([0,0,-30])
+    front();
 
+    back();
+
+    translate([0,0,50])
+    wheel_jig();
+
+}
+//exploded();
+wheel_jig();
 
 //	********************************
 //	** Scaling tooth for good fit **
