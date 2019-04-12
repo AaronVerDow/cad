@@ -1,7 +1,7 @@
 $fn=200;
 
-extrusion_width=1.2; // << Please adjust this for clean prints
-wall=extrusion_width*2; // thickness of everything
+extrusion_width=1.6; // << Please adjust this for clean prints
+wall=extrusion_width*1; // thickness of everything
 
 layer_height=0.4; // used for first layer supports only
 in=25.4; // used for conversion 
@@ -88,8 +88,8 @@ module supports() {
     support(plate_y*9/10);
     support(plate_y/10);
     // first layer "mouse ear"
-    translate([-wall,-sup/2,-sup/2+total_h])
-    cube([layer_height,plate_y+sup,sup/2]);
+    translate([-wall,-sup/4,-sup/2+total_h])
+    cube([layer_height,plate_y+sup/2,sup/2]);
 }
 
 module support(y) {
