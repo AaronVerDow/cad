@@ -10,39 +10,29 @@ boxes = [
     [25], // toothbrush
 ];
 
-boxes = [
-    [194, 26]
-];
-z = 140;
-edge = 10;
-
-
 //mice
 boxes = [
     [93, 17], // keyboard thing
     [62, 40], // mouse
-    [40, 20], // fire TV
 ];
 z = 60;
 
 //remotes
 boxes = [
+    [40, 20], // fire TV
     [61, 25], // denon
     [57, 30], // projector
 ];
-z = 80;
+z = 70;
 
-// whal peanut electric razor
+x=194;
+y=26;
+
 boxes = [
-    [7],       // brush
-    [21],       // oil
-    [38, 24],   // s4
-    [38, 20],   // s3
-    [38, 16],   // s2
-    [38, 12],   // s1
+    [194,26],
 ];
-z = 32;
-
+z = 140;
+edge = 10;
 
 
 function my_sum(i, total=0) =
@@ -62,10 +52,7 @@ module all_shapes(move=0, grow=0) {
     }
 }
 
-// rostock
 wall=1.2;
-// i3
-wall=0.35;
 screw=3;
 head=10;
 screw_offset=z/5;
@@ -84,6 +71,8 @@ module assembled() {
                 cylinder(d=screw,h=100);
             }
         }
+        translate([wall*2+edge,y/2,edge+wall])
+        cube([x-edge*2,y,z]);
     }
 }
 
