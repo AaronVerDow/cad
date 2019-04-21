@@ -1,9 +1,9 @@
 wall=8;
-$fn=90;
+$fn=200;
 filament=1.6;
 total_h=wall*3+10;
 truck_x=19;
-truck_y=18;
+truck_y=18.5;
 truck_round=4.7;
 truck_x_sub=truck_x-truck_round;
 // how far bolt is from truck
@@ -13,8 +13,9 @@ truck_total_y=truck_y+wall*2;
 truck_total_x_sub=truck_x_sub+wall;
 motor_mount=25;
 motor=53;
-motor_wall=filament*3;
-motor_shaft=15;
+motor_wall=filament*2;
+motor_shaft=12;
+angle=35;
 angle=65;
 pad=0.1;
 padd=pad*2;
@@ -35,7 +36,9 @@ bolt_delta=0;
 gap=2;
 truck_small=15;
 
-wires=20;
+wire_angle=45-90;
+
+wires=22;
 wire_h=5;
 
 
@@ -157,8 +160,8 @@ module mount() {
 
         rotate([0,0,angle])
         translate([-belt,0,motor_h-wire_h])
-        rotate([0,-90,-angle])
-        #cylinder(d=wires, h=motor);
+        rotate([0,-90,-wire_angle])
+        cylinder(d=wires, h=motor);
     }
 }
 rotate([180,0,0])
