@@ -1,20 +1,33 @@
 $fn=200;
 big_fn=500;
+in=25.4;
+pi=3.14;
+
+// how thick the sides of the can are
 wall=1.6;
 
+// how thick the bottom of the can is
 base_wall=1.2;
-in=25.4;
 
+// gap between the ring and can
+bag_gap=wall;
+
+// manually set max diameter 
+max_d=280-wall;
+
+// grocery bag is 36in
 bag_size=36*in;
 
-bag_gap=wall;
-pi=3.14;
-max_d=bag_size/pi+wall*2+bag_gap*2;
-max_d=280-wall;
+// uncomment to automaically scale max diameter to bag
+// max_d=bag_size/pi+wall*2+bag_gap*2;
+
+// how tall the can is
 h=max_d;
 
+// diameter of the can part (not the lip)
 can_d=max_d-wall*2-bag_gap*2;
 ideal_bag_size=can_d*pi;
+
 echo("Ideal bag size: (mm)");
 echo(ideal_bag_size);
 echo("Ideal bag size: (in)");
@@ -22,25 +35,36 @@ echo(ideal_bag_size/in);
 echo("Maximum diameter");
 echo(max_d);
 
-// grocery bag is 36in
-
+// diameter of base
 base_d=can_d-30;
 
-pad=0.1;
-
-lip_h=30;
+// how many sides the base has
 points=6;
 
+// pad negative spaces to improve OpenSCAD rendering
+pad=0.1;
+
+// height of ring around can
+lip_h=30;
+
+// outer diamter of handle
 handle_d=120;
 handle_r=handle_d/2;
+
+// handle height
 handle_h=15;
+
+// thickness of edge of handle
 handle_wall=wall*2;
 
 grip_offset=00;
 cut_top=handle_d/2-grip_offset-handle_h;
 
-handle_location=200;
-screw=3.5;
+// how high the handle is from the bottom of the can
+handle_location=h*5/7;
+
+// screw diameter
+screw=3;
 
 module fancy_body() {
         hull() {
