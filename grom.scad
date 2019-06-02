@@ -62,7 +62,7 @@ led_h=2.5;
 top_wall=2.4;
 top_r=8;
 
-light=135;
+light=136;
 lip=4;
 outer_light=light+30;
 light_h=50;
@@ -73,7 +73,7 @@ inner_lip=light+lip*2-7*2;
 ring_gap=1;
 ring_h=4;
 
-ring_bolt=4;
+ring_bolt=3;
 ring_bolts=6;
 trim_angle=7;
 rotator_offset=13;
@@ -135,6 +135,7 @@ module bolt_assembly() {
     //}
 }
 
+old_bar_assembly();
 
 module old_bar_assembly() {
     minkowski() {
@@ -325,6 +326,7 @@ module sides() {
     side();
 }
 
+
 module ring_bolts() {
     for(ring_angle=[360/ring_bolts/2:360/ring_bolts:360+360/ring_bolts/2]) {
         rotate([0,0,ring_angle])
@@ -393,10 +395,22 @@ module rot_bolt_negative() {
     cylinder(d=rot_nut,h=max_w-light,$fn=6);
 }
 
+groove=3;
+groove_l=(led_strip*led_strips)/2;
+grooves=20;
+
+
 module rot_node() {
     translate([-max_w/2,0,light_h-rotator_offset])
     rotate([0,90,0])
-    cylinder(d=led_strip*led_strips,h=led_strip*2);
+    difference() {
+        cylinder(d=led_strip*led_strips,h=led_strip*2);
+        for(i=[0:360/grooves:359]) {
+            rotate([0,90,i])
+            translate([0,0,groove_l/2])
+            cylinder(d=groove,h=groove_l);
+        }
+    }
 
     translate([-max_w/2,-filament/2,light_h+1.9])
     cube([led_strip*2-4,filament,rotator_offset]);
@@ -440,7 +454,7 @@ module full_bar_node() {
     }
 }
 //rotate([0,180,0])
-light_holder();
+//light_holder();
 //assembled();
 //side();
 //intersection() {
