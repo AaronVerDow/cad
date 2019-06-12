@@ -62,7 +62,7 @@ led_h=2.5;
 top_wall=2.4;
 top_r=8;
 
-light=135;
+light=136;
 lip=4;
 outer_light=light+30;
 light_h=50;
@@ -73,7 +73,7 @@ inner_lip=light+lip*2-7*2;
 ring_gap=1;
 ring_h=4;
 
-ring_bolt=4;
+ring_bolt=3;
 ring_bolts=6;
 trim_angle=7;
 rotator_offset=13;
@@ -133,28 +133,6 @@ module bolt_assembly() {
             bolt_hole();
         }
     //}
-}
-
-
-module old_bar_assembly() {
-    minkowski() {
-        union() {
-            hull() {
-                translate([four_x,four_y,0])
-                old_bar_node();
-                translate([two_x,two_y,0])
-                old_bar_node();
-            }
-            hull() {
-                translate([two_x,two_y,0])
-                old_bar_node();
-                translate([one_x,one_y,0])
-                old_bar_node();
-            }
-        }
-        sphere(r=bar_r);
-    }
-
 }
 
 module lock_negative() {
@@ -218,7 +196,7 @@ module top_bar_assembly() {
         translate([one_x,one_y,led_h+top_wall])
         bolt_hole();
         translate([-500,-500,-50-top_overlap])
-        #cube([1000,1000,50,]);
+        cube([1000,1000,50,]);
     }
     difference() {
         union() {
@@ -233,6 +211,7 @@ module top_bar_assembly() {
         bolt_hole();
     }
 }
+
 
 module inner_bar_assembly() {
     difference() {
@@ -249,6 +228,8 @@ module inner_bar_assembly() {
                 translate([one_x,one_y,0])
                 inner_bar_node();
             }
+            translate([two_x,two_y,0])
+            grooves_positive();
         }
         //rotator divot
         translate([two_x,two_y,bar_h-rot_h+pad])
@@ -264,22 +245,6 @@ module inner_bar_assembly() {
     }
 }
 
-module bar_assembly() {
-    difference() {
-        old_bar_assembly();
-        translate([one_x,one_y,-pad])
-        cylinder(d=w-bolt_corner,h=bar_h+padd);
-        translate([four_x,four_y,-pad])
-        cylinder(d=w-bolt_corner,h=bar_h+padd);
-        //rotator divot
-        translate([two_x,two_y,bar_h-rot_h+pad])
-        cylinder(d1=rot_d1,d2=rot_d2,h=rot_h);
-        //rotator hole
-        translate([two_x,two_y,-pad])
-        cylinder(d=rot_bolt,h=bar_h+padd);
-    }
-}
-
 module cheater_negative() {
     translate([one_x,one_y,-pad]){
         hull() {
@@ -290,40 +255,19 @@ module cheater_negative() {
     }
 }
 
-module side() {
-    difference() {
-        union() {
-            //rotate([-bolt_angle,-bolt_angle,0])
-            bolt_assembly();
-            translate([one_x,one_y,0])
-            //rotate([-bolt_angle,-bolt_angle,0])
-            bolt_assembly();
-            //translate([one_x,one_y,0])
-            //for(angle=[360/3:360/3:360]) {
-                //rotate([0,0,angle])
-                //translate([-cheater/2+0.5,0,0])
-                //cube([cheater-1,support,cheater_h]);
-            //}
-            bar_assembly();
-        }
-        cheater_negative();
-        translate([0,0,-pad])
-        cylinder(d=lock,h=lock_h+pad);
-        translate([one_x,one_y,cheater_h-pad])
-        cylinder(d=lock,h=lock_h+pad);
-        translate([-500,-500,-50])
-        cube([1000,1000,50,]);
+module sides() {
+    rotate([90,0,-90]) {
+        inner_bar_assembly();
+        #top_bar_assembly();
+    }
+    translate([max_w,0,0])
+    mirror([0,1,0])
+    rotate([90,0,90]) {
+        inner_bar_assembly();
+        #top_bar_assembly();
     }
 }
 
-module sides() {
-    rotate([90,0,-90])
-    side();
-    translate([max_w,0,0])
-    mirror([0,1,0])
-    rotate([90,0,90])
-    side();
-}
 
 module ring_bolts() {
     for(ring_angle=[360/ring_bolts/2:360/ring_bolts:360+360/ring_bolts/2]) {
@@ -393,10 +337,37 @@ module rot_bolt_negative() {
     cylinder(d=rot_nut,h=max_w-light,$fn=6);
 }
 
+groove=3;
+groove_l=(led_strip*led_strips)/2;
+grooves=20;
+
+module grooves_positive() {
+    difference() {
+        intersection() {
+            grooves(grooves/2);
+            translate([0,0,-groove])
+            cylinder(d=led_strip*led_strips,h=groove*2);
+        }
+        translate([0,0,-groove])
+        cylinder(d=groove_l+groove,h=groove*2);
+    }
+}
+
+module grooves(n=grooves) {
+    for(i=[0:360/n:359]) {
+        rotate([0,90,i])
+        translate([0,0,groove_l/2])
+        cylinder(d=groove,h=groove_l);
+    }
+}
+
 module rot_node() {
     translate([-max_w/2,0,light_h-rotator_offset])
     rotate([0,90,0])
-    cylinder(d=led_strip*led_strips,h=led_strip*2);
+    difference() {
+        cylinder(d=led_strip*led_strips,h=led_strip*2);
+        grooves();
+    }
 
     translate([-max_w/2,-filament/2,light_h+1.9])
     cube([led_strip*2-4,filament,rotator_offset]);
@@ -421,7 +392,7 @@ module ring() {
 
 
 module assembled() {
-    translate([outer_light/2,-two_x-rotator_offset,two_y])
+    translate([max_w/2,-two_x-rotator_offset,two_y])
     rotate([90,0,0])
     translate([0,0,-light_h])
     light_holder();
@@ -439,11 +410,17 @@ module full_bar_node() {
         cylinder(d=w*2,h=bar_r*2);
     }
 }
-//rotate([0,180,0])
-light_holder();
-//assembled();
-//side();
-//intersection() {
-//color("lime") inner_bar_assembly();
-//top_bar_assembly();
-//}
+
+display="";
+if (display == "") assembled();
+if (display == "grom_light_holder.stl") {
+    $fn=300;
+    rotate([180,0,0])
+    light_holder();
+}
+if (display == "grom_inner_bar.stl") rotate([180,0,0]) inner_bar_assembly();
+if (display == "grom_outer_bar.stl") {
+    $fn=300;
+    rotate([180,0,0])
+    top_bar_assembly();
+}
