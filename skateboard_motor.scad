@@ -1,6 +1,6 @@
 wall=8;
 $fn=200;
-filament=1.6;
+filament=1.5;
 total_h=wall*3+10;
 truck_x=19;
 truck_y=18.5;
@@ -14,18 +14,18 @@ truck_total_x_sub=truck_x_sub+wall;
 motor_mount=25;
 motor=53;
 motor_wall=filament*2;
-motor_shaft=12;
+motor_shaft=15;
 angle=35;
 angle=65;
 pad=0.1;
 padd=pad*2;
 screw=5;
-motor_h=20;
+motor_h=total_h;
 //how tall what the motor bolts to is
 motor_mount_wall=5;
 motor_total=motor+motor_wall*2;
-belt=43.5;
-slide=5;
+belt=48;
+slide=0;
 //truck_bolt=48;
 //truck_bolt_offset=4;
 //truck_bolt_side_offset=4;
@@ -36,11 +36,12 @@ bolt_delta=0;
 gap=2;
 truck_small=15;
 
-wire_angle=45-90;
+wire_angle=48-90;
 
-wires=22;
-wire_h=5;
+wires=15;
+wire_h=0;
 
+motor_guard=40;
 
 module motor_negative() {
     rotate([0,0,90]) {
@@ -75,11 +76,12 @@ module motor_negative() {
             cylinder(h=total_h+padd,d=motor_shaft);
         }
 
+        // big motor hole
         hull() { 
-            translate([0,0,-pad])
-            cylinder(h=total_h+pad-motor_mount_wall,d=motor);
-            translate([0,slide,-pad])
-            cylinder(h=total_h+pad-motor_mount_wall,d=motor);
+            translate([0,0,-motor_h-motor_guard+total_h-pad])
+            cylinder(h=motor_h+motor_guard+pad-motor_mount_wall,d=motor);
+            translate([0,slide,-motor_h-motor_guard+total_h-pad])
+            cylinder(h=motor_h+pad-motor_mount_wall+motor_guard,d=motor);
         }
         //cylinder(h=total_h+pad-motor_mount_wall,d2=motor,d1=motor+(total_h+pad-motor_mount_wall)*2);
     }
@@ -89,6 +91,22 @@ module motor_negative() {
 module mount() {
     difference() {
         union() {
+            // motor holder
+            rotate([0,0,angle])
+            difference() {
+                hull() {
+                    translate([-belt,0,total_h-motor_h-motor_guard])
+                    cylinder(h=motor_h+motor_guard,d=motor_total);
+                    translate([-belt-slide,0,total_h-motor_h-motor_guard])
+                    cylinder(h=motor_h+motor_guard,d=motor_total);
+                }
+                //translate([0,0,-motor_h+total_h])
+                rotate([0,0,-angle])
+                rotate([0,-39,0])
+                translate([-motor_total*1.5,-motor_total*1.5,-motor_h*4])
+                cube([motor_total*3,motor_total*3,motor_h*4]);
+            }
+
             hull() {
                 // grips truck
                 translate([-(truck_x-truck_round)/2,0,0])
@@ -106,7 +124,7 @@ module mount() {
                 translate([truck_l,-truck_total_y/2+bolt_delta/2,total_h/2])
                 cube([total_h/2,truck_total_y-bolt_delta,total_h/2]);
                 rotate([0,0,angle])
-                // motor hole
+                // motor holder
                 hull() {
                     translate([-belt,0,total_h-motor_h])
                     cylinder(h=motor_h,d=motor_total);
@@ -116,12 +134,12 @@ module mount() {
             }
         }
         // profile of truck
-        translate([-(truck_x-truck_round)/2,0,-pad])
+        translate([-(truck_x-truck_round)/2,0,-motor_h+total_h-pad])
         scale([truck_round/truck_y*2,1,1])
-        cylinder(h=total_h+padd,d=truck_y);
+        cylinder(h=motor_h+padd,d=truck_y);
         // square of above
-        translate([-(truck_x-truck_round)/2,-truck_y/2,-pad])
-        cube([truck_x_sub,truck_y,total_h+padd]);
+        translate([-(truck_x-truck_round)/2,-truck_y/2,total_h-motor_h-pad])
+        cube([truck_x_sub,truck_y,motor_h+padd]);
         // notch 
         difference() {
             translate([0,-truck_small/2,-pad])
@@ -159,7 +177,7 @@ module mount() {
         cylinder(d=bolt_head,h=truck_total_y*2+pad,$fn=6);
 
         rotate([0,0,angle])
-        translate([-belt,0,motor_h-wire_h])
+        translate([-belt,0,total_h-motor_mount_wall-wires/2-wire_h])
         rotate([0,-90,-wire_angle])
         cylinder(d=wires, h=motor);
     }
