@@ -1,19 +1,25 @@
 truck=28;
-truck_bolt=5.5;
+truck_bolt=5;
 truck_bolts=12;
 truck_bolts_d=40;
 
-shaft=18;
+shaft=16;
 motor_bolt=4;
 motor_bolts=8;
 motor_bolts_d=25;
 
-belt=50;
+belt=48;
 
 wall=5;
 
+//static wall
 outer_motor=motor_bolts_d+motor_bolt+wall*2;
 outer_truck=truck_bolts_d+truck_bolt+wall*2;
+
+// match to gap
+outer_motor=motor_bolts_d*2-shaft;
+outer_truck=truck_bolts_d*2-truck;
+
 h=4;
 $fn=90;
 pad=0.1;
