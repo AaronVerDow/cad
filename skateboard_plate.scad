@@ -1,14 +1,14 @@
 truck=28;
-truck_bolt=5;
+truck_bolt=5.5;
 truck_bolts=12;
 truck_bolts_d=40;
 
 shaft=16;
-motor_bolt=4;
+motor_bolt=4.5;
 motor_bolts=8;
 motor_bolts_d=25;
 
-belt=48;
+belt=48.7;
 
 wall=5;
 
@@ -33,6 +33,7 @@ difference() {
     }
     translate([0,0,-pad]) {
         cylinder(d=truck,h=h+padd);
+        rotate([0,0,360/truck_bolts/2])
         for(i=[0:360/truck_bolts:359]) {
             rotate([0,0,i])
             translate([truck_bolts_d/2,0,0])
