@@ -1,6 +1,6 @@
 truck=28;
 truck_bolt=5.5;
-truck_bolts=12;
+truck_bolts=6;
 truck_bolts_d=40;
 
 shaft=16;
@@ -20,10 +20,14 @@ outer_truck=truck_bolts_d+truck_bolt+wall*2;
 outer_motor=motor_bolts_d*2-shaft;
 outer_truck=truck_bolts_d*2-truck;
 
+extra_rotation=4+360/truck_bolts/2;
+
 h=4;
 $fn=90;
 pad=0.1;
 padd=pad*2;
+
+between=34;
 
 difference() {
     hull() {
@@ -33,11 +37,13 @@ difference() {
     }
     translate([0,0,-pad]) {
         cylinder(d=truck,h=h+padd);
-        rotate([0,0,360/truck_bolts/2])
+        rotate([0,0,extra_rotation])
         for(i=[0:360/truck_bolts:359]) {
-            rotate([0,0,i])
-            translate([truck_bolts_d/2,0,0])
-            cylinder(d=truck_bolt,h=h+padd);
+            for(j=[0:360/truck_bolts/between/2:360/truck_bolts/2]) {
+                rotate([0,0,i+j])
+                translate([truck_bolts_d/2,0,0])
+                cylinder(d=truck_bolt,h=h+padd);
+            }
         }
         translate([belt,0,0]) {
             cylinder(d=shaft,h=h+padd);
