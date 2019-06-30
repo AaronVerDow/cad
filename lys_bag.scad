@@ -1,11 +1,11 @@
 extrusion_width=1.2;
 wall=extrusion_width;
-x=250;
-y=150;
+x=265;
+y=200;
 base_r=20;
-inner=220;
+inner=230;
 side_top=20;
-side_bottom=40;
+side_bottom=50;
 
 angle=atan((side_bottom-side_top)/y);
 
@@ -54,6 +54,12 @@ module edges() {
     edge();
 }
 
+module trimmed_side() {
+    difference() {
+        side();
+    }
+}
+
 module side() {
     translate([-x/2,-wall,0])
     cube([x,wall,y]);
@@ -78,9 +84,14 @@ module side() {
     }
 }
 
+
 module rotated_side(){
-    rotate([-angle,0,0])
-    side();
+    difference() {
+        rotate([-angle,0,0])
+        trimmed_side();
+        translate([-x,-side_bottom/2,-side_bottom])
+        cube([x*2,side_bottom*2,side_bottom]);
+    }
 }
 
 module both(){
@@ -90,4 +101,6 @@ module both(){
     rotated_side();
 }
 
-both();
+display="";
+if (display == "") both();
+if (display == "lys_bag.stl") rotated_side();
