@@ -1,9 +1,9 @@
 extrusion_width=1.2;
 wall=extrusion_width;
-x=265;
+x=275;
 y=200;
 base_r=20;
-inner=230;
+inner=250;
 side_top=20;
 side_bottom=50;
 
@@ -15,6 +15,11 @@ gap=20;
 
 crook=0.5;
 $fn=90;
+
+inner_edge=30;
+inner_crook=1;
+
+base=wall;
 
 
 module corner() {
@@ -30,6 +35,7 @@ module corner() {
     }
 
 }
+
 
 module corners() {
     corner();
@@ -54,9 +60,17 @@ module edges() {
     edge();
 }
 
+module inner_edges() {
+    inner_edge();
+    mirror([1,0,0])
+    inner_edge();
+}
+
 module trimmed_side() {
     difference() {
         side();
+        translate([-x,-side_bottom/2,y])
+        cube([x*2,side_bottom*2,side_bottom]);
     }
 }
 
@@ -64,6 +78,7 @@ module side() {
     translate([-x/2,-wall,0])
     cube([x,wall,y]);
     edges();
+    inner_edges();
     difference() {
         union() {
             translate([-inner/2,(x-inner)/2+wall+crook,0])
@@ -84,6 +99,17 @@ module side() {
     }
 }
 
+module base_side() {
+    translate([inner/2-inner_edge-wall-inner_crook,0,0])
+    cube([inner_edge+inner_crook,51,base]);
+}
+
+module base() {
+    base_side();
+    mirror([1,0,0])
+    base_side();
+}
+
 
 module rotated_side(){
     difference() {
@@ -92,6 +118,7 @@ module rotated_side(){
         translate([-x,-side_bottom/2,-side_bottom])
         cube([x*2,side_bottom*2,side_bottom]);
     }
+    base();
 }
 
 module both(){
@@ -101,6 +128,27 @@ module both(){
     rotated_side();
 }
 
+module inner_edge() {
+    translate([inner/2-inner_edge-wall-inner_crook/2,side_bottom-side_top/2,0])
+    rotate([angle,0,0])
+    difference() {
+        minkowski() {
+            cube([inner_edge,side_top/2,y*1.1]);
+            cylinder(d=inner_crook+wall*2,h=pad);
+        }
+        minkowski() {
+            translate([0,-wall-crook,0])
+            cube([inner_edge,side_top/2+wall+crook,y*1.1]);
+            cylinder(d=inner_crook,h=padd);
+        }
+        translate([0,-wall*2-inner_crook,0])
+        cube([inner_edge+inner_crook+wall,side_top/2+wall+crook,y*1.1]);
+    }
+}
+
+rotated_side();
+
+
 display="";
-if (display == "") both();
+//if (display == "") both();
 if (display == "lys_bag.stl") rotated_side();
