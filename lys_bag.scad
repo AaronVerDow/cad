@@ -21,6 +21,9 @@ inner_crook=1;
 
 base=wall;
 
+to_zipper=25;
+to_zipper_fudge=3.3;
+
 
 module corner() {
     translate([x/2,(x-inner)/2+wall+crook,0]) 
@@ -69,8 +72,12 @@ module inner_edges() {
 module trimmed_side() {
     difference() {
         side();
-        translate([-x,-side_bottom/2,y])
+        translate([0,0,y])
+        rotate([-atan(side_top/to_zipper)-angle,0,0])
+        translate([-x,-side_bottom/2,0])
         cube([x*2,side_bottom*2,side_bottom]);
+        translate([-inner/2+wall,0,y-to_zipper-to_zipper_fudge])
+        cube([inner-wall*2,side_bottom,side_bottom]);
     }
 }
 
@@ -105,9 +112,11 @@ module base_side() {
 }
 
 module base() {
-    base_side();
-    mirror([1,0,0])
-    base_side();
+    hull() {
+        base_side();
+        mirror([1,0,0])
+        base_side();
+    }
 }
 
 
@@ -146,9 +155,8 @@ module inner_edge() {
     }
 }
 
-rotated_side();
 
 
 display="";
-//if (display == "") both();
+if (display == "") both();
 if (display == "lys_bag.stl") rotated_side();
