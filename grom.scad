@@ -7,6 +7,8 @@ bolt_r=3;
 top_angle=45;
 bottom_angle=top_angle;
 
+layer_height=0.4;
+
 front_offset=50;
 front=40;
 top_offset=bolt_gap/2+front/2;
@@ -73,6 +75,9 @@ inner_lip=light+lip*2-7*2;
 ring_gap=1;
 ring_h=4;
 
+// extra pushing down on the light
+ring_grip=3;
+
 ring_bolt=3;
 ring_bolts=6;
 trim_angle=7;
@@ -94,6 +99,7 @@ notch_z=3.5;
 
 filament=1.2;
 
+top_extra_h=(max_w-outer_light)/2;
 
 module old_bar_node() {
     minkowski() {
@@ -149,7 +155,7 @@ module lock_negative() {
 module top_bar_node() {
     minkowski() {
         translate([0,0,-top_r])
-        cylinder(d=led_strip*led_strips+led_h*2+top_wall*2-top_r*2,h=led_strip*2+led_h+top_wall);
+        cylinder(d=led_strip*led_strips+led_h*2+top_wall*2-top_r*2,h=led_strip*2+led_h+top_wall+top_extra_h);
         sphere(r=top_r);
     }
 }
@@ -235,8 +241,8 @@ module inner_bar_assembly() {
         translate([two_x,two_y,bar_h-rot_h+pad])
         cylinder(d=rot_d1,h=rot_h);
         //rotator hole
-        translate([two_x,two_y,-pad])
-        cylinder(d=rot_bolt,h=bar_h+padd);
+        translate([two_x,two_y,-rot_h-layer_height])
+        #cylinder(d=rot_bolt,h=bar_h+padd);
         bolt_hole();
         translate([one_x,one_y,0])
         bolt_hole();
@@ -377,9 +383,13 @@ module ring() {
     color("cyan")
     translate([0,0,light_h-ring_h-lip_h])
     difference() {
-        cylinder(d=big_cavity-ring_gap*2,h=ring_h);
+        union() {
+            cylinder(d=big_cavity-ring_gap*2,h=ring_h);
+            translate([0,0,ring_h])
+            cylinder(d=light,h=ring_grip);
+        }
         translate([0,0,-pad])
-        cylinder(d=inner_lip,h=ring_h+padd);
+        cylinder(d=inner_lip,h=ring_h+ring_grip+padd);
         translate([0,0,-pad])
         ring_bolts();
         translate([inner_lip/2-1,-notch_y/2,-pad])
@@ -394,8 +404,10 @@ module ring() {
 module assembled() {
     translate([max_w/2,-two_x-rotator_offset,two_y])
     rotate([90,0,0])
-    translate([0,0,-light_h])
-    light_holder();
+    translate([0,0,-light_h]) {
+        light_holder();
+        ring();
+    }
     color("lime")
     sides();
 }
@@ -411,6 +423,7 @@ module full_bar_node() {
     }
 }
 
+$fn=90;
 display="";
 if (display == "") assembled();
 if (display == "grom_light_holder.stl") {
@@ -419,6 +432,7 @@ if (display == "grom_light_holder.stl") {
     light_holder();
 }
 if (display == "grom_inner_bar.stl") rotate([180,0,0]) inner_bar_assembly();
+if (display == "grom_light_ring.stl") ring();
 if (display == "grom_outer_bar.stl") {
     $fn=300;
     rotate([180,0,0])
