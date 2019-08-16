@@ -10,7 +10,7 @@ wall=1.6;
 base_wall=1.2;
 
 // gap between the ring and can
-bag_gap=wall;
+bag_gap=0.6;
 
 // manually set max diameter 
 max_d=280-wall;
@@ -55,7 +55,8 @@ handle_r=handle_d/2;
 handle_h=15;
 
 // thickness of edge of handle
-handle_wall=wall*2;
+handle_wall=wall*3;
+handle_outer_wall=wall*2;
 
 grip_offset=00;
 cut_top=handle_d/2-grip_offset-handle_h;
@@ -84,7 +85,32 @@ module fancy_can() {
             translate([0,0,base_wall])
             cylinder(d=base_d-wall*2,h=base_wall,$fn=points);
         }
+        screw_holes();
     }
+}
+
+module screw_holes() {
+    screw_hole();
+    mirror([0,1,0])
+    screw_hole();
+}
+
+module screw_hole() {
+        translate([0,-can_d/2+7,handle_location])
+        rotate([90,0,0]) {
+            half_screw_hole();
+            mirror([1,0,0])
+            half_screw_hole();
+            rotate([0,0,270])
+            translate([handle_d/2-handle_h+handle_wall/2,0,-handle_h*4-pad])
+            cylinder(d=screw,h=handle_h*5+pad-wall,$fn=4);
+        }
+}
+
+module half_screw_hole() {
+    rotate([0,0,13])
+    translate([handle_d/2-handle_h+handle_wall/2-2,0,-handle_h*4-pad])
+    cylinder(d=screw,h=handle_h*5+pad-wall,$fn=4);
 }
 
 module can() {
@@ -131,6 +157,7 @@ module handles() {
 
 module assembled() {
     handles();
+    color("white")
     fancy_can();
     color("DimGray")
     translate([0,0,h+wall])
@@ -143,7 +170,7 @@ module handle_profile() {
         translate([0,-handle_h*4])
         square([handle_r,handle_h*5]);
         hull() {
-            translate([handle_r,0])
+            translate([handle_r,handle_wall-handle_outer_wall])
             circle(r=handle_h-handle_wall);
             translate([handle_r,-handle_h*5])
             circle(r=handle_h-handle_wall);
@@ -165,8 +192,8 @@ module grip_corners() {
 }
 
 module handle_screw() {
-    rotate([0,0,15])
-    translate([handle_d/2-handle_h-screw/2,0,-handle_h*4-pad])
+    rotate([0,0,13])
+    translate([handle_d/2-handle_h+handle_wall/2-2,0,-handle_h*4-pad])
     cylinder(d=screw,h=handle_h*5+pad-wall);
 }
 
@@ -174,6 +201,10 @@ module handle_screws() {
     handle_screw();
     mirror([1,0,0])
     handle_screw();
+
+    rotate([0,0,270])
+    translate([handle_d/2-handle_h+handle_wall/2,0,-handle_h*4-pad])
+    cylinder(d=screw,h=handle_h*5+pad-wall);
 }
 
 module handle_to_print() {
@@ -214,6 +245,7 @@ module long_handle() {
         }
     }
 }
+
 
 display="";
 if (display == "") assembled();
