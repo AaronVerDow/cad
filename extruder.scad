@@ -22,8 +22,14 @@ echo(outer_r);
 pad=0.1;
 padd=pad*2;
 fin_to_fan=3;
-shoulder=16.4;
+shoulder=16.8;
 shoulder_top=3.75;
+
+lock=2.5;
+assembly_gap=30;
+
+wires=15;
+wires_offset=4;
 
 $fn=90;
 
@@ -68,9 +74,6 @@ module fan() {
         cylinder(d=fan_bolt,h=side);
     }
 }
-
-wires=15;
-wires_offset=4;
 
 module base() {
     translate([0,0,-h-groove_h])
@@ -165,28 +168,34 @@ module tooth() {
 
 }
 
-lock=2.5;
 
 module tooth_lock() {
-    translate([0,-side/4,0])
+    translate([0,-side/3.5,0])
     translate([-groove/2,0,0])
     rotate([0,90,0])
     cylinder(d=lock,h=groove);
 }
 
 
-assembly_gap=20;
+module assembled() {
+    translate([0,0,-assembly_gap])
+    base();
 
-translate([0,0,-assembly_gap])
-base();
+    translate([0,0,-groove_h])
+    color("lime")
+    top();
 
-translate([0,0,-groove_h])
-color("lime")
-top();
+    translate([0,-assembly_gap,-groove_h-pad])
+    color("magenta")
+    tooth();
 
-translate([0,-assembly_gap,-groove_h-pad])
-color("magenta")
-tooth();
+    translate([0,0,assembly_gap])
+    toptop();
+}
 
-translate([0,0,assembly_gap])
-toptop();
+display="";
+if (display == "") assembled();
+if (display == "extruder_base.stl") rotate([180,0,0]) base();
+if (display == "extruder_top.stl") top();
+if (display == "extruder_tooth.stl") tooth();
+if (display == "extruder_toptop.stl") rotate([180,0,0]) toptop();
