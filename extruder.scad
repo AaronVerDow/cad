@@ -1,4 +1,4 @@
-fins=22.8;
+fins=23.2;
 sides=3;
 bolt=4;
 pillar=10;
@@ -26,6 +26,7 @@ shoulder=16.8;
 shoulder_top=3.75;
 
 lock=2.5;
+lock_diff=0.5;
 assembly_gap=30;
 
 wires=15;
@@ -155,25 +156,25 @@ module tooth() {
         intersection() {
             top_positive();
             hull() {
-                cylinder(d=groove,h=h+padd);
+                cylinder(d=groove-lock_diff,h=h+padd);
                 translate([-side,0,0])
-                cylinder(d=groove,h=h+padd);
+                cylinder(d=groove-lock_diff,h=h+padd);
             }
         }
         translate([0,0,-pad])
         cylinder(d=groove+0.001,h=h+padd);
     }
     translate([0,0,groove_h])
-    tooth_lock();
+    tooth_lock(lock_diff);
 
 }
 
 
-module tooth_lock() {
+module tooth_lock(diff=0) {
     translate([0,-side/3.5,0])
-    translate([-groove/2,0,0])
+    translate([-groove/2+diff,0,0])
     rotate([0,90,0])
-    cylinder(d=lock,h=groove);
+    cylinder(d=lock-diff,h=groove-diff*2);
 }
 
 
