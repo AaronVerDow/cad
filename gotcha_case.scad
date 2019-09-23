@@ -1,27 +1,31 @@
 gotcha_d=11;
 gotcha_r=gotcha_d/2;
-gotcha_h=34.5;
+gotcha_h=37;
 gotcha_h_diff=gotcha_h-gotcha_d;
 
 open_angle=9;
 
-side_d=200;
+side_d=300;
 side_r=side_d/2;
 $fn=90;
 pad=0.1;
 padd=pad*2;
-wall=4;
+wall=2*2;
 
-key_d=5.5;
+key_d=6;
 key_r=key_d/2;
 
-h=0.8;
+h=1.6;
 
-module half_side(opening=0, extra=0, padding=0) {
-
-    rotate([0,0,opening]) {
+module key(opening=0, extra=0, padding=0) {
+        rotate([0,0,opening])
         translate([0,gotcha_h_diff+gotcha_r+key_r+wall/2])
         circle(d=key_d+extra);
+}
+module half_side(opening=0, extra=0, padding=0) {
+
+    key(opening, extra, padding);
+    rotate([0,0,opening]) {
         difference() {
             hull() {
                 //top
@@ -62,7 +66,16 @@ module whole() {
 }
 
 module three_d(){
-    linear_extrude(height=h)
-    whole();
+    difference() {
+        linear_extrude(height=h)
+        whole();
+        translate([0,0,-pad])
+        linear_extrude(height=h/2+pad)
+        key(open_angle, wall+padd);
+
+        translate([0,0,h/2])
+        linear_extrude(height=h/2+pad)
+        key(-open_angle, wall+padd);
+    }
 }
 three_d();
