@@ -17,7 +17,7 @@ key_r=key_d/2;
 
 lock=wall/2/3;
 lock_forgiveness=0.2;
-lock_extra=0.5;
+lock_extra=0.7;
 
 h=1.6;
 
@@ -33,6 +33,26 @@ module key_placement(opening=0, extra=0, padding=0) {
 module half_side(opening=0, extra=0, padding=0) {
 
     key(opening, extra, padding);
+    difference() {
+        hull() {
+            key(opening, extra, padding);
+            if (extra > 0) {
+                rotate([0,0,opening])
+                intersection() {
+                    translate([0,gotcha_h_diff])
+                    circle(d=gotcha_d+extra);
+
+                    translate([-gotcha_d,gotcha_h-gotcha_d])
+                    square([gotcha_d,gotcha_d]);
+                }
+            }
+        }
+            rotate([0,0,opening])
+            //take half
+            translate([padding,-gotcha_r-extra-pad])
+            square([side_r+extra+pad,gotcha_h+padd+extra*2]);
+
+    }
     rotate([0,0,opening]) {
         difference() {
             hull() {
@@ -126,4 +146,5 @@ module three_d(){
         lock_negative();
     }
 }
+rotate([0,0,90])
 three_d();
