@@ -1,25 +1,25 @@
-gotcha_d=11;
+gotcha_d=10.5;
 gotcha_r=gotcha_d/2;
 gotcha_h=37;
 gotcha_h_diff=gotcha_h-gotcha_d;
 
 open_angle=9;
 
-side_d=300;
+side_d=200;
 side_r=side_d/2;
 $fn=90;
 pad=0.1;
 padd=pad*2;
 wall=2*2;
 
-key_d=6;
-key_r=key_d/2;
 
 lock=wall/2/3;
+key_d=6+lock*2;
+key_r=key_d/2;
 lock_forgiveness=0.2;
-lock_extra=0.7;
 
 h=1.6;
+lock_extra=h*3/2;
 
 module key(opening=0, extra=0, padding=0) {
         key_placement(opening, extra, padding)
@@ -94,7 +94,7 @@ module whole() {
 }
 
 module flatten_key() {
-    outer_d=key_d+wall+gotcha_d*2;
+    outer_d=key_d+wall+gotcha_d;
     key_placement(open_angle)
     intersection() {
         translate([0,0,h/2])
@@ -121,9 +121,9 @@ module flatten_keys_reverse() {
 module lock_positive() {
     key_placement(open_angle)
     difference() {
-        cylinder(r=key_r+lock,h=h+lock_extra);
+        cylinder(r=key_r,h=h+lock_extra);
         translate([0,0,-pad])
-        cylinder(r=key_r,h=h+lock_extra+padd);
+        cylinder(r=key_r-lock,h=h+lock_extra+padd);
         translate([-key_r-lock,0,h+lock_extra])
         rotate([0,atan(h/2/(key_d+lock*2)),0])
         cylinder(r=key_d*3,h=h);
@@ -142,8 +142,8 @@ module three_d(){
     difference() {
         linear_extrude(height=h)
         whole();
-        flatten_keys_reverse();
-        lock_negative();
+        //flatten_keys();
+        //lock_negative();
     }
 }
 rotate([0,0,90])
