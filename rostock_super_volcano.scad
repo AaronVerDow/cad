@@ -20,6 +20,8 @@ ring_h=tab_h*3;
 top_ring=ring-ring_wall*2;
 screw_hole=2.5;
 
+slide_inset=17;
+
 module tab() {
     difference() {
         tab_positive();
@@ -42,15 +44,28 @@ module tabs() {
     }
 }
 
+module inset(extra=0, pade=0) {
+        rotate([0,0,-360/3/2])
+        translate([ring/2-slide_inset-extra,-ring/2,-padd])
+        cube([ring,ring,ring_h+padd*2]);
+}
+
 module base() {
     translate([0,0,-tab_offset])
     difference() {
-        union() {
-            cylinder(d=ring,h=ring_h);
             tabs();
+            translate([0,0,-pad])
+            cylinder(d=ring-ring_wall*2,h=ring_h+padd);
+    }
+    translate([0,0,-tab_offset])
+    difference() {
+        cylinder(d=ring,h=ring_h);
+        difference() {
+            translate([0,0,-pad])
+            cylinder(d=ring-ring_wall*2,h=ring_h+padd);
+            inset(ring_wall, padd);
         }
-        translate([0,0,-pad])
-        cylinder(d=ring-ring_wall*2,h=ring_h+padd);
+        inset();
     }
 }
 
@@ -112,7 +127,7 @@ slide_wall=1;
 
 slide_inside=outer_nut+slide_gap*2;
 slide_outside=slide_inside+slide_wall*2;
-slide_h=pull_screw_h+probe-pull_wall*2-nut_h;
+slide_h=pull_screw_h+probe-pull_wall*2-nut_h-6;
 
 module slide() {
     difference() {
@@ -175,7 +190,7 @@ module pull_nut() {
 
 module position_slide() {
     rotate([0,0,90-360/sides/2])
-    translate([0,-ring/2+ring_wall/2,-tab_offset])
+    translate([0,-ring/2+ring_wall/2+slide_inset,-tab_offset])
     children();
 }
 
