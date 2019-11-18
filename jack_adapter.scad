@@ -21,7 +21,7 @@ screw_head=10;
 screw_head_h=3;
 screw_head_lip=1;
 
-layer_h=0.4;
+layer_h=0.6;
 
 magnet=10; 
 magnet_pad=layer_h; 
@@ -192,6 +192,6 @@ module inside_view(){
 }
 
 
-//jack_adapter();
-inside_view();
+jack_adapter();
+//inside_view();
 //raft();
