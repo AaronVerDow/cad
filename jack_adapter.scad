@@ -12,6 +12,8 @@ max_x=puck;     // trim width of puck along groove
 max_y=side_a+side_b+groove;
 edge=5;
 
+extrusion_width=1.2;
+
 screw=5;
 screws=4;
 screw_h=16;
@@ -22,15 +24,18 @@ screw_head_lip=1;
 layer_h=0.4;
 
 magnet=10; 
-magnet_pad=layer_h*2; 
+magnet_pad=layer_h; 
 magnet_h=max_z-magnet_pad;
+magnet_h=10;
 magnet_offset=puck/3;
+crush_h=magnet_h/2;
+crush_wall=extrusion_width;
 
 raft=30;
 raft_d=puck+raft*2;
 
 
-//$fn=100;
+$fn=200;
 
 
 // big jack
@@ -48,6 +53,8 @@ side_b=side_a;
 
 //mr2
 groove=12;      // width of groove in middle
+groove_top=10;      // width of groove in middle
+groove_bottom=12;
 groove_h=20;    // to rest
 
 
@@ -56,30 +63,69 @@ module jack_adapter() {
     intersection() {
         difference() { 
             puck();
-            groove();
-            //screws();
-            magnets();
-            rotator();
+            negative();
         }
         binding_box();
     }
 }
 
+module positive() {
+    intersection() {
+        puck();
+        binding_box();
+    }
+}
+
+module negative() {
+    groove();
+    //screws();
+    magnets();
+    rotator();
+}
+
+
+rotator_forgiveness=2;
+
 module rotator() {
     translate([0,0,-pad])
     cylinder(d=puck_rotator,h=puck_rotator_h+pad);
+    translate([0,0,puck_rotator_h])
+    cylinder(d1=puck_rotator, d2=puck_rotator-rotator_forgiveness*2, h=rotator_forgiveness);
 }
+
+magnet_rotation=30;
 
 module magnets() {
-    translate([0,magnet_offset,0])
-    magnet();
-    translate([0,-magnet_offset,0])
-    magnet();
+    mirror([1,0,0])
+    mirror([0,1,0])
+    top_magnet();
+    mirror([0,1,0])
+    top_magnet();
+    mirror([1,0,0])
+    top_magnet();
+    top_magnet();
+    bottom_magnet();
+    mirror([0,1,0])
+    bottom_magnet();
 }
 
-module magnet() {
-    translate([0,0,-pad])
-    cylinder(d=magnet,h=magnet_h+pad);
+module top_magnet() {
+    rotate([0,0,90+magnet_rotation])
+    translate([0,-magnet_offset,max_z-magnet_h-magnet_pad-crush_h])
+    difference() {
+        cylinder(d=magnet,h=magnet_h+crush_h);
+        translate([-magnet/2-pad,-crush_wall/2,-pad])
+        cube([magnet+pad*2,crush_wall,crush_h+pad]);
+    }
+}
+
+module bottom_magnet() {
+    translate([0,-magnet_offset,magnet_pad])
+    difference() {
+        cylinder(d=magnet,h=magnet_h+crush_h);
+        translate([-magnet/2-pad,-crush_wall/2,magnet_h])
+        cube([magnet+pad*2,crush_wall,crush_h+pad]);
+    }
 }
 
 module binding_box() {
@@ -95,9 +141,22 @@ module puck() {
 }
 
 
+module old_groove() {
+    translate([-puck/2-pad,-groove/2,base_h])
+    cube([puck+pad*2,groove,groove_h+pad]);
+}
+
 module groove() {
-    translate([-puck,-groove/2,base_h])
-    cube([puck*2,groove,max_z+pad]);
+    hull() {
+        groove_end();
+        mirror([1,0,0])
+        groove_end();
+    }
+}
+
+module groove_end() {
+    translate([puck/2+groove_bottom/2,0,base_h])
+    cylinder(d2=groove_top,d1=groove_bottom,h=groove_h+pad);
 }
 
 module screws() {
@@ -125,5 +184,14 @@ module raft() {
     }
 }
 
-jack_adapter();
+
+module inside_view(){
+    $fn=90;
+    negative();
+    #positive();
+}
+
+
+//jack_adapter();
+inside_view();
 //raft();
