@@ -30,18 +30,44 @@ raft=30;
 raft_d=puck+raft*2;
 
 
-$fn=100;
+//$fn=100;
+
+
+// big jack
+puck=101;      // main outer diameter of puck
+puck_rotator=34;
+puck_rotator_h=3;
+base_h=9;       // thickness of puck at bottom of groove
+
+// accord
+groove=12;      // width of groove in middle
+groove_h=38;    // to clear
+groove_h=22;    // to rest
+side_a=50;      // trim sides
+side_b=side_a;
+
+//mr2
+groove=12;      // width of groove in middle
+groove_h=20;    // to rest
+
+
 
 module jack_adapter() {
     intersection() {
         difference() { 
             puck();
             groove();
-            screws();
+            //screws();
             magnets();
+            rotator();
         }
         binding_box();
     }
+}
+
+module rotator() {
+    translate([0,0,-pad])
+    cylinder(d=puck_rotator,h=puck_rotator_h+pad);
 }
 
 module magnets() {
