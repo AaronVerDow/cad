@@ -1,11 +1,11 @@
 
-inner_d2=100;
+inner_d2=94;
 inner_d1=inner_d2-2;
 inner_h=7;
-outer_d=105;
-outer_h=3;
+outer_d=100;
+outer_h=1.5;
 
-straw=15;
+straw=9;
 straw2=25;
 ring=100;
 ring_h=7;
@@ -14,12 +14,18 @@ total_h=outer_h+inner_h;
 pad=0.1;
 padd=pad*2;
 $fn=90;
+bigfn=300;
+$fn=200;
 
-fill=30;
+fill=20;
 
-straw_h=20;
-straw_wall=2;
+straw_h=15;
+straw_wall=1.5;
 straw_outer=straw+straw_wall*2;
+
+extra_straw_offset=straw_h-straw;
+bend_radius=5;
+straw_inset=bend_radius+1;
 
 module ring(d=ring) {
     translate([0,0,inner_h-ring_h-ring_from_lip])
@@ -33,7 +39,7 @@ module taper() {
 module blank() {
     curve();
     translate([0,0,inner_h])
-    cylinder(d=outer_d,h=outer_h);
+    cylinder(d=outer_d,h=outer_h,$fn=bigfn);
     straw();
     insert();
 }
@@ -57,7 +63,7 @@ module fill() {
     translate([outer_d/4+straw/4,0,-pad]) {
         cylinder(d2=fill,d1=fill+total_h*2+padd*2,h=total_h+padd);
         translate([0,0,inner_h+outer_h-pad])
-        cylinder(d1=fill-padd,d2=fill+straw_h*2+padd*2,h=straw_h+padd);
+        cylinder(d1=fill-padd,d2=fill+straw_h*1.5+padd*2,h=straw_h+padd);
     }
 }
 
@@ -68,7 +74,6 @@ module fill_avoid_straw() {
     }
 }
 
-extra_straw_offset=5;
 
 module straw_hole() {
     translate([0,0,-pad]) {
@@ -94,8 +99,6 @@ module curve() {
     }
 }
 
-bend_radius=5;
-
 module bend() {
     translate([-straw/2-bend_radius,0,inner_h+outer_h+straw_h]) {
         translate([0,0,bend_radius+straw/2])
@@ -112,7 +115,6 @@ module bend() {
     }
 }
 
-straw_inset=bend_radius+1;
 
 difference() {
     blank();
