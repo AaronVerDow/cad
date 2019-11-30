@@ -3,11 +3,15 @@ big_fn=500;
 in=25.4;
 pi=3.14;
 
+extrusion_width=1.8;
+
 // how thick the sides of the can are
-wall=1.6;
+wall=extrusion_width;
+
+layer_height=0.8;
 
 // how thick the bottom of the can is
-base_wall=1.2;
+base_wall=layer_height*2;
 
 // gap between the ring and can
 bag_gap=0.6;
@@ -18,6 +22,7 @@ max_d=280-wall;
 // grocery bag is 36in
 bag_size=36*in;
 
+
 // uncomment to automaically scale max diameter to bag
 // max_d=bag_size/pi+wall*2+bag_gap*2;
 
@@ -27,6 +32,8 @@ h=max_d;
 // diameter of the can part (not the lip)
 can_d=max_d-wall*2-bag_gap*2;
 ideal_bag_size=can_d*pi;
+
+inner_lip=max_d-wall*6-bag_gap*2;
 
 echo("Ideal bag size: (mm)");
 echo(ideal_bag_size);
@@ -135,7 +142,7 @@ module lip() {
         translate([0,0,base_wall])
         cylinder(d=max_d-wall*2,h=lip_h+base_wall+bag_gap);
         translate([0,0,-pad])
-        cylinder(d=max_d-wall*4-bag_gap*2-pad,h=lip_h+base_wall+bag_gap);
+        cylinder(d=inner_lip,h=lip_h+base_wall+bag_gap);
     }
 }
 
@@ -247,8 +254,33 @@ module long_handle() {
 }
 
 
+module lip_to_print() {
+    lip();
+    spines=20;
+    spine=extrusion_width*1.5;
+    gap=13;
+    solid=15;
+
+    difference() {
+        union() {
+            for(i=[0:360/spines:359]){
+                rotate([0,0,i])
+                translate([-max_d/2+wall,-spine/2,0])
+                cube([max_d-wall*2,spine,layer_height]);
+            }
+            cylinder(d=max_d-wall*4-bag_gap*2-gap*2,h=layer_height);
+        }
+        translate([0,0,-pad])
+        cylinder(d=max_d-wall*4-bag_gap*2-gap*2-solid*2,h=layer_height+pad*2);
+    }
+
+}
+
+
 display="";
-if (display == "") assembled();
-if (display == "trash_can.stl") fancy_can();
-if (display == "trash_can_lip.stl") lip();
-if (display == "trash_can_handle.stl") handle_to_print();
+//if (display == "") assembled();
+if (display == "") lip_to_print();
+if (display == "trash_can_v2.stl") fancy_can();
+if (display == "trash_can_lip_bed_grip_v2.stl") lip_to_print();
+if (display == "trash_can_lip_v2.stl") lip();
+if (display == "trash_can_handle_v2.stl") handle_to_print();

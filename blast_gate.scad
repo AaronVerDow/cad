@@ -56,7 +56,7 @@ side_h=layer_height*6;
 $fn=90;
 
 // smoothness for pipes
-big_fn=100;
+big_fn=400;
 
 // how close can the bolt get to the gate
 bolt_inner_wall=2;

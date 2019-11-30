@@ -36,15 +36,20 @@ tooth_gap=0.6;
 frown=mouth_y/2;
 frown_angle=14;
 
-face_thick=0.5;
+face_thick=1;
 face_angle=15;
 
 brow_x=ring_inner+ring_thick*2;
 brow_y=ring_thick;
 
+tab_x=8;
+tab_y=11;
+
+
 
 module teeth(){
     gap=mouth_x/teeth;
+    translate([-mouth_x/2,mouth_offset])
     for(x=[0:gap:mouth_x]) {
         translate([-tooth_gap/2+x,-pad])
         square([tooth_gap,mouth_y+padd]);
@@ -68,7 +73,6 @@ module mouth() {
     translate([-mouth_x/2,mouth_offset])
     difference() {
         square([mouth_x,mouth_y]);
-        //teeth();
         frown();
     }
 }
@@ -143,20 +147,31 @@ module face() {
     }
 }
 
-module face_3d() {
+module in_3d() {
     difference() {
         rotate([90-face_angle,0,0])
         translate([0,0,-face_thick])
         linear_extrude(height=face_thick)
-        face();
+        children();
         translate([-face_x/2-pad,0,-face_thick*2])
         cube([face_x+padd,face_thick*2,face_thick*2]);
     }
 }
 
-module face_to_print() {
-    rotate([90+face_angle,0,0])
-    face_3d();
+module face_teeth() {
+    face();
+    teeth();
 }
 
-face_to_print();
+module to_print() {
+    rotate([90+face_angle,0,0])
+    children();
+}
+
+
+display="";
+if (display == "") in_3d() face_teeth();
+if (display == "face.dxf") face();
+if (display == "face_teeth.dxf") face_teeth(); 
+if (display == "face_3d.stl") to_print() in_3d() face();
+if (display == "face_3d_teeth.stl") to_print() in_3d() face_teeth();

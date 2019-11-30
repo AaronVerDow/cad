@@ -21,12 +21,50 @@ tooth_d=1;
 tooth_drain=6;
 
 teeth=5;
+max_cup=20;
+
+drain_extra=5;
+drain_wall=1.6;
+drain_base=1.2;
+drain_h=5;
+
+lid_extra=3;
+
+assembled=10;
+
+module drain() {
+    cap(outer_base_d+drain_extra*2);
+}
+
+module lid() {
+    cap(outer_d+lid_extra*2);
+}
+
+module cap(d) {
+    difference() {
+        cylinder(d=d,h=drain_h);
+        translate([0,0,drain_base])
+        cylinder(d=d-drain_wall*2,h=drain_h);
+    }
+}
+
+
+module assembled() {
+    translate([0,0,inner_h+assembled+drain_h])
+    mirror([0,0,1])
+    #lid();
+
+    translate([0,0,-drain_h-assembled])
+    #drain();
+
+    main();
+}
+
 module positive() {
     cylinder(d1=outer_base_d,d2=outer_d,h=outer_h);
     cylinder(d=inner_d,h=inner_h);
 }
 
-max_cup=20;
 
 module negative() {
     translate([0,0,-pad])
@@ -99,4 +137,10 @@ module other_tooth() {
     }
 }
 
-main();
+
+display="";
+if (display == "") assembled();
+if (display == "coffee_stuff.stl") main();
+if (display == "coffee_stuff_lid.stl") lid();
+if (display == "coffee_stuff_drain.stl") drain();
+

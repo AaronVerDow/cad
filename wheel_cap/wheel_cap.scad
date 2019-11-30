@@ -31,7 +31,7 @@ button_face_h=203.7*button_scale;
 button_base_h=147*button_scale;
 
 // fn used for big circles
-final_big_fn=400;
+big_fn=400;
 big_fn=100;
 
 // used to pad negative space for clean rednering in OpenSCAD
@@ -53,6 +53,7 @@ clip_peak=64.5;
 
 // how high the clip peak is from the inner face of the rim 
 clip_peak_h=9;
+clip_peak_h=7;
 
 // how thick the thinnest part of the clip should be
 clip_wall=(clip_peak-metal_ring)/2;
@@ -92,14 +93,17 @@ flat_h=24;
 flat_round=5;
 flat_hex=flat*67/162;
 
-nut_base_cut=10;
+nut_base=112;
+nut_base_cut=00;
 nut_h=25;
 nut=50;
-nut=56;
+nut=64;
 nut_fn=300;
 nut_fn=60;
 nut_visible_screw=10;
-nut_threaded_screw=10;
+nut_threaded_screw=nut_h;
+nut_screw_scale=0.98;
+nut_screw_grip=7;
 
 
 $fn=60;
@@ -118,8 +122,8 @@ mate_flat=extrusion_width*2;
 small_cap=73;
 
 
-lug=23;
-lug_h=12;
+lug=20;
+lug_h=11;
 lug_offset=98;
 
 
@@ -287,11 +291,19 @@ module mount_solid(extra=0) {
     cylinder(d1=mount+extra*2,d2=mount-mount_h*4,h=mount_h*2+extra,$fn=big_fn);
 }
 
+module mount_negative(extra=0) {
+    translate([0,0,-pad])
+    cylinder(
+        d1=mount-mount_h*4-padd-extra*2,
+        d2=mount+padd+button*2,
+        h=mount_h*2+extra+padd+button,
+        $fn=big_fn
+    );
+}
 module mount_positive(extra=0) {
     difference() {
         mount_solid(extra);
-        translate([0,0,-pad])
-        cylinder(d1=mount-mount_h*4-padd-extra*2,d2=mount+padd,h=mount_h*2+extra+padd,$fn=big_fn);
+        mount_negative();
     }
 }
 
@@ -337,6 +349,7 @@ module mount_timeline() {
         label("mount") mount();
         label("mount_screws") mount_screws();
         label("mount_positive") mount_positive();
+        #label("mount_negative") mount_negative();
         label("mount_solid") mount_solid();
     }
 }
@@ -391,7 +404,7 @@ module flat_cap() {
 
 module nut_base() {
     translate([0,0,-nut_base_cut*2])
-    cylinder(d=button, h=nut_base_cut*2);
+    cylinder(d=nut_base, h=nut_base_cut*2);
 }
 
 module nut_negative() {
@@ -399,29 +412,73 @@ module nut_negative() {
     rotate([0,0,15])
     lugs();
     mount_screws(2.8, flat_h-5);
-    mount_solid(pad);
+    //mount_solid(pad);
+    mount_positive(pad);
+}
+
+module nut_positive() {
+    translate([0,0,-nut_base_cut])
+    hex_nut_iso(d=nut, hg=nut_h+nut_base_cut, $fn=nut_fn);
+    nut_unthreaded();
 }
 
 module nut_cap() {
     difference() {
-        translate([0,0,-nut_base_cut])
-        hex_nut_iso(d=nut, hg=nut_h+nut_base_cut, $fn=nut_fn);
+        nut_positive();
         nut_negative();
     }
 }
 
+nut_small_scale=0.7;
+
+module nut_screw_small() {
+    scale(nut_small_scale)
+    scale([nut_screw_scale, nut_screw_scale, 1])
+    screw_thread_iso_outer( d=nut, lt=nut_visible_screw+nut_threaded_screw, cs=2, $fn=nut_fn);
+}
+
+module nut_cap_small() {
+    scale(nut_small_scale)
+    //nut_positive();
+    hex_nut_iso(d=nut, hg=nut_h+nut_base_cut, $fn=nut_fn);
+    rotate([0,0,15])
+    //#lugs();
+    clip_teeth();
+    //#nut_screw_small();
+}
+
 module nut_cap_screw() {
     difference() {
-        translate([0,0,-nut_base_cut])
-        screw_thread_iso_outer( d=nut, lt=nut_visible_screw+nut_threaded_screw+nut_base_cut, cs=2, $fn=nut_fn);
+        intersection() {
+            scale([nut_screw_scale, nut_screw_scale, 1])
+            screw_thread_iso_outer( d=nut, lt=nut_visible_screw+nut_threaded_screw, cs=2, $fn=nut_fn);
+            mount_negative();
+        }
         nut_base();
+        #nut_unthreaded(pad);
     }
 }
+module nut_unthreaded(p=0) {
+    translate([0,0,-p])
+    cylinder(d=nut,h=nut_h-nut_screw_grip+p);
+}
 module nut_assembled() {
-    translate([0,0,nut_h-nut_threaded_screw])
     color("gray")
     nut_cap_screw();
     nut_cap();
+}
+
+module nut_timeline() {
+	spaced() {
+        label("nut_cap_small") nut_cap_small();
+        label("nut_assembled") {
+            nut_assembled();
+            #nut_base();
+        }
+        label("nut_cap_screw") nut_cap_screw();
+        label("nut_cap") nut_cap();
+        label("nut_negative") nut_negative();
+    }
 }
 
 module spaced(x=0,y=button*1.3) {
@@ -457,7 +514,10 @@ module all_parts() {
 		label("ring_clip") ring_clip();
 		label("button_cap") button_cap();
 		label("flat") flat_cap();
-		label("nut_cap") nut_cap();
+		label("nut_cap") {
+            nut_cap();
+            #nut_base();
+        }
 		//label("nut_negative") nut_negative();
 		label("nut_cap_screw") nut_cap_screw();
 	}
@@ -467,9 +527,16 @@ display="";
 if (display == "") all_parts();
 //if (display == "") button_timeline();
 //if (display == "") clip_mount_timeline();
+//if (display == "") {
+    //nut_timeline();
+    //translate([button*2,0,0])
+    //mount_timeline();
+//}
 if (display == "small_button_cap.stl") small_button_cap();
 if (display == "ring_clip.stl") ring_clip();
 if (display == "button_cap.stl") button_cap();
 if (display == "flat_cap.stl") flat_cap();
 if (display == "nut_cap.stl") nut_cap();
 if (display == "nut_cap_screw.stl") nut_cap_screw();
+if (display == "nut_screw_small.stl") nut_screw_small();
+if (display == "nut_cap_small.stl") rotate([180,0,0]) nut_cap_small();

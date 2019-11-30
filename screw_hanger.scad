@@ -1,4 +1,5 @@
 // printer options
+extrusion_width=0.7;
 extrusion_width=1.2;
 layer_h=0.4;
 
@@ -7,14 +8,16 @@ screw=6; // diameter of hole for screw threads
 screw_head=9.5; // outer diameter of screw head
 screw_head_lip=1; // height of outer lip of screw head
 
-height=58; // total height of hanger
+height=60; // total height of hanger
 wall=extrusion_width; // how thick the wall of the shaft should be
+wall=extrusion_width*2; // how thick the wall of the shaft should be
 head_d=3; // diameter of circle that goes around the edge of the screw head
 base=20; // diameter of base
+base=30; // diameter of base
 base_h=layer_h*2; // height of base (does not include rounding to shaft)
 
 //calcualted 
-$fn=90;
+$fn=10;
 pad=0.1;
 padd=pad*2;
 body=screw+wall*2;
@@ -118,8 +121,44 @@ module label(string) {
     children();
 }
 
+hook=60;
+hook_fudge=hook/3;
+hook_curve=30;
+hook_edge=pad;
+
+module with_hook() {
+    complete();
+    hook();
+}
+
+module hook() {
+    difference() {
+        minkowski() {
+            hook_2d();
+            sphere(d=body-hook_edge);
+        }
+        screw();
+        translate([-body,-body/2-pad,-body*2])
+        cube([hook+body*3,body+padd,body*2]);
+    }
+}
+
+module hook_2d() {
+    rotate([90,0,0]) 
+    scale([1,(hook_curve+body)/(hook+body),1])
+    difference() {
+        translate([0,-body,-hook_edge/2])
+        cube([hook+body/2,hook+body,hook_edge]);
+        translate([hook,hook,-hook_edge/2-pad])
+        scale([1,(hook+hook_fudge)/hook,1])
+        cylinder(r=hook,h=hook_edge+padd);
+    }
+}
+
 module timeline() {
     spaced() {
+        label("with_hook") with_hook();
+        label("hook") hook();
         label("to_print") to_print() complete();
         label("complete") complete();
         label("complete_no_base") complete_no_base();
@@ -144,6 +183,7 @@ module timeline() {
 }
 
 module to_print() {
+    $fn=90;
     translate([0,0,height])
     mirror([0,0,1])
     children();
@@ -154,3 +194,4 @@ display="";
 if (display == "") timeline();
 if (display == "screw_hanger.stl") to_print() complete();
 if (display == "screw_hanger_no_base.stl") to_print() complete_no_base();
+if (display == "screw_hanger_with_hook.stl") to_print() with_hook();

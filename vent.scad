@@ -6,19 +6,19 @@ slat_angle=40;
 inner_h=20;
 outer_h=layer_height*2;
 inner_wall=extrusion_width*2;
-inner=100;
-outer_wall=10;
+inner=106;
+outer_wall=20;
 outer=inner+outer_wall*2;
 slat_gap=inner_h;
 
-wire=15;
-wire_h=wire;
+wire=11;
+wire_h=wire*1.5;
 wire_wall=inner_wall;
 
 pad=0.1;
 padd=pad*2;
 
-$fn=90;
+$fn=200;
 
 module positive() {
     cylinder(d=inner,h=inner_h);
