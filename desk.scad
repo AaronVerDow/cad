@@ -140,12 +140,47 @@ module top_pins() {
     top_pins_side();
 }
 
+module front_pin() {
+    translate([0,front_wood])
+    mirror([0,1])
+    pin_edge(top_wood,front_wood+pad,foot+leg_wood*2+4*u);
+    translate([foot+leg_wood*2+4*u,front_wood])
+    rotate([0,0,90])
+    mouse_ear();
+}
+
+module front_pins() {
+    front_pin();
+    translate([top_x,0,0])
+    mirror([1,0,0])
+    front_pin();
+}
+
+
+module top_back_wing() {
+    translate([-pad,top_y-back_wood])
+    square([foot+leg_wood+pad,back_wood+pad]);
+    translate([foot+leg_wood,top_y-back_wood])
+    mouse_ear();
+}
+
+module top_back_wings() {
+    top_back_wing();
+    translate([top_x,0])
+    mirror([1,0])
+    top_back_wing();
+}
+
 module top() {
     difference() {
         square([top_x,top_y]);
         top_wire_placements()
         top_wire_profile();
         top_pins();
+        front_pins();
+        top_back_wings();
+        translate([foot+leg_wood+4*u,top_y-back_wood,0])
+        pin_edge(top_wood,back_wood+pad,leg_wood*2+legroom);
     }
 }
 
@@ -193,6 +228,21 @@ module wire_corners(x,y,wall,open) {
     }
 }
 
+module leg_front_plate() {
+    translate([rack_base_wood+rack,-pad])
+    square([top_wood+cubby+rack_top_wood+pad,front_wood+pad]);
+    translate([rack_base_wood+rack,front_wood])
+    rotate([0,0,45*4])
+    mouse_ear();
+}
+
+module leg_front_plates() {
+    leg_front_plate();
+    translate([0,top_y])
+    mirror([0,1])
+    leg_front_plate();
+}
+
 module leg() {
     difference() {
         square([height,top_y]);
@@ -212,10 +262,13 @@ module leg() {
         rotate([0,0,90])
         tail_holes(leg_wood,rack_top_wood,top_y);
 
+        // top pins
         translate([height-top_wood,0])
         mirror([1,0])
         rotate([0,0,90])
         pin_edge(leg_wood,top_wood+pad,top_y);
+
+        leg_front_plates();
     }
 }
 
@@ -271,7 +324,12 @@ module outer_legs_assembled() {
 }
 
 module rack_top() {
-    rack_base();
+    difference() {
+        rack_base();
+        translate([0,front_wood])
+        mirror([0,1])
+        pin_edge(rack_top_wood,front_wood+pad,4*u+leg_wood*2);
+    }
 }
 
 module rack_top_3d() {
@@ -393,7 +451,12 @@ back_wire_wall=leg_wall;
 back_wire=6*in;
 
 module back() {
-    square([leg_wood*2+legroom,top_wood+cubby+rack_top_wood]);
+    difference() {
+        x=leg_wood*2+legroom;
+        square([x,top_wood+cubby+rack_top_wood]);
+        translate([0,cubby+rack_top_wood])
+        tail_edge(back_wood,top_wood+pad,x);
+    }
 }
 
 module back_3d() {
@@ -419,7 +482,14 @@ module wing() {
 }
 
 module front() {
-    front_positive();
+    difference() {
+        front_positive();
+        translate([0,top_wood])
+        mirror([0,1])
+        tail_edge(front_wood,top_wood+pad,foot+leg_wood*2+4*u);
+        translate([foot,top_wood+cubby])
+        tail_edge(front_wood,rack_top_wood+pad,4*u+leg_wood*2);
+    }
 }
 
 module front_positive() {
@@ -457,15 +527,15 @@ module pin_edge(pin_h, tail_h, edge) {
         }
 
         // trim off extra mouse ears
-        translate([pintail/2-pad,-bit/2])
-        square([edge-pintail+pad*2,tail_h+bit]);
+        translate([pintail/4-pad,-bit/2])
+        #square([edge-pintail/2+pad*2,tail_h+bit]);
     }
 
     // ends
     translate([-pad,0])
-    square([pintail/2+pad*2,tail_h]);
-    translate([edge-pintail/2-pad,0])
-    square([pintail/2+pad*2,tail_h]);
+    square([pintail/4+pad*2,tail_h]);
+    translate([edge-pintail/4-pad,0])
+    square([pintail/4+pad*2,tail_h]);
 }
 
 module tail_edge(tail_h, pin_h, edge) {
@@ -483,6 +553,7 @@ module tail_holes(tail_h,pin_h,edge) {
 }
 
 module mouse_ear() {
+    rotate([0,0,45])
     translate([0,bit/2])
     circle(d=bit);
 }
@@ -490,8 +561,7 @@ module mouse_ear() {
 module mouse_ears(x,y) {
     square([x,y]);
     translate([x,0])
-    rotate([0,0,45])
     mouse_ear();
-    rotate([0,0,-45])
+    rotate([0,0,-90])
     mouse_ear();
 }
