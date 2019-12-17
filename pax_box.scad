@@ -1,15 +1,16 @@
-in=2.54;
+in=25.4;
 
-depth=29*in;
-height=71*in;
-width=47*in;
+back_h=0.25*in;
+depth=(22+11/16)*in+back_h;
 
-wood=0.75*in;
+height=(92+7/8)*in;
+width=(19+5/8)*in;
+
+wood=11/16*in;
 
 side_h=wood;
 bottom_h=wood;
 top_h=wood;
-back_h=0.5*in;
 shelf_h=wood;
 
 pin=3*in;
@@ -28,6 +29,41 @@ bit=0.25*in;
 pad=0.1;
 
 
+hole=1/8*in;
+
+hole_d=0.25*in;
+
+hole_gap=(19+7/8)*in/15;
+
+rail_one=depth-1.0625*in;
+rail_three=rail_one-20.5*in;
+rail_two=rail_three+8.5*in;
+
+bottom_shelf=(3+7/16)*in;
+
+// https://www.amazon.com/gp/product/B01C91KTSU/ref=ppx_od_dt_b_asin_title_s00?ie=UTF8&psc=1
+
+leveler_foot=1.5*in;
+leveler_hole=2*in;
+leveler_wall=0.25*in;
+
+module hole() {
+    circle(d=hole);
+}
+
+module rail(x) {
+    for(y=[0:hole_gap:height]) {
+        translate([x,y])
+        hole();
+    }
+}
+
+module rails() {
+    rail(rail_one);
+    rail(rail_two);
+    rail(rail_three);
+}
+
 
 
 module pin_edge(pin_h, tail_h, edge) {
@@ -38,23 +74,23 @@ module pin_edge(pin_h, tail_h, edge) {
         }
 
         // trim off extra mouse ears
-        translate([pintail/2-pad,-bit/2])
-        square([edge-pintail+pad*2,tail_h+bit]);
+        translate([pintail/4-pad,-bit/2])
+        square([edge-pintail/2+pad*2,tail_h+bit]);
     }
 
     // ends
     translate([-pad,0])
-    square([pintail/2+pad*2,tail_h]);
-    translate([edge-pintail/2-pad,0])
-    square([pintail/2+pad*2,tail_h]);
+    square([pintail/4+pad*2,tail_h]);
+    translate([edge-pintail/4-pad,0])
+    square([pintail/4+pad*2,tail_h]);
 }
 
 module shelf() {
     square([width-side_h*2,depth-back_h]);
 }
 
-module shelf_3d() {
-    translate([side_h,0,height/3])
+module shelf_3d(z) {
+    translate([side_h,0,z])
     linear_extrude(height=top_h)
     shelf();
 }
@@ -121,6 +157,9 @@ module bottom() {
 
         translate([0,depth-back_h])
         tail_edge(back_h+pad,bottom_h+pad,width);
+
+        place_levelers()
+        circle(d=leveler_hole);
     }
 }
 
@@ -137,6 +176,9 @@ module side_3d() {
         translate([0,0,blind])
         linear_extrude(height=side_h)
         side_cuts();
+        translate([0,0,wood-hole_d])
+        linear_extrude(height=side_h)
+        rails();
     }
 }
 
@@ -156,6 +198,44 @@ module sides_3d() {
 }
 
 
+module leveler() {
+    cylinder(d=7/16*in,h=3*in);
+    cylinder(d=leveler_foot,h=5/8*in);
+}
+
+module place_leveler_front_left() {
+    translate([leveler_hole/2+side_h+leveler_wall,leveler_hole/2+leveler_wall])
+    children();
+}
+
+module mirror_y() {
+    children();
+    translate([width,0])
+    mirror([1,0])
+    children();
+}
+
+
+module mirror_x() {
+    children();
+    translate([0,depth])
+    mirror([0,1])
+    children();
+}
+
+module place_leveler_left() {
+   mirror_y()
+   place_leveler_front_left() 
+   children();
+}
+
+module place_levelers() {
+    mirror_x()
+    place_leveler_left()
+    children();
+}
+
+leveler_min_height=5/8*in;
 
 module assembled() {
     color("red")
@@ -165,11 +245,14 @@ module assembled() {
     color("blue")
     bottom_3d();
 
-    color("lime")
+    color("green")
     back_3d();
 
     color("grey")
-    shelf_3d();
+    shelf_3d(bottom_shelf-shelf_h);
+    shelf_3d(leveler_min_height+shelf_h);
+    place_levelers()
+    #leveler();
 }
 
 module back() {
@@ -234,6 +317,7 @@ module flat() {
 //flat();
 
 assembled();
+//side_3d();
 
 //bottom();
 //top();
