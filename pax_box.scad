@@ -9,7 +9,7 @@ width=(19+5/8)*in;
 wood=11/16*in;
 
 side_wood=wood;
-bottom_wood=wood;
+bottom_wood=0.25*in;
 top_wood=wood;
 shelf_wood=wood;
 
@@ -528,18 +528,27 @@ module assembled() {
 
 module cut_sheet_one() {
     plywood();
-    gap_y=(plywood_y-depth*2)/3;
+    gap_y=(plywood_y-depth-width)/3;
     gap_x=(plywood_x-height)/2;
-    translate([height+gap_x,depth+gap_y*2])
-    rotate([0,0,90])
-    side();
+    translate([height+gap_x,width+gap_y*2])
+    rotate([0,0,90]) {
+        side();
+        translate([0,0,pad])
+        color("red") {
+            side_cuts();
+            rails();
+        }
+    }
 
-    translate([gap_x,gap_y])
+    translate([gap_x,gap_y+width])
     spaced_x(plywood_x) {
+        rotate([0,0,-90])
         fixed_shelf();
+        rotate([0,0,-90])
         fixed_shelf();
+        rotate([0,0,-90])
         fixed_shelf();
-        shelf();
+        //shelf();
     }
 }
 
@@ -559,17 +568,29 @@ module spaced_sheets() {
 
 module cut_sheet_two() {
     plywood();
-    gap_y=(plywood_y-depth*2)/3;
+    gap_y=(plywood_y-width-depth)/3;
     gap_x=(plywood_x-height)/2;
-    translate([height+gap_x,depth*2+gap_y*2])
+
+    translate([gap_x,width+gap_y*2])
     mirror([0,1])
-    rotate([0,0,90])
-    side();
+    rotate([0,0,90+180]) {
+        side();
+        translate([0,0,pad])
+        color("red") {
+            side_cuts();
+            rails();
+        }
+    }
+
+
     translate([gap_x,gap_y]) {
+        translate([0,width])
         spaced_x(plywood_x) {
+            rotate([0,0,-90])
             top();
+            rotate([0,0,-90])
             bottom();
-            bottom_shelf();
+            rotate([0,0,-90])
             leveler_shelf();
         }
     }
@@ -581,21 +602,31 @@ module shade_to_cut() {
     shade();
 }
 
+module spaced_shade() {
+    for ( i= [0:1:$children-1]) 
+    translate([i*(shade_h+2*in),0])
+    children(i);
+}
+
+
 module cut_sheet_three() {
-    gap_y=(plywood_y-depth*2)/3;
+    gap_y=(plywood_y-width*2)/3;
     gap_x=(plywood_x-height)/2;
     plywood();
-    translate([height+gap_x,depth*2+gap_y*2])
+    translate([height+gap_x,width*2+gap_y*2])
     mirror([0,1])
     rotate([0,0,90])
     back();
     translate([gap_x,gap_y]) {
-        spaced_x(plywood_x) {
+        spaced_shade() {
             shade_to_cut();
             shade_to_cut();
             shade_to_cut();
             shade_to_cut();
             shade_to_cut();
+            translate([0,width])
+            rotate([0,0,-90])
+            bottom_shelf();
         }
     }
 }
