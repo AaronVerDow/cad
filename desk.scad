@@ -22,10 +22,13 @@ leg_wire=4*in;
 // https://en.wikipedia.org/wiki/19-inch_rack#/media/File:Server_rack_rail_dimensions.svg
 u=1.75*in;
 u_hole_gap=0.625*in;
-rack=19*in; // outer
+u_hole=0.125*in;
+rack=19.125*in; // outer
 rack_inner=17.75*in;
+us=4;
+rack_h=u*us+0.125*in;
 
-cubby=3*in;
+cubby=2*in;
 
 height=rack+rack_base_wood+top_wood+rack_top_wood+cubby;
 top_u_h=height-top_wood-u;
@@ -59,8 +62,8 @@ top_wire_lip=5;
 base_min_x=46.6*in;
 base_max_x=75.4*in;
 base_y=22.8*in;
-base_min_z=23.9*in;
-base_max_z=49.5*in;
+base_min_z=25.2*in;
+base_max_z=50.8*in;
 base_channel_y=5*in;
 base_channel_z=2*in;
 base_channel_from_back=5*in;
@@ -77,9 +80,58 @@ blank_gap=0.1*in;
 blank_inset=1*in;
 blank_wall=1*in;
 
+rail_choices=3;
+rail_flush=7/8*in;
+server_flush=3*in;
+rail_choice=(server_flush-rail_flush)/(rail_choices-1);
+extra_choices=1;
+
+wheel_barrel=7/16*in;
+wheel_barrel_h=7/8*in;
+wheel_lock=1/8*in;
+wheel_lock_h=1/2*in;
+wheel_w=(1+5/16)*in;
+wheel_max=2.625*in;
+wheel_h=(3+5/8)*in;
+
+
+wheel_min_y=wheel_w/2;
+wheel_max_y=wheel_max;
+wheel_choices=3;
+wheel_choice=(wheel_max_y-wheel_min_y)/(wheel_choices-1);
+wheel_extra_choices=wheel_choice*1;
+
+
+module wheel_max() {
+    cylinder(r=wheel_max,h=wheel_h);
+    cylinder(d=wheel_barrel,h=wheel_h+wheel_barrel_h);
+    translate([0,0,wheel_h+wheel_lock_h+wheel_lock/2])
+    rotate_extrude()
+    translate([wheel_barrel/2,0])
+    circle(d=wheel_lock);
+}
+
+module place_wheels() {
+    mirror_x()
+    mirror_y()
+    for(y=[wheel_min_y:wheel_choice:wheel_max_y+wheel_extra_choices]) {
+        translate([foot+wheel_max,y,-wheel_h])
+        children();
+    }
+}
+
+
+module u_holes(us=1) {
+    for (n=[0:1:us-1]) {
+        for (x=[0:u_hole_gap:u]) {
+            translate([x-u_hole_gap+u/2+u*n,0,0])
+            circle(d=u_hole);
+        }
+    }
+}
 module blank_hole() {
-    d=4*u-blank_wall*2;
-    translate([2*u,2*u])
+    d=rack_h-blank_wall*2;
+    translate([rack_h/2,rack_h/2])
     circle(d=d);
 }
 
@@ -88,13 +140,13 @@ module blank_holes() {
     translate([0,rack])
     mirror([0,1])
     blank_hole();
-    translate([0,-2*u+rack/2])
+    translate([0,-rack_h/2+rack/2])
     blank_hole();
 }
 
 module blank() {
     difference() {
-        square([4*u-blank_gap*2,rack-blank_gap*2]);
+        square([rack_h-blank_gap*2,rack-blank_gap*2]);
         blank_holes();
     }
 }
@@ -181,7 +233,7 @@ module top_pins_one(x) {
 
 module top_pins_side() {
     top_pins_one(foot+leg_wood);
-    top_pins_one(foot+leg_wood*2+4*u);
+    top_pins_one(foot+leg_wood*2+rack_h);
 }
 
 module top_pins() {
@@ -194,8 +246,8 @@ module top_pins() {
 module front_pin() {
     translate([0,front_wood])
     mirror([0,1])
-    pin_edge(top_wood,front_wood+pad,foot+leg_wood*2+4*u);
-    translate([foot+leg_wood*2+4*u,front_wood])
+    pin_edge(top_wood,front_wood+pad,foot+leg_wood*2+rack_h);
+    translate([foot+leg_wood*2+rack_h,front_wood])
     rotate([0,0,90])
     mouse_ear();
 }
@@ -230,7 +282,7 @@ module top() {
         top_pins();
         front_pins();
         top_back_wings();
-        translate([foot+leg_wood+4*u,top_y-back_wood,0])
+        translate([foot+leg_wood+rack_h,top_y-back_wood,0])
         pin_edge(top_wood,back_wood+pad,leg_wood*2+legroom);
     }
 }
@@ -364,7 +416,7 @@ module outer_leg_3d() {
 
 
 module inner_leg_assembled() {
-    translate([leg_wood*2+u*4+foot,0,0])
+    translate([leg_wood*2+rack_h+foot,0,0])
     rotate([0,-90,0])
     inner_leg_3d();
 }
@@ -394,7 +446,7 @@ module rack_top() {
         rack_base();
         translate([0,front_wood])
         mirror([0,1])
-        pin_edge(rack_top_wood,front_wood+pad,4*u+leg_wood*2);
+        pin_edge(rack_top_wood,front_wood+pad,rack_h+leg_wood*2);
     }
 }
 
@@ -416,16 +468,38 @@ module rack_tops_assembled() {
 }
 
 
+module mirror_x() {
+    children();
+    translate([top_x,0])
+    mirror([1,0])
+    children();
+}
+
+
+module mirror_y() {
+    children();
+    translate([0,top_y])
+    mirror([0,1])
+    children();
+}
 module rack_base() {
     difference() {
-        square([4*u+leg_wood*2,top_y]);
+        square([rack_h+leg_wood*2,top_y]);
         translate([leg_wood,0])
         rotate([0,0,90])
         pin_edge(rack_base_wood+pad,leg_wood,top_y);
-        translate([leg_wood+4*u,0])
+        translate([leg_wood+rack_h,0])
         mirror([1,0])
         rotate([0,0,90])
         pin_edge(rack_base_wood,leg_wood+pad,top_y);
+        mirror_y()
+        for (y=[rail_flush:rail_choice:server_flush+extra_choices*rail_choice]) {
+            translate([rack_h/2-u*us/2+leg_wood,y])
+            u_holes(us);
+        }
+        translate([-foot,0])
+        place_wheels()
+        circle(d=wheel_barrel);
     }
 }
 
@@ -457,7 +531,7 @@ module top_assembled() {
 }
 
 module assembled() {
-    //#base();
+    #base();
     color("purple")
     top_assembled();
     //leg_us();
@@ -477,6 +551,8 @@ module assembled() {
     fronts_assembled();
     color("white")
     blanks_assembled();
+    place_wheels()
+    #wheel_max();
 }
 
 module back_wing() {
@@ -548,7 +624,7 @@ module back_3d() {
 }
 
 module back_assembled() {
-    translate([leg_wood+4*u+foot,top_y,height-top_wood-cubby-rack_top_wood])
+    translate([leg_wood+rack_h+foot,top_y,height-top_wood-cubby-rack_top_wood])
     rotate([90,0,0])
     back_3d();
 }
@@ -569,11 +645,11 @@ module front() {
         front_positive();
         translate([0,top_wood])
         mirror([0,1])
-        tail_edge(front_wood,top_wood+pad,foot+leg_wood*2+4*u);
+        tail_edge(front_wood,top_wood+pad,foot+leg_wood*2+rack_h);
         translate([foot,top_wood+cubby])
-        tail_edge(front_wood,rack_top_wood+pad,4*u+leg_wood*2);
+        tail_edge(front_wood,rack_top_wood+pad,rack_h+leg_wood*2);
 
-        translate([foot+leg_wood+4*u,0])
+        translate([foot+leg_wood+rack_h,0])
         mirror([1,0])
         rotate([0,0,90])
         tail_edge(front_wood,leg_wood+pad,top_wood+cubby+rack_top_wood);
@@ -582,7 +658,7 @@ module front() {
 
 module front_positive() {
     translate([foot,0])
-    square([leg_wood*2+4*u,top_wood+cubby+rack_top_wood]);
+    square([leg_wood*2+rack_h,top_wood+cubby+rack_top_wood]);
     wing();
 }
 

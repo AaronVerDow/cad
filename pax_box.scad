@@ -294,36 +294,6 @@ module place_levelers() {
 }
 
 
-module assembled() {
-    color("red")
-    sides_3d();
-    color("blue")
-    top_3d();
-    color("blue")
-    bottom_3d();
-
-    color("green")
-    back_3d();
-
-    color("grey")
-    place_levelers()
-    #leveler();
-
-	place_z(standard_shelves)
-	shaded_fixed_shelf_3d();
-
-	color("white")
-	place_z(standard_shelves)
-    shade_3d();
-
-
-	leveler_shelf_3d();
-	bottom_shelf_3d();
-	color("white")
-	bottom_shade_3d();
-}
-
-
 
 module bottom_shelf_3d() {
 	translate([0,0,bottom_shelf_z])
@@ -518,12 +488,136 @@ module shade() {
 }
 
 
+plywood_x=8*in*12;
+plywood_y=4*in*12;
+plywood_edge=1;
+module plywood() {
+    color("blue") translate([0,0,-pad]) square([plywood_x,plywood_y]);
+}
+
+module assembled() {
+    color("red")
+    sides_3d();
+    color("blue")
+    top_3d();
+    color("blue")
+    bottom_3d();
+
+    color("green")
+    back_3d();
+
+    color("grey")
+    place_levelers()
+    #leveler();
+
+	place_z(standard_shelves)
+	shaded_fixed_shelf_3d();
+
+	color("white")
+	place_z(standard_shelves)
+    shade_3d();
+
+
+	leveler_shelf_3d();
+	bottom_shelf_3d();
+	color("white")
+	bottom_shade_3d();
+}
+
+
+
+module cut_sheet_one() {
+    plywood();
+    gap_y=(plywood_y-depth*2)/3;
+    gap_x=(plywood_x-height)/2;
+    translate([height+gap_x,depth+gap_y*2])
+    rotate([0,0,90])
+    side();
+
+    translate([gap_x,gap_y])
+    spaced_x(plywood_x) {
+        fixed_shelf();
+        fixed_shelf();
+        fixed_shelf();
+        shelf();
+    }
+}
+
+module spaced_x(x) {
+    for ( i= [0:1:$children-1]) 
+    translate([x/($children)*(i),0])
+    children(i);
+}
+
+module spaced_sheets() {
+    for (i=[0:1:$children-1]) 
+    translate([0,i*sheets_gap])
+    children(i);
+}
+
+
+
+module cut_sheet_two() {
+    plywood();
+    gap_y=(plywood_y-depth*2)/3;
+    gap_x=(plywood_x-height)/2;
+    translate([height+gap_x,depth*2+gap_y*2])
+    mirror([0,1])
+    rotate([0,0,90])
+    side();
+    translate([gap_x,gap_y]) {
+        spaced_x(plywood_x) {
+            top();
+            bottom();
+            bottom_shelf();
+            leveler_shelf();
+        }
+    }
+}
+
+module shade_to_cut() {
+    translate([shade_h,0])
+    rotate([0,0,90])
+    shade();
+}
+
+module cut_sheet_three() {
+    gap_y=(plywood_y-depth*2)/3;
+    gap_x=(plywood_x-height)/2;
+    plywood();
+    translate([height+gap_x,depth*2+gap_y*2])
+    mirror([0,1])
+    rotate([0,0,90])
+    back();
+    translate([gap_x,gap_y]) {
+        spaced_x(plywood_x) {
+            shade_to_cut();
+            shade_to_cut();
+            shade_to_cut();
+            shade_to_cut();
+            shade_to_cut();
+        }
+    }
+}
+
+sheets_gap=2*in+plywood_y;
+
+module cut_sheets() {
+    spaced_sheets() {
+        cut_sheet_one();
+        cut_sheet_two();
+        cut_sheet_three();
+    }
+}
+
+cut_sheets();
 
 //back();
 //flat();
 
 //fixed_shelf_3d();
-assembled();
+//translate([-width,-depth])
+//assembled();
 //side_3d();
 
 //shade_3d();
