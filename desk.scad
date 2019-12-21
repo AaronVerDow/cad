@@ -681,7 +681,6 @@ module fronts_assembled() {
 }
 
 
-assembled();
 
 module pin_edge(pin_h, tail_h, edge) {
     intersection() {
@@ -728,4 +727,40 @@ module mouse_ears(x,y) {
     mouse_ear();
     rotate([0,0,-90])
     mouse_ear();
+}
+
+
+//assembled();
+
+plywood_x=8*12*in;
+plywood_y=4*12*in;
+
+color("blue")
+translate([0,0,-pad])
+square([plywood_x,plywood_y]);
+
+module spaced_depth() {
+    for ( i= [0:1:$children-1])
+    translate([0,i*(top_y+2*in)])
+    children(i);
+}
+
+
+module spaced_height() {
+    for ( i= [0:1:$children-1])
+    translate([i*(height+2*in),0])
+    children(i);
+}
+
+translate([0,plywood_y])
+rotate([0,0,-90])
+spaced_depth() {
+    spaced_height() {
+        inner_leg();
+        inner_leg();
+    }
+    spaced_height() {
+        outer_leg();
+        outer_leg();
+    }
 }
