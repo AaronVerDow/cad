@@ -641,14 +641,14 @@ module cut_sheets() {
     }
 }
 
-cut_sheets();
+//cut_sheets();
 
 //back();
 //flat();
 
 //fixed_shelf_3d();
 //translate([-width,-depth])
-//assembled();
+assembled();
 //side_3d();
 
 //shade_3d();
