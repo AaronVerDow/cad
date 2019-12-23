@@ -28,18 +28,23 @@ rack_inner=17.75*in;
 us=4;
 rack_h=u*us+0.125*in;
 
-cubby=2*in;
+cubby=3*in;
 
-height=rack+rack_base_wood+top_wood+rack_top_wood+cubby;
+covered_front=0;
+back_wings=0;
+below_rack=1*in;
+
+height=rack+below_rack+rack_base_wood+top_wood+rack_top_wood+cubby;
 top_u_h=height-top_wood-u;
 
 pad=0.1;
 
 end_u_depth=26*in;
 
-legroom=24*in;
-foot=4*in; //?
-top_x=legroom+8*u+leg_wood*4+foot*2;
+base_min_x=40.5*in;
+legroom=base_min_x;
+foot=0; //?
+top_x=base_min_x+rack_h*2+leg_wood*4;
 
 echo("height");
 echo(height/in);
@@ -56,17 +61,23 @@ front_wall=-6*in;
 
 top_wire=2*in;
 top_wire_lip=5;
+top_wire_holes=4;
+top_wire_wall=2*in;
+
+rack_top_wire=3*in;
 
 
 // https://www.imovr.com/imovr-vigor-diy-standing-desk-base.html
-base_min_x=46.6*in;
 base_max_x=75.4*in;
 base_y=22.8*in;
-base_min_z=25.2*in;
+base_min_z=25.76*in;
 base_max_z=50.8*in;
+channel_y=0;
 base_channel_y=5*in;
 base_channel_z=2*in;
+channel_z=0;
 base_channel_from_back=5*in;
+base_foot=3*in;
 
 cubby_wall=0.5*in;
 
@@ -103,19 +114,21 @@ wheel_extra_choices=wheel_choice*1;
 
 
 module wheel_max() {
-    cylinder(r=wheel_max,h=wheel_h);
-    cylinder(d=wheel_barrel,h=wheel_h+wheel_barrel_h);
-    translate([0,0,wheel_h+wheel_lock_h+wheel_lock/2])
-    rotate_extrude()
-    translate([wheel_barrel/2,0])
-    circle(d=wheel_lock);
+    translate([0,0,below_rack]) {
+        cylinder(r=wheel_max,h=wheel_h);
+        cylinder(d=wheel_barrel,h=wheel_h+wheel_barrel_h);
+        translate([0,0,wheel_h+wheel_lock_h+wheel_lock/2])
+        rotate_extrude()
+        translate([wheel_barrel/2,0])
+        circle(d=wheel_lock);
+    }
 }
 
 module place_wheels() {
     mirror_x()
     mirror_y()
     for(y=[wheel_min_y:wheel_choice:wheel_max_y+wheel_extra_choices]) {
-        translate([foot+wheel_max,y,-wheel_h])
+        translate([leg_wood+rack_h/2,y,-wheel_h])
         children();
     }
 }
@@ -147,7 +160,7 @@ module blank_holes() {
 module blank() {
     difference() {
         square([rack_h-blank_gap*2,rack-blank_gap*2]);
-        blank_holes();
+        //blank_holes();
     }
 }
 
@@ -177,40 +190,34 @@ module blanks_assembled() {
 }
 
 module base_side() {
-    cube([foot,base_y,base_min_z]);
+    cube([base_foot,base_y,base_min_z]);
 }
 
 module base() {
-    translate([0,top_y-base_y-back_wood,-base_min_z+rack_base_wood+rack+rack_top_wood+cubby]) {
+    translate([rack_h+leg_wood*2,top_y-base_y-back_wood,-base_min_z+rack_base_wood+rack+rack_top_wood+cubby]) {
         base_side();
-        translate([top_x-foot,0])
+        translate([base_min_x-base_foot,0])
         base_side();
         translate([0,base_y-base_channel_y-base_channel_from_back,base_min_z-base_channel_z])
-        cube([top_x,base_channel_y,base_channel_z]);
+        cube([base_min_x,base_channel_y,base_channel_z]);
     }
 }
-
-
 
 module u(slots, depth) {
     cube([rack,depth,u*slots]);
 }
 
-module top_wire_placement(y) {
-    translate([foot+leg_wood+2*u,y])
-    children();
-}
+
 
 module top_wire_placements() {
-    y=top_y-top_wire;
-    top_wire_placement(y)
+    from_edge=rack_h/2+leg_wood;
+    total_x=top_x-from_edge*2;
+    spacing=total_x/(top_wire_holes-1);
+
+    for(x=[0:spacing:total_x])
+    translate([x+from_edge,top_y-top_wire_wall])
     children();
-    translate([top_x,0])
-    mirror([1,0])
-    top_wire_placement(y)
-    children();
-    translate([top_x/2,y])
-    children();
+
 }
 
 module top_wire_profile() {
@@ -226,8 +233,8 @@ module top_pins_one(x) {
     difference() { 
         rotate([0,0,90])
         tail_holes(top_wood,leg_wood,top_y);
-        translate([-leg_wood*1.5,top_y-base_channel_y-base_channel_from_back])
-        square([leg_wood*2,base_channel_y]);
+        translate([-leg_wood*1.5,top_y-channel_y-base_channel_from_back])
+        square([leg_wood*2,channel_y]);
     }
 }
 
@@ -280,7 +287,9 @@ module top() {
         top_wire_placements()
         top_wire_profile();
         top_pins();
+        if(covered_front==1)
         front_pins();
+        if(back_wings)
         top_back_wings();
         translate([foot+leg_wood+rack_h,top_y-back_wood,0])
         pin_edge(top_wood,back_wood+pad,leg_wood*2+legroom);
@@ -346,22 +355,77 @@ module leg_front_plates() {
     leg_front_plate();
 }
 
+
+module old_fancy_leg() {
+        wall=4*in;
+
+        module cut(extra=0) {
+            translate([rack/2+rack_base_wood,0])
+            circle(d=rack+extra*2);
+        }
+
+        cut();
+
+        difference() {
+            translate([wall/2+rack_base_wood,wall])
+            square([rack-wall,top_y-wall*2]);
+            cut(wall);
+        }
+}
+
+function segment_radius(height, chord) = (height/2)+(chord*chord)/(8*height);
+
+leg_center_hole=0;
+
+module fancy_leg() {
+        wall=4*in;
+        cut=7*in;
+
+        module my_mirror() {
+            children();
+            translate([0,top_y])
+            mirror([0,1])
+            children();
+        }
+
+        translate([rack_base_wood+below_rack,0]) {
+            r=segment_radius(cut,rack);
+            my_mirror()
+            intersection () {
+                square([rack,cut]);
+                translate([rack/2,-r+cut])
+                circle(r=r, $fn=1000);
+            }
+
+            if(leg_center_hole)
+            difference() {
+                translate([wall/2,wall])
+                square([rack-wall,top_y-wall*2]);
+                my_mirror()
+                translate([rack/2,-r+cut])
+                circle(r=r+wall, $fn=1000);
+            }
+        }
+}
+
 module leg() {
     difference() {
         square([height,top_y]);
-        translate([height-rack/2-top_wood-cubby-rack_top_wood,top_y/2])
-        leg_wires();
 
-        translate([height-top_wood-base_channel_z,top_y-base_channel_y-base_channel_from_back])
-        square([base_channel_z+top_wood+pad,base_channel_y]);
+        fancy_leg();
+
+        //translate([height-rack/2-top_wood-cubby-rack_top_wood,top_y/2]) leg_wires();
+
+        translate([height-top_wood-channel_z,top_y-channel_y-base_channel_from_back])
+        square([channel_z+top_wood+pad,channel_y]);
 
         // bottom box joint
-        translate([rack_base_wood,0])
+        translate([rack_base_wood+below_rack,0])
         rotate([0,0,90])
-        tail_edge(leg_wood,rack_base_wood+pad,top_y);
+        tail_holes(leg_wood,rack_base_wood+pad,top_y);
 
         // middle box joint
-        translate([rack_base_wood+rack+rack_top_wood,0])
+        translate([rack_base_wood+rack+rack_top_wood+below_rack,0])
         rotate([0,0,90])
         tail_holes(leg_wood,rack_top_wood,top_y);
 
@@ -377,6 +441,7 @@ module leg() {
 module outer_leg() {
     difference() {
         leg();
+        if(covered_front==1)
         leg_front_plates();
     }
 }
@@ -390,6 +455,7 @@ module inner_leg_pin() {
 }
 module inner_leg_pins() {
     inner_leg_pin();
+    if(covered_front==1)
     translate([0,top_y])
     mirror([0,1])
     inner_leg_pin();
@@ -443,10 +509,13 @@ module outer_legs_assembled() {
 
 module rack_top() {
     difference() {
-        rack_base();
+        rack_common();
+        if(covered_front==1)
         translate([0,front_wood])
         mirror([0,1])
         pin_edge(rack_top_wood,front_wood+pad,rack_h+leg_wood*2);
+        translate([rack_h/2+leg_wood,top_y-top_wire_wall])
+        circle(d=top_wire);
     }
 }
 
@@ -482,21 +551,31 @@ module mirror_y() {
     mirror([0,1])
     children();
 }
-module rack_base() {
+
+module rack_common() {
     difference() {
         square([rack_h+leg_wood*2,top_y]);
+
         translate([leg_wood,0])
         rotate([0,0,90])
         pin_edge(rack_base_wood+pad,leg_wood,top_y);
+
         translate([leg_wood+rack_h,0])
         mirror([1,0])
         rotate([0,0,90])
         pin_edge(rack_base_wood,leg_wood+pad,top_y);
+
         mirror_y()
         for (y=[rail_flush:rail_choice:server_flush+extra_choices*rail_choice]) {
             translate([rack_h/2-u*us/2+leg_wood,y])
             u_holes(us);
         }
+    }
+}
+
+module rack_base() {
+    difference() {
+        rack_common();
         translate([-foot,0])
         place_wheels()
         circle(d=wheel_barrel);
@@ -531,7 +610,7 @@ module top_assembled() {
 }
 
 module assembled() {
-    #base();
+    //#base();
     color("purple")
     top_assembled();
     //leg_us();
@@ -545,12 +624,14 @@ module assembled() {
     rack_tops_assembled();
     color("gray")
     back_assembled();
+    if(back_wings)
     color("gray")
     back_wings_assembled();
+    if(covered_front)
     color("tan")
     fronts_assembled();
-    color("white")
-    blanks_assembled();
+    //color("white")
+    //blanks_assembled();
     place_wheels()
     #wheel_max();
 }
@@ -735,9 +816,11 @@ module mouse_ears(x,y) {
 plywood_x=8*12*in;
 plywood_y=4*12*in;
 
-color("blue")
-translate([0,0,-pad])
-square([plywood_x,plywood_y]);
+module plywood() {
+    color("blue")
+    translate([0,0,-pad])
+    square([plywood_x,plywood_y]);
+}
 
 module spaced_depth() {
     for ( i= [0:1:$children-1])
@@ -752,15 +835,19 @@ module spaced_height() {
     children(i);
 }
 
-translate([0,plywood_y])
-rotate([0,0,-90])
-spaced_depth() {
-    spaced_height() {
-        inner_leg();
-        inner_leg();
-    }
-    spaced_height() {
-        outer_leg();
-        outer_leg();
+module sheet() {
+    translate([0,plywood_y])
+    rotate([0,0,-90])
+    spaced_depth() {
+        spaced_height() {
+            inner_leg();
+            inner_leg();
+        }
+        spaced_height() {
+            outer_leg();
+            outer_leg();
+        }
     }
 }
+
+assembled();
