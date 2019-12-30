@@ -10,13 +10,15 @@ top_wood=three_quarter_wood;
 leg_wood=half_wood;
 rack_base_wood=half_wood;
 rack_top_wood=half_wood;
-back_wood=quarter_wood;
+back_wood=half_wood;
 front_wood=quarter_wood;
 blank_wood=quarter_wood;
 
 leg_wire_r=1*in;
 leg_wall=1.5*in;
 leg_wire=4*in;
+
+details=1;
 
 // rack_standards
 // https://en.wikipedia.org/wiki/19-inch_rack#/media/File:Server_rack_rail_dimensions.svg
@@ -112,6 +114,9 @@ wheel_choices=3;
 wheel_choice=(wheel_max_y-wheel_min_y)/(wheel_choices-1);
 wheel_extra_choices=wheel_choice*1;
 
+
+back_x=leg_wood*2+legroom;
+back_y=top_wood+cubby+rack_top_wood;
 
 module wheel_max() {
     translate([0,0,below_rack]) {
@@ -691,10 +696,9 @@ module back_leg_tails() {
 
 module back() {
     difference() {
-        x=leg_wood*2+legroom;
-        square([x,top_wood+cubby+rack_top_wood]);
+        square([back_x,back_y]);
         translate([0,cubby+rack_top_wood])
-        tail_edge(back_wood,top_wood+pad,x);
+        tail_edge(back_wood,top_wood+pad,back_x);
         back_leg_tails();
     }
 }
@@ -764,36 +768,42 @@ module fronts_assembled() {
 
 
 module pin_edge(pin_h, tail_h, edge) {
-    intersection() {
-        for(x=[0:pintail:edge]) {
-            translate([x+edge%pintail/2-pin/2-pintail_gap/2,0])
-            mouse_ears(pin+pintail_gap*2,tail_h);
+    if(details) {
+        intersection() {
+            for(x=[0:pintail:edge]) {
+                translate([x+edge%pintail/2-pin/2-pintail_gap/2,0])
+                mouse_ears(pin+pintail_gap*2,tail_h);
+            }
+
+            // trim off extra mouse ears
+            translate([pintail/4-pad,-bit/2])
+            square([edge-pintail/2+pad*2,tail_h+bit]);
         }
 
-        // trim off extra mouse ears
-        translate([pintail/4-pad,-bit/2])
-        square([edge-pintail/2+pad*2,tail_h+bit]);
+        // ends
+        translate([-pad,0])
+        square([pintail/4+pad*2,tail_h]);
+        translate([edge-pintail/4-pad,0])
+        square([pintail/4+pad*2,tail_h]);
     }
-
-    // ends
-    translate([-pad,0])
-    square([pintail/4+pad*2,tail_h]);
-    translate([edge-pintail/4-pad,0])
-    square([pintail/4+pad*2,tail_h]);
 }
 
 module tail_edge(tail_h, pin_h, edge) {
-    for(x=[0:pintail:edge-pintail]) {
-        translate([x+tail/2+edge%pintail/2+pintail_gap/2,0])
-        mouse_ears(pin+pintail_gap*2,pin_h);
+    if(details) {
+        for(x=[0:pintail:edge-pintail]) {
+            translate([x+tail/2+edge%pintail/2+pintail_gap/2,0])
+            mouse_ears(pin+pintail_gap*2,pin_h);
+        }
     }
 }
 
 module tail_holes(tail_h,pin_h,edge) {
-    tail_edge(tail_h,pin_h,edge);
-    translate([0,pin_h])
-    mirror([0,1])
-    tail_edge(tail_h,pin_h,edge);
+    if(details) {
+        tail_edge(tail_h,pin_h,edge);
+        translate([0,pin_h])
+        mirror([0,1])
+        tail_edge(tail_h,pin_h,edge);
+    }
 }
 
 module mouse_ear() {
@@ -811,10 +821,8 @@ module mouse_ears(x,y) {
 }
 
 
-//assembled();
-
-plywood_x=8*12*in;
-plywood_y=4*12*in;
+plywood_x=4*12*in;
+plywood_y=8*12*in;
 
 module plywood() {
     color("blue")
@@ -835,19 +843,60 @@ module spaced_height() {
     children(i);
 }
 
+
+
+module plywood_text(text) {
+    text_h=8*in;
+    text(text,text_h,halign="right");
+}
+
+
+    //plywood_text("sheet ");
 module sheet() {
-    translate([0,plywood_y])
-    rotate([0,0,-90])
-    spaced_depth() {
-        spaced_height() {
-            inner_leg();
-            inner_leg();
-        }
-        spaced_height() {
-            outer_leg();
+    sheet_gap=2*in;
+
+    xp=cubby+rack/2+rack_top_wood-(rack_h+leg_wood+sheet_gap+below_rack)/2;
+    yp=4*in;
+
+    module leg_placement() {
+        translate([rack_h+leg_wood*2+sheet_gap,0])
+        children();
+    }
+
+    module half() {
+
+        rack_top();
+        leg_placement()
+        inner_leg();
+
+        translate([0,top_y*2-yp*2]) {
+            rack_base();
+            leg_placement()
             outer_leg();
         }
     }
+
+    scatter_x=height+sheet_gap+rack_h+leg_wood*2+xp;
+    scatter_y=top_y*4-yp*3;
+    y_gap=(plywood_y-scatter_y)/5;
+
+    translate([xp+plywood_x/2-scatter_x/2,y_gap*2+back_y]) {
+        half();
+        translate([rack_h+leg_wood*2+sheet_gap+height-xp,top_y-yp])
+        mirror([1,0])
+        half();
+    }
+
+    translate([plywood_x/2-back_x/2,y_gap])
+    back();
 }
 
-assembled();
+
+module cut_sheets() {
+    //plywood();
+    sheet();
+}
+
+cut_sheets();
+
+//assembled();
