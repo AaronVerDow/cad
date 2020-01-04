@@ -9,9 +9,9 @@ height=(92+7/8)*in;
 width=(19+5/8)*in;
 
 // other 
-width=29.5*in;
+//width=29.5*in;
 
-wide_cut_sheets();
+//wide_cut_sheets();
 
 wood=11/16*in;
 
@@ -19,6 +19,10 @@ side_wood=wood;
 bottom_wood=0.25*in;
 top_wood=wood;
 shelf_wood=wood;
+
+plywood_x=8*in*12;
+plywood_y=4*in*12;
+plywood_edge=1;
 
 pin=3*in;
 
@@ -36,6 +40,7 @@ bit=0.25*in;
 pad=0.1;
 
 
+// hide or show pins
 details=0;
 
 hole=1/8*in;
@@ -83,7 +88,7 @@ fixed_shelves=cat(custom_shelves, standard_shelves);
 
 // no shelves
 standard_shelves=[];
-fixed_shelves=[];
+//fixed_shelves=[];
 
 wire_hole=2.5*in;
 air_hole=4*in;
@@ -97,7 +102,53 @@ side_hole_outer=side_hole+lip*2;
 shelf_bite=shelf_wood-0.25*in;
 shade_bite=shelf_bite-0.125*in;
 
+// =========== utilities ===========
+
+module mouse_ear() {
+    translate([0,bit/2])
+    circle(d=bit);
+}
+
+module mouse_ears(x,y) {
+    square([x,y]);
+    translate([x,0])
+    rotate([0,0,45])
+    mouse_ear();
+    rotate([0,0,-45])
+    mouse_ear();
+}
+
 function cat(L1, L2) = [for(L=[L1, L2], a=L) a];
+
+module place_y(list) {
+    for(y=list) {
+        translate([0,y,0])
+        children();
+    }
+}
+
+module place_z(list) {
+    for(z=list) {
+        translate([0,0,z])
+        children();
+    }
+}
+
+
+module mirror_x(width) {
+    children();
+    translate([width,0])
+    mirror([1,0])
+    children();
+}
+
+
+module mirror_y(depth) {
+    children();
+    translate([0,depth])
+    mirror([0,1])
+    children();
+}
 
 module hole() {
     circle(d=hole);
@@ -115,8 +166,6 @@ module rails() {
     rail(rail_two);
     rail(rail_three);
 }
-
-
 
 module pin_edge(pin_h, tail_h, edge) {
     if (details) {
@@ -139,16 +188,6 @@ module pin_edge(pin_h, tail_h, edge) {
     }
 }
 
-module shelf() {
-    square([width-side_wood*2,depth-back_wood]);
-}
-
-module shelf_3d(z) {
-    translate([side_wood,0,z])
-    linear_extrude(height=top_wood)
-    shelf();
-}
-
 module tail_edge(pin_h, tail_h, edge) {
     if (details) {
         for(x=[0:pintail:edge-pintail]) {
@@ -158,6 +197,15 @@ module tail_edge(pin_h, tail_h, edge) {
     }
 }
 
+module tail_holes(pin_h,tail_h,edge) {
+    mirror_y(pin_h)
+    tail_edge(pin_h,tail_h,edge);
+}
+
+module shelf(width, depth) {
+    square([width-side_wood*2,depth-back_wood]);
+}
+
 module place_side_holes() {
 	translate([side_hole_outer/2+wire_hole_wall+back_wood,0]) {
 		translate([0,bottom_shelf+side_hole_outer/2+wire_hole_wall])
@@ -165,8 +213,79 @@ module place_side_holes() {
 		//translate([0,height-top_wood-wire_hole_wall-side_hole_outer/2]) children(); // top
 	}
 }
+module top(width,depth) {
+    difference() {
+        translate([blind,0])
+        square([width-blind*2,depth]);
+        translate([side_wood,0])
+        rotate([0,0,90])
+        pin_edge(bottom_wood+pad,side_wood+pad,depth);
+        translate([width-side_wood,0])
+        rotate([0,0,90])
+        mirror([0,1])
+        pin_edge(bottom_wood+pad,side_wood+pad,depth);
 
-module side() { 
+        translate([0,depth-back_wood])
+        tail_edge(back_wood+pad,bottom_wood+pad,width);
+    }
+}
+
+module top_3d(width,depth,height) {
+    translate([0,0,height-top_wood])
+    linear_extrude(height=top_wood)
+    top(width,depth);
+}
+
+module bottom(width,depth) {
+    difference() {
+        translate([blind,0])
+        square([width-blind*2,depth]);
+        translate([side_wood,0])
+        rotate([0,0,90])
+        pin_edge(bottom_wood+pad,side_wood+pad,depth);
+
+        translate([width-side_wood,0])
+        rotate([0,0,90])
+        mirror([0,1])
+        pin_edge(bottom_wood+pad,side_wood+pad,depth);
+
+        translate([0,depth-back_wood])
+        tail_edge(back_wood+pad,bottom_wood+pad,width);
+
+        place_levelers(width, depth)
+        circle(d=leveler_hole);
+    }
+}
+
+module bottom_3d(width,depth) {
+    linear_extrude(height=bottom_wood)
+    bottom(width,depth);
+}
+
+module side_3d(width,depth,height) {
+    translate([side_wood,depth,0])
+    rotate([0,0,-90])
+    rotate([90,0,0])
+    difference() {
+        linear_extrude(height=side_wood)
+        side(depth,height);
+
+        translate([0,0,blind])
+        linear_extrude(height=side_wood)
+        side_cuts(depth,height);
+
+        translate([0,0,wood-hole_d])
+        linear_extrude(height=side_wood)
+        rails();
+
+        translate([0,0,wood-lip])
+        linear_extrude(height=side_wood)
+		place_side_holes()
+		circle(d=side_hole_outer);
+    }
+}
+
+module side(depth,height) { 
 	difference () {
 		square([depth,height]);
 		place_side_holes()
@@ -174,7 +293,7 @@ module side() {
 	}
 }
 
-module side_cuts() {
+module side_cuts(depth,height) {
     translate([0,bottom_wood])
     mirror([0,1])
     tail_edge(bottom_wood+pad,side_wood+pad,depth);
@@ -189,87 +308,12 @@ module side_cuts() {
 	tail_holes(shelf_wood,side_wood,depth);
 }
 
-module top() {
-    difference() {
-        translate([blind,0])
-        square([width-blind*2,depth]);
-        translate([side_wood,0])
-        rotate([0,0,90])
-        pin_edge(bottom_wood+pad,side_wood+pad,depth);
-        translate([width-side_wood,0])
-        rotate([0,0,90])
-        mirror([0,1])
-        pin_edge(bottom_wood+pad,side_wood+pad,depth);
 
-        translate([0,depth-back_wood])
-        tail_edge(back_wood+pad,bottom_wood+pad,width);
-    }
-}
-
-module top_3d() {
-    translate([0,0,height-top_wood])
-    linear_extrude(height=top_wood)
-    top();
-}
-
-module bottom() {
-    difference() {
-        translate([blind,0])
-        square([width-blind*2,depth]);
-        translate([side_wood,0])
-        rotate([0,0,90])
-        pin_edge(bottom_wood+pad,side_wood+pad,depth);
-
-        translate([width-side_wood,0])
-        rotate([0,0,90])
-        mirror([0,1])
-        pin_edge(bottom_wood+pad,side_wood+pad,depth);
-
-        translate([0,depth-back_wood])
-        tail_edge(back_wood+pad,bottom_wood+pad,width);
-
-        place_levelers()
-        circle(d=leveler_hole);
-    }
-}
-
-module bottom_3d() {
-    linear_extrude(height=bottom_wood)
-    bottom();
-}
-
-
-module side_3d() {
-    difference() {
-        linear_extrude(height=side_wood)
-        side();
-        translate([0,0,blind])
-        linear_extrude(height=side_wood)
-        side_cuts();
-        translate([0,0,wood-hole_d])
-        linear_extrude(height=side_wood)
-        rails();
-
-        translate([0,0,wood-lip])
-        linear_extrude(height=side_wood)
-		place_side_holes()
-		circle(d=side_hole_outer);
-    }
-}
-
-module side_3d_placed() {
-    translate([side_wood,depth,0])
-    rotate([0,0,-90])
-    rotate([90,0,0])
-    side_3d();
-}
-
-module sides_3d() {
+module sides_3d(width,depth,height) {
+    mirror_x(width)
     translate([side_wood,0,0])
     mirror([1,0,0])
-    side_3d_placed();
-    translate([width-side_wood,0])
-    side_3d_placed();
+    side_3d(width,depth,height);
 }
 
 
@@ -278,137 +322,97 @@ module leveler() {
     cylinder(d=leveler_foot,h=5/8*in);
 }
 
-module place_leveler_front_left() {
+module place_levelers(width, depth) {
+    mirror_x(width)
+    mirror_y(depth)
     translate([leveler_hole/2+side_wood+leveler_wall,leveler_hole/2+leveler_wall])
     children();
 }
 
-module mirror_x() {
-    children();
-    translate([width,0])
-    mirror([1,0])
-    children();
-}
-
-
-module mirror_y() {
-    children();
-    translate([0,depth])
-    mirror([0,1])
-    children();
-}
-
-module place_leveler_left() {
-   mirror_y()
-   place_leveler_front_left() 
-   children();
-}
-
-module place_levelers() {
-    mirror_x()
-    place_leveler_left()
-    children();
-}
-
-
-
-module bottom_shelf_3d() {
-	translate([0,0,bottom_shelf_z])
-	linear_extrude(height=shelf_wood)
-	bottom_shelf();
-}
-
-module bottom_shelf() {
+module bottom_shelf(width, depth) {
 	difference() {
-		fixed_shelf();
-        place_levelers()
+		fixed_shelf(width, depth);
+        place_levelers(width, depth)
         circle(d=socket_hole);
 	}
 }
 
-module leveler_shelf_3d() {
-	translate([0,0,leveler_z])
+module bottom_shelf_3d(width, depth) {
+	translate([0,0,bottom_shelf_z])
 	linear_extrude(height=shelf_wood)
-	leveler_shelf();
+	bottom_shelf(width, depth);
 }
 
-module leveler_shelf() {
+
+module leveler_shelf(width, depth) {
 	difference() {
-		fixed_shelf();
-        place_levelers()
+		fixed_shelf(width, depth);
+        place_levelers(width, depth)
         circle(d=leveler_barrel);
 		translate([-pad,-pad])
 		square([width+pad*2,shade_y+shade_wood+pad]);
 	}
 }
 
-module place_y(list) {
-    for(y=list) {
-        translate([0,y,0])
-        children();
-    }
+module leveler_shelf_3d(width, depth) {
+	translate([0,0,leveler_z])
+	linear_extrude(height=shelf_wood)
+	leveler_shelf(width, depth);
 }
 
-module place_z(list) {
-    for(z=list) {
-        translate([0,0,z])
-        children();
-    }
-}
-
-module fixed_shelf() {
+module fixed_shelf(width, depth) {
     difference() {
         translate([blind,0,0])
         square([width-blind*2,depth]);
-        mirror_x()
+
+        mirror_x(width)
         translate([shelf_wood,0,0])
         rotate([0,0,90])
         pin_edge(shelf_wood,side_wood,depth);
+
         translate([0,depth-back_wood])
         pin_edge(shelf_wood,back_wood+pad,width);
-        
-        circle(d=air_hole);
     }
 }
 
-module shaded_fixed_shelf() {
-    fixed_shelf();
+module shaded_fixed_shelf(width, depth) {
+    fixed_shelf(width, depth);
 }
 
-module shaded_pockets() {
+module shaded_pockets(width) {
     translate([shelf_wood,shade_y,0])
     tail_holes(shade_wood,shelf_wood,width-side_wood*2);
 }
 
-module shaded_fixed_shelf_3d() {
-    shaded_shelf()
+module shaded_fixed_shelf_3d(width, depth) {
+    shaded_shelf(width)
     linear_extrude(height=shelf_wood)
-    fixed_shelf();
+    fixed_shelf(width, depth);
 }
 
-module shaded_fixed_air_shelf_3d() {
+module shaded_fixed_air_shelf(width, depth) {
+    difference() {
+        shaded_fixed_shelf(width, depth);
+        circle(d=air_hole);
+    }
 }
 
-module shaded_fixed_air_shelf() {
-    shaded_fixed_shelf();
-}
-
-module shaded_shelf() {
+module shaded_shelf(width) {
     difference () {
         children();
         translate([0,0,-shelf_wood+shelf_bite])
         linear_extrude(height=shelf_wood)
-        shaded_pockets();
+        shaded_pockets(width);
     }
 }
 
-module fixed_shelf_3d() {
+module fixed_shelf_3d(width, depth) {
     linear_extrude(height=shelf_wood)
-    fixed_shelf();
+    fixed_shelf(width, depth);
 }
 
 
-module back() {
+module back(width, height) {
     difference() {
         translate([blind,0])
         square([width-blind*2,height]);
@@ -423,79 +427,38 @@ module back() {
         translate([0,height])
         pin_edge(back_wood+pad,top_wood+pad,width);
 
-        //left
+        // sides
+        mirror_x(width)
         translate([side_wood,0])
-        rotate([0,0,90])
-        pin_edge(back_wood+pad,side_wood+pad,height);
-
-        //right
-        translate([width-side_wood,0])
-        mirror([1])
         rotate([0,0,90])
         pin_edge(back_wood+pad,side_wood+pad,height);
 
         place_y(fixed_shelves)
         tail_holes(shelf_wood,back_wood+pad,width);
-
     }
 }
 
-module back_3d() {
+module back_3d(width, depth, height) {
     translate([0,depth,0])
     rotate([90,0,0])
     linear_extrude(height=back_wood)
-    back();
+    back(width, height);
 }
 
 
-module mouse_ear() {
-    translate([0,bit/2])
-    circle(d=bit);
-}
 
-module mouse_ears(x,y) {
-    square([x,y]);
-    translate([x,0])
-    rotate([0,0,45])
-    mouse_ear();
-    rotate([0,0,-45])
-    mouse_ear();
-}
-
-module flat() {
-    side();
-    translate([0,-depth*1.1])
-    top();
-    translate([0,-depth*2.2])
-    bottom();
-}
-
-module tail_holes(pin_h,tail_h,edge) {
-    tail_edge(pin_h,tail_h,edge);
-    translate([0,pin_h])
-    mirror([0,1])
-    tail_edge(pin_h,tail_h,edge);
-}
-
-module bottom_shade() {
+module bottom_shade(width) {
 	square([width-side_wood*2,bottom_shelf-shelf_wood*2]);
 }
 
-module bottom_shade_3d() {
+module bottom_shade_3d(width) {
 	translate([side_wood,shade_y,bottom_shelf-shelf_wood])
 	rotate([-90,0,0])
 	linear_extrude(height=shade_wood)
-	bottom_shade();
+	bottom_shade(width);
 }
 
-module shade_3d() {
-	translate([side_wood,shade_y,shade_bite])
-	rotate([-90,0,0])
-	linear_extrude(height=shade_wood)
-	shade();
-}
-
-module shade() {
+module shade(width) {
     difference() {
         square([width-side_wood*2,shade_h+shade_bite]);
         translate([0,shade_bite])
@@ -504,50 +467,52 @@ module shade() {
     }
 }
 
+module shade_3d(width) {
+	translate([side_wood,shade_y,shade_bite])
+	rotate([-90,0,0])
+	linear_extrude(height=shade_wood)
+	shade(width);
+}
 
-plywood_x=8*in*12;
-plywood_y=4*in*12;
-plywood_edge=1;
 module plywood() {
     color("blue") translate([0,0,-pad]) square([plywood_x,plywood_y]);
 }
 
-module assembled() {
+module assembled(width,depth,height) {
     color("red")
-    sides_3d();
+    sides_3d(width,depth,height);
     color("blue")
-    top_3d();
-    color("blue")
-    bottom_3d();
+    top_3d(width,depth,height);
+    //color("blue")
+    //bottom_3d(width, depth);
 
     color("green")
-    back_3d();
+    back_3d(width, depth, height);
 
     color("grey")
-    place_levelers()
+    place_levelers(width, depth)
     #leveler();
 
 	place_z(standard_shelves)
-	shaded_fixed_shelf_3d();
+	shaded_fixed_shelf_3d(width, depth);
 
 	color("white")
 	place_z(standard_shelves)
-    shade_3d();
+    shade_3d(width);
 
 
-	leveler_shelf_3d();
-	bottom_shelf_3d();
+	leveler_shelf_3d(width, depth);
+	bottom_shelf_3d(width, depth);
 	color("white")
-	bottom_shade_3d();
+	bottom_shade_3d(width);
 }
 
 
 
 
-module spaced_sheets() {
-    sheets_gap=6*in+plywood_y;
+module spaced_y(y) {
     for (i=[0:1:$children-1]) 
-    translate([0,i*sheets_gap])
+    translate([0,i*y])
     children(i);
 }
 
@@ -560,7 +525,7 @@ module spaced_x(asdf) {
 module shade_to_cut() {
     translate([shade_h,0])
     rotate([0,0,90])
-    shade();
+    shade(width);
 }
 
 module spaced_shade() {
@@ -569,78 +534,25 @@ module spaced_shade() {
     children(i);
 }
 
-module cut_sheet_one() {
-    plywood();
-    plywood_text("1/2 (one)");
-    gap_y=(plywood_y-depth-width)/3;
-    gap_x=(plywood_x-height)/2;
-    translate([height+gap_x,width+gap_y*2])
-    rotate([0,0,90]) {
-        side();
-        translate([0,0,pad])
-        color("red") {
-            side_cuts();
-            rails();
+module cut_sheets(width, depth, height) {
+    spaced_y(plywood_y+6*in) {
+
+        side_one(width, depth, height, width)
+        three_skinny_shelves(depth) {
+            fixed_shelf(width, depth);
+            fixed_shelf(width, depth);
+            fixed_shelf(width, depth);
         }
-    }
 
-    translate([gap_x,gap_y+width])
-    spaced_x(0) {
-        rotate([0,0,-90])
-        fixed_shelf();
-        rotate([0,0,-90])
-        fixed_shelf();
-        rotate([0,0,-90])
-        fixed_shelf();
-        //shelf();
-    }
-}
-
-module cut_sheet_two() {
-    plywood();
-    plywood_text("1/2 (two)");
-    gap_y=(plywood_y-width-depth)/3;
-    gap_x=(plywood_x-height)/2;
-
-    translate([gap_x,width+gap_y*2])
-    mirror([0,1])
-    rotate([0,0,90+180]) {
-        side();
-        translate([0,0,pad])
-        color("red") {
-            side_cuts();
-            rails();
+        side_two(depth, width, height, width)
+        three_skinny_shelves(depth) {
+            top(width,depth);
+            bottom(width,depth);
+            leveler_shelf(width, depth);
         }
-    }
 
 
-    translate([gap_x,gap_y]) {
-        translate([0,width])
-        spaced_x(plywood_x) {
-            rotate([0,0,-90])
-            top();
-            rotate([0,0,-90])
-            bottom();
-            rotate([0,0,-90])
-            leveler_shelf();
-        }
-    }
-}
-
-module plywood_text(text) {
-    text_h=8*in;
-    text(text,text_h,halign="right");
-}
-module cut_sheet_three() {
-    plywood_text("1/4 (three)");
-    gap_y=(plywood_y-width*2)/3;
-    gap_x=(plywood_x-height)/2;
-    plywood();
-    translate([height+gap_x,width*2+gap_y*2])
-    mirror([0,1])
-    rotate([0,0,90])
-    back();
-    translate([gap_x,gap_y]) {
+        back_three(depth,width,height,width)
         spaced_shade() {
             shade_to_cut();
             shade_to_cut();
@@ -649,19 +561,76 @@ module cut_sheet_three() {
             shade_to_cut();
             translate([0,width])
             rotate([0,0,-90])
-            bottom_shelf();
+            bottom_shelf(width, depth);
+        }
+
+    }
+}
+
+module side_to_cut(width,depth,height,gap_y) {
+    rotate([0,0,90]) {
+        side(depth,height);
+        translate([0,0,pad])
+        color("red") {
+            side_cuts(depth,height);
+            rails();
         }
     }
 }
 
-module cut_sheets() {
-    spaced_sheets() {
-        cut_sheet_one();
-        cut_sheet_two();
-        cut_sheet_three();
+module three_skinny_shelves(depth) {
+    shelf_gap_x=(plywood_x-depth*3)/3;
+    translate([shelf_gap_x/2,0])
+    rotate([0,0,-90])
+    spaced_y(depth+shelf_gap_x) {
+        children(0);
+        children(1);
+        children(2);
     }
 }
 
+module side_one(width, depth, height, bottom_row_y) {
+    plywood();
+    gap_y=(plywood_y-depth-bottom_row_y)/3;
+    translate([height+(plywood_x-height)/2,width+gap_y*2])
+    side_to_cut(width,depth,height,gap_y);
+
+    translate([0,bottom_row_y+gap_y])
+    children();
+}
+
+module side_two(depth, width, height, bottom_row_y) {
+    plywood();
+    gap_y=(plywood_y-width-depth)/3;
+    gap_x=(plywood_x-height)/2;
+
+    translate([height+gap_x,depth+gap_y*2+bottom_row_y])
+    mirror([0,1])
+    side_to_cut(width,depth,height,gap_y);
+
+
+    translate([0,bottom_row_y+gap_y])
+    children();
+
+}
+
+module back_three(depth, width, height, bottom_row_y) {
+    gap_y=(plywood_y-bottom_row_y-width)/3;
+    
+    plywood();
+    translate([height+(plywood_x-height)/2,width+gap_y*2])
+    rotate([0,0,90])
+    back(width, height);
+
+
+    translate([0,gap_y])
+    children();
+}
+
+module plywood_text(text) {
+    text_h=8*in;
+    text(text,text_h,halign="right");
+}
 module wide_cut_sheet_one() {
     plywood();
     plywood_text("wide 1/2 #1 ");
@@ -671,20 +640,20 @@ module wide_cut_sheet_one() {
     echo(gap_y/in);
     translate([height+gap_x,depth+gap_y*2])
     rotate([0,0,90]) {
-        side();
+        side(depth,height);
         translate([0,0,pad])
         color("red") {
-            side_cuts();
+            side_cuts(depth,height);
             rails();
         }
     }
     shelf_gap_x=(plywood_x-width*3)/4;
     translate([shelf_gap_x,gap_y])
     spaced_x(shelf_gap_x+width) {
-        fixed_shelf();
-        fixed_shelf();
-        fixed_shelf();
-        //shelf();
+        fixed_shelf(width, depth);
+        fixed_shelf(width, depth);
+        fixed_shelf(width, depth);
+        //shelf(width, depth);
     }
 }
 
@@ -697,10 +666,10 @@ module wide_cut_sheet_two() {
     translate([gap_x,depth+gap_y*2])
     mirror([0,1])
     rotate([0,0,90+180]) {
-        side();
+        side(depth,height);
         translate([0,0,pad])
         color("red") {
-            side_cuts();
+            side_cuts(depth,height);
             rails();
         }
     }
@@ -709,9 +678,9 @@ module wide_cut_sheet_two() {
     shelf_gap_x=(plywood_x-width*3)/4;
     translate([shelf_gap_x,gap_y])
     spaced_x(shelf_gap_x+width) {
-        top();
-        bottom();
-        leveler_shelf();
+        top(width,depth);
+        bottom(width,depth);
+        leveler_shelf(width, depth);
     }
 }
 
@@ -723,11 +692,11 @@ module wide_cut_sheet_three() {
     translate([height+gap_x,width-gap_y])
     mirror([0,1])
     rotate([0,0,90])
-    back();
+    back(width, height);
 }
 
 module wide_cut_sheets() {
-    spaced_sheets() {
+    spaced_y(plywood_y+6*in) {
         wide_cut_sheet_one();
         wide_cut_sheet_two();
         wide_cut_sheet_three();
@@ -735,19 +704,12 @@ module wide_cut_sheets() {
 }
 
 
-//cut_sheets();
+cut_sheets(width, depth, height);
 
 
-//back();
-//flat();
+//back(width, height);
 
-//fixed_shelf_3d();
+//fixed_shelf_3d(width, depth);
 //translate([-width,-depth])
-//assembled();
-//side_3d();
-
-//shade_3d();
-//bottom();
-//top();
-
-
+//assembled(width,depth,height);
+//side_3d(width,depth,height);
