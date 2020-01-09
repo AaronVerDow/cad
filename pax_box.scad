@@ -25,7 +25,7 @@ plywood_x=8*in*12;
 plywood_y=4*in*12;
 plywood_edge=1;
 
-show_plywood=1;
+show_plywood=0;
 show_pockets=1;
 show_profiles=1;
 
@@ -58,11 +58,23 @@ hole=1/8*in;
 
 hole_d=0.25*in;
 
-hole_gap=(19+7/8)*in/15;
+hole_gap=1.25*in;
 
-rail_one=depth-1.0625*in;
-rail_three=rail_one-20.5*in;
-rail_two=rail_three+8.5*in;
+echo("hole gap");
+echo(hole_gap/in);
+
+//from back
+//rail_one=depth-1.0625*in;
+//rail_three=rail_one-20.5*in;
+//rail_two=rail_three+8.5*in;
+
+//from front
+rail_one=depth-(1+3/32)*in;
+rail_two=rail_one-(10+13/16)*in;
+rail_three=rail_two-(8+13/16)*in;
+
+
+rail_from_top=(1+7/8)*in;
 
 bottom_shelf=(3+7/16)*in;
 
@@ -100,8 +112,14 @@ standard_shelves=[
 standard_shelves=[];
 fixed_shelves=[];
 shaded_fixed_shelves=[];
+
+i3=44.25*in;
+polar=16.5*in;
+rostock=27.25*in;
+
 shaded_fixed_air_shelves=[
-	16.75*in,
+    rostock,
+    //i3,polar,
 ];
 
 wire_hole=3*in;
@@ -171,8 +189,11 @@ module hole() {
 }
 
 module rail(x, height) {
-    for(y=[0:hole_gap:height]) {
-        translate([x,y])
+    //for(y=[height-rail_from_top:-hole_gap:bottom_shelf_z]) {
+    holes=59;
+    total=hole_gap*(holes-1);
+    for(y=[0:hole_gap:total]) {
+        translate([x,y+height-total-rail_from_top])
         hole();
     }
 }
@@ -267,6 +288,8 @@ module top(width,depth) {
 
         translate([0,depth-back_wood])
         tail_edge(back_wood+pad,bottom_wood+pad,width);
+
+        shaded_pockets(width);
     }
 }
 
@@ -347,7 +370,10 @@ module side_cuts(depth,height) {
     rotate([0,0,90])
     tail_edge(back_wood+pad,side_wood+pad,height);
 
-	place_y(fixed_shelves)
+	place_y(cat(
+        [bottom_shelf_z, leveler_z],
+        shaded_fixed_air_shelves
+    ))
 	tail_holes(shelf_wood,side_wood,depth);
 }
 
@@ -457,7 +483,10 @@ module add_wire_hole(width, depth, extra=0) {
 }
 
 module shaded_fixed_shelf(width, depth) {
-    fixed_shelf(width, depth);
+    difference() {
+        fixed_shelf(width, depth);
+        shaded_pockets(width);
+    }
 }
 
 module shaded_pockets(width) {
@@ -594,8 +623,20 @@ module shade_3d(width) {
 }
 
 module plywood(show_plywood=1) {
+    line=0.5*in;
+    corner=3*in;
     if(show_plywood)
-    color("blue") translate([0,0,-pad]) square([plywood_x,plywood_y]);
+    color("blue")
+    translate([0,0,-pad*2])
+    square([plywood_x,plywood_y]);
+    
+    mirror_y(plywood_y)
+    mirror_x(plywood_x)
+    color("lime")
+    translate([0,0,-pad*2]) {
+        square([line,corner]);
+        square([corner,line]);
+    }
 }
 
 module assembled(width,depth,height,side_hole=0) {
@@ -625,6 +666,9 @@ module assembled(width,depth,height,side_hole=0) {
 	place_z(shaded_fixed_air_shelves)
 	shaded_fixed_air_shelf_3d(width, depth);
 
+	color("cyan")
+	place_z(height-top_wood)
+    shade_3d(width);
 	color("cyan")
 	place_z(shaded_fixed_shelves)
     shade_3d(width);
@@ -666,8 +710,8 @@ module spaced_shade(shade_h=shade_h) {
     children(i);
 }
 
-module cut_sheet_one(width, depth, height, show_plywood=1,show_profiles=1,show_pockets=1) {
-    side_one(width, depth, height, width, 0, show_plywood, show_profiles, show_pockets)
+module cut_sheet_one(width, depth, height, side_hole, show_plywood=1,show_profiles=1,show_pockets=1) {
+    side_one(width, depth, height, width, side_hole, show_plywood, show_profiles, show_pockets)
     translate([0,width])
     if(show_profiles)
     three_skinny_shelves(depth) {
@@ -675,13 +719,13 @@ module cut_sheet_one(width, depth, height, show_plywood=1,show_profiles=1,show_p
     }
 }
 
-module cut_sheet_two(width, depth, height, show_plywood=1,show_profiles=1,show_pockets=1) {
-    side_two(depth, width, height, width, 0, show_plywood, show_profiles, show_pockets)
+module cut_sheet_two(width, depth, height, side_hole, show_plywood=1,show_profiles=1,show_pockets=1) {
+    side_two(depth, width, height, width, side_hole, show_plywood, show_profiles, show_pockets)
     translate([0,width])
     if(show_profiles)
     three_skinny_shelves(depth) {
         top(width,depth);
-        bottom(width,depth);
+        bottom_shelf(width,depth);
         leveler_shelf(width, depth);
     }
 }
@@ -690,18 +734,18 @@ module cut_sheet_three(width, depth, height, show_plywood=1,show_profiles=1,show
     back_three(depth,width,height,width, show_plywood, show_profiles, show_pockets)
     if(show_profiles)
     spaced_shade() {
-        shade_to_cut();
-        shade_to_cut();
-        shade_to_cut();
+    translate([shade_h,0])
+    rotate([0,0,90])
+        bottom_shade(width);
         shade_to_cut();
         shade_to_cut();
     }
 }
 
-module cut_sheets(width, depth, height, show_plywood=1,show_profiles=1,show_pockets=1) {
+module cut_sheets(width, depth, height, side_hole,  show_plywood=1,show_profiles=1,show_pockets=1) {
     spaced_y(plywood_y+6*in) {
-        cut_sheet_one(width, depth, height, show_plywood,show_profiles,show_pockets);
-        cut_sheet_two(width, depth, height, show_plywood,show_profiles,show_pockets);
+        cut_sheet_one(width, depth, height, side_hole, show_plywood,show_profiles,show_pockets);
+        cut_sheet_two(width, depth, height, side_hole, show_plywood,show_profiles,show_pockets);
         cut_sheet_three(width, depth, height, show_plywood,show_profiles,show_pockets);
     }
 }
@@ -785,7 +829,7 @@ module back_three(depth, width, height, bottom_row_y, show_plywood=1,show_profil
     back(width, height);
 
 
-    translate([0,gap_y])
+    translate([gap_y,gap_y])
     children();
 }
 
@@ -829,14 +873,25 @@ module door(door_h,cabinet_h) {
 //translate([-width-gap,-depth-gap])
 
 // rostock
-//assembled(width,depth,short_height,air_hole);
 my_height=short_height;
 my_side_hole=air_hole;
 
+assembled(width,depth,my_height,my_side_hole);
+
+module high_res() {
+    $fn=300;
+    children();
+}
+
 display="";
-if(display=="")cut_sheets(width, depth, my_height, 1, 1, 1);
-if(display=="short_1_profiles.dxf")cut_sheet_one(width,depth,my_height,my_side_hole,0,1,0);
-if(display=="short_1_pockets.dxf")cut_sheet_one(width,depth,my_height,my_side_hole,0,0,1);
-if(display=="short_2_profiles.dxf")cut_sheet_two(width,depth,my_height,my_side_hole,0,1,0);
-if(display=="short_2_pockets.dxf")cut_sheet_two(width,depth,my_height,my_side_hole,0,0,1);
-if(display=="short_3_profiles.dxf")cut_sheet_three(width,depth,my_height,my_side_hole,0,1,0);
+if(display=="")cut_sheets(width, depth, my_height, my_side_hole, show_plywood, 1, 1);
+if(display=="short_1_profiles.dxf")high_res()
+cut_sheet_one(width,depth,my_height,my_side_hole,0,1,0);
+if(display=="short_1_pockets.dxf")high_res()
+cut_sheet_one(width,depth,my_height,my_side_hole,0,0,1);
+if(display=="short_2_profiles.dxf")high_res()
+cut_sheet_two(width,depth,my_height,my_side_hole,0,1,0);
+if(display=="short_2_pockets.dxf")high_res()
+cut_sheet_two(width,depth,my_height,my_side_hole,0,0,1);
+if(display=="short_3_profiles.dxf") high_res()
+cut_sheet_three(width,depth,my_height,0,1,0);
