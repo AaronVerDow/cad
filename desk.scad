@@ -5,7 +5,7 @@ pin_screw=1/8*in;
 
 
 three_quarter_wood=0.703*in; // actual plywood thicknesses will vary
-half_wood=0.453*in;
+half_wood=0.5*in;
 quarter_wood=0.25*in;
 
 top_wood=three_quarter_wood;
@@ -15,15 +15,18 @@ rack_top_wood=half_wood;
 back_wood=half_wood;
 front_wood=quarter_wood;
 blank_wood=quarter_wood;
+spine_wood=three_quarter_wood;
+leg_cover_wood=quarter_wood;
+double_top_wood=quarter_wood;
 
 leg_wire_r=1*in;
 leg_wall=1.5*in;
 leg_wire=4*in;
 
-blind=1/8*in;
+blind=0*in;
 
 
-details=0;
+details=1;
 
 // rack_standards
 // https://en.wikipedia.org/wiki/19-inch_rack#/media/File:Server_rack_rail_dimensions.svg
@@ -35,11 +38,16 @@ rack_inner=17.75*in;
 us=4;
 rack_h=u*us+0.125*in;
 
+echo("blank dimensions");
+echo(rack/in);
+echo(rack_h/in);
+
+
 cubby=3*in;
 
 covered_front=0;
 back_wings=0;
-below_rack=1*in;
+below_rack=0*in;
 double_top_wall=2*in;
 
 height=rack+below_rack+rack_base_wood+top_wood+rack_top_wood+cubby;
@@ -95,7 +103,7 @@ pintail_gap=0.05;
 pintail=pin+tail+pintail_gap*2;
 bit=0.25*in;
 
-blank_gap=0.1*in;
+blank_gap=0*in;
 blank_inset=1*in;
 blank_wall=1*in;
 
@@ -125,6 +133,31 @@ back_x=leg_wood*2+legroom;
 back_y=top_wood+cubby+rack_top_wood;
 
 $fn=6;
+
+leg_base_top_x=(7+5/8)*in;
+leg_base_top_y=(3+7/8)*in;
+leg_base_top_z=2*in;
+leg_base_top=[
+    leg_base_top_x,
+    leg_base_top_y,
+    leg_base_top_z
+];
+
+leg_base_leg_x=2*in;
+leg_base_leg_y=(3+3/16)*in;
+leg_base_leg_z=14*in;
+leg_base_leg_offset_x=1*in;
+leg_base_leg_offset_y=leg_base_top_y/2-leg_base_leg_y/2;
+leg_base_leg_offset_z=4.25*in;
+
+leg_base_leg_offset=[
+    leg_base_leg_offset_x,
+    leg_base_leg_offset_y,
+    height-top_wood-leg_base_leg_offset_z-leg_base_leg_z
+];
+
+
+rack_top_extra=3*in;
 
 module wheel_max() {
     translate([0,0,below_rack]) {
@@ -156,25 +189,25 @@ module u_holes(us=1) {
         }
     }
 }
+
+blank_hole=rack_h-blank_wall*2;
 module blank_hole() {
-    d=rack_h-blank_wall*2;
-    translate([rack_h/2,rack_h/2])
-    circle(d=d);
+    translate([rack_h/2-blank_gap,0])
+    circle(d=blank_hole);
 }
 
 module blank_holes() {
-    blank_hole();
-    translate([0,rack])
-    mirror([0,1])
-    blank_hole();
-    translate([0,-rack_h/2+rack/2])
+    mirror_y(rack-blank_gap*2)
+    translate([0,rack_h/2-blank_gap])
+    #blank_hole();
+    translate([0,rack/2-blank_gap])
     blank_hole();
 }
 
 module blank() {
     difference() {
         square([rack_h-blank_gap*2,rack-blank_gap*2]);
-        //blank_holes();
+        blank_holes();
     }
 }
 
@@ -242,21 +275,36 @@ module top_wire_pocket() {
     circle(d=top_wire+top_wire_lip*2);
 }
 
-module top_pins_one(x) {
-    translate([x,0])
+module top_pins_side() {
+    translate([wing+leg_wood,0])
     difference() { 
         rotate([0,0,90]) {
-            tail_holes(top_wood,leg_wood,top_y);
-            tail_screws(top_wood,leg_wood,top_y);
+            tail_edge(top_wood,leg_wood,top_y);
+            intersection() {
+                tail_screws(top_wood,leg_wood,top_y);
+                translate([double_top_wall*1.5,0])
+                square([top_x,top_y]);
+            }
         }
         translate([-leg_wood*1.5,top_y-channel_y-base_channel_from_back])
         square([leg_wood*2,channel_y]);
     }
-}
 
-module top_pins_side() {
-    top_pins_one(wing+leg_wood);
-    top_pins_one(wing+leg_wood*2+rack_h);
+    translate([wing+leg_wood+rack_h+tan(angle)*(height-rack_base_wood)+leg_wood/cos(angle),0])
+    difference() { 
+        rotate([0,0,90]) {
+            tail_holes(top_wood,leg_wood/cos(angle)+tan(angle)*top_wood,top_y);
+            intersection() {
+                tail_screws(top_wood,leg_wood,top_y);
+                translate([double_top_wall*1.5,0])
+                square([top_x,top_y]);
+            }
+        }
+        translate([-leg_wood*1.5,top_y-channel_y-base_channel_from_back])
+        square([leg_wood*2,channel_y]);
+    }
+
+
 }
 
 module top_pins() {
@@ -313,8 +361,14 @@ module top() {
         front_pins();
         if(back_wings)
         top_back_wings();
-        translate([wing+leg_wood+rack_h,top_y-back_wood,0])
-        pin_edge(top_wood,back_wood+pad,leg_wood*2+legroom);
+
+        back_top_x=tan(angle)*(rack+rack_top_wood+cubby+top_wood);
+        translate([wing+leg_wood+rack_h+back_top_x,top_y-back_wood,0])
+        tail_edge(top_wood,back_wood+pad,back_x-back_top_x*2);
+
+        mirror_y(top_y)
+        translate([rack_h+leg_wood-spine_wing,top_y/2-leg_base_top_y/2-spine_wood])
+        tail_holes(top_wood+pad,spine_wood,top_x-rack_h*2-leg_wood*2+spine_wing*2);
     }
 }
 
@@ -399,37 +453,70 @@ module old_fancy_leg() {
 function segment_radius(height, chord) = (height/2)+(chord*chord)/(8*height);
 
 leg_center_hole=0;
+leg_curve=7*in;
 
 module fancy_leg() {
-        wall=4*in;
-        cut=7*in;
-
-        module my_mirror() {
-            children();
-            translate([0,top_y])
-            mirror([0,1])
-            children();
-        }
-
         translate([rack_base_wood+below_rack,0]) {
-            r=segment_radius(cut,rack);
-            my_mirror()
+            r=segment_radius(leg_curve,rack);
+            mirror_y(top_y)
             intersection () {
-                square([rack,cut]);
-                translate([rack/2,-r+cut])
+                square([rack,leg_curve]);
+                translate([rack/2,-r+leg_curve])
                 circle(r=r, $fn=1000);
-            }
-
-            if(leg_center_hole)
-            difference() {
-                translate([wall/2,wall])
-                square([rack-wall,top_y-wall*2]);
-                my_mirror()
-                translate([rack/2,-r+cut])
-                circle(r=r+wall, $fn=1000);
             }
         }
 }
+
+
+
+module inner_leg() {
+    function hyp(h) = h/cos(angle);
+    function wood(h) = sin(angle)*h;
+    function tilted(h,wood) = hyp(h)+wood(wood);
+
+    translate([-wood(leg_wood),0])
+    difference() {
+        square([tilted(height, leg_wood),top_y]);
+
+        // cubby holes
+        mirror_y(top_y)
+        translate([hyp(height-top_wood-cubby/2),(cubby-cubby_wall*2)/2+front_wood+cubby_wall])
+        circle(d=cubby-cubby_wall*2);
+
+        inner_leg_pins();
+
+        // center cut
+        translate([0,top_y/2-leg_base_top_y/2-spine_wood])
+        square([height,leg_base_top_y+spine_wood*2]);
+
+        // bottom box joint
+        translate([tilted(rack_base_wood+below_rack, leg_wood),0])
+        rotate([0,0,90])
+        tail_edge(leg_wood,tilted(rack_base_wood+pad,leg_wood),top_y);
+
+        r=segment_radius(leg_curve,hyp(rack));
+        mirror_y(top_y)
+        translate([hyp(rack)/2+hyp(rack_base_wood),-r+leg_curve])
+        circle(r=r, $fn=1000);
+
+        // middle box joint
+        translate([tilted(rack_base_wood+rack+rack_top_wood+below_rack,leg_wood),0])
+        rotate([0,0,90]) {
+            tail_holes(leg_wood,tilted(rack_top_wood,leg_wood),top_y);
+            if(!blind)
+            tail_screws(leg_wood,rack_top_wood,top_y);
+        }
+
+        // top pins
+        translate([hyp(height-top_wood),0])
+        mirror([1,0])
+        rotate([0,0,90]) {
+            pin_edge(leg_wood,tilted(top_wood+pad,leg_wood),top_y);
+        }
+
+    }
+}
+
 
 module leg() {
     difference() {
@@ -483,29 +570,19 @@ module outer_leg() {
 
 module inner_leg_pin() {
     translate([height-top_wood-cubby-rack_top_wood,top_y-back_wood]) {
-        pin_edge(leg_wood,back_wood+pad,top_wood+cubby+rack_top_wood);
-        pin_screws(leg_wood,back_wood+pad,top_wood+cubby+rack_top_wood);
+        short_tail_edge(leg_wood,back_wood+pad,top_wood+cubby+rack_top_wood);
+        //pin_screws(leg_wood,back_wood+pad,top_wood+cubby+rack_top_wood);
     }
-    translate([height-top_wood-cubby-rack_top_wood,top_y-back_wood])
-    rotate([0,0,45*6])
-    mouse_ear();
+    //translate([height-top_wood-cubby-rack_top_wood,top_y-back_wood]) rotate([0,0,45*6]) mouse_ear();
 }
+
+
 module inner_leg_pins() {
     inner_leg_pin();
     if(covered_front==1)
-    translate([0,top_y])
-    mirror([0,1])
+    mirror_y(top_y)
     inner_leg_pin();
 }
-
-module inner_leg() {
-    difference() {
-        leg();
-        cubby_holes();
-        inner_leg_pins();
-    }
-}
-
 
 module inner_leg_3d() {
     linear_extrude(height=leg_wood)
@@ -519,8 +596,9 @@ module outer_leg_3d() {
 
 
 module inner_leg_assembled() {
-    translate([leg_wood*2+rack_h+wing,0,0])
-    rotate([0,-90,0])
+    translate([leg_wood*2+rack_h+wing,0,rack_base_wood+below_rack])
+    rotate([0,-90+angle,0])
+    translate([-rack_base_wood-below_rack,0])
     inner_leg_3d();
 }
 
@@ -544,17 +622,34 @@ module outer_legs_assembled() {
     outer_leg_assembled();
 }
 
+
 module rack_top() {
+    extra=rack_top_extra+tan(angle)*rack_base_wood;
     difference() {
-        rack_common();
+        union() {
+            rack_common(extra);
+            translate([rack_h/2+leg_wood,top_y-top_wire_wall])
+            circle(d=top_wire+0.5*in);
+
+        }
         if(covered_front==1)
         translate([0,front_wood])
         mirror([0,1])
         pin_edge(rack_top_wood,front_wood+pad,rack_h+leg_wood*2);
+
         translate([rack_h/2+leg_wood,top_y-top_wire_wall])
         circle(d=top_wire);
     }
 }
+
+angle=atan(
+    (leg_cover_wood*2+rack_top_extra-leg_wood)
+    /
+    (rack)
+);
+
+echo("angle");
+echo(angle);
 
 module rack_top_3d() {
     linear_extrude(height=rack_top_wood)
@@ -589,24 +684,33 @@ module mirror_y(y=top_y) {
     children();
 }
 
-module rack_common() {
+module rack_common(extra=0) {
     difference() {
-        square([rack_h+leg_wood*2,top_y]);
+        translate([blind,0])
+        square([rack_h+leg_wood*2-blind*2+extra,top_y]);
 
         translate([leg_wood,0])
         rotate([0,0,90])
         pin_edge(rack_base_wood+pad,leg_wood,top_y);
 
-        translate([leg_wood+rack_h,0])
-        mirror([1,0])
-        rotate([0,0,90])
-        pin_edge(rack_base_wood,leg_wood+pad,top_y);
+        difference() {
+            translate([leg_wood+rack_h+extra-tan(angle)*rack_base_wood,0])
+            mirror([1,0])
+            rotate([0,0,90])
+            pin_edge(rack_base_wood,leg_wood+pad+tan(angle)*rack_base_wood*2,top_y);
+
+            translate([0,top_y/2-leg_base_top_y/2-spine_wood])
+            square([rack_h+leg_wood*2+extra,leg_base_top_y+spine_wood*2]);
+        }
 
         mirror_y()
         for (y=[rail_flush:rail_choice:server_flush+extra_choices*rail_choice]) {
             translate([rack_h/2-u*us/2+leg_wood,y])
             u_holes(us);
         }
+
+        translate([leg_wood+rack_h,top_y/2-leg_base_top_y/2-spine_wood])
+        square([leg_base_leg_x+leg_cover_wood+extra,leg_base_top_y+spine_wood*2]);
     }
 }
 
@@ -645,6 +749,125 @@ module top_assembled() {
     translate([0,0,height-top_wood])
     top_3d();
 }
+module leg_base() {
+    hull() {
+        translate([0,0,height-leg_base_top_z-top_wood])
+        cube(leg_base_top);
+
+        translate([leg_base_leg_offset_x,leg_base_leg_offset_y,height-top_wood-leg_base_leg_offset_z])
+        cube([leg_base_leg_x,leg_base_leg_y,leg_base_leg_offset_z]);
+    }
+
+    translate(leg_base_leg_offset)
+    cube ([ leg_base_leg_x, leg_base_leg_y, leg_base_leg_z ]);
+
+    
+}
+module leg_bases_assembled() {
+    mirror_x(top_x)
+    translate([leg_wood+leg_cover_wood+rack_h-leg_base_leg_offset_x,top_y/2-leg_base_top_y/2])
+    leg_base();
+}
+
+module leg_cover_common(y) {
+    x=leg_base_top_y+spine_wood*2;
+    tall=rack+rack_top_wood+rack_base_wood;
+    difference() {
+        square([x,y]);
+        mirror_x(x)
+        translate([spine_wood,0])
+        rotate([0,0,90])
+        pin_edge(leg_cover_wood,spine_wood+pad,tall);
+    }
+}
+
+module leg_cover() {
+    leg_cover_common(rack+rack_top_wood+rack_base_wood);
+}
+
+module inner_leg_cover() {
+    leg_cover_common(height-top_wood-leg_base_leg_offset_z);
+}
+
+spine_wall=1.5*in;
+
+spine_wing=rack_h;
+
+module spine() {
+    x=top_x-rack_h*2-leg_wood*2;
+    y=top_wood+cubby+rack_top_wood+rack+rack_base_wood;
+    leg=2*in+leg_cover_wood*2;
+    r=segment_radius(leg_base_leg_offset_z-spine_wall,x-leg*2);
+
+    inside_y=height-top_wood-leg_base_leg_offset_z;
+    translate([0,height-y])
+    difference() {
+        translate([-spine_wing,0])
+        square([x+spine_wing*2,y]);
+
+
+        translate([-spine_wing,y-top_wood])
+        pin_edge(top_wood+pad,spine_wood,x+spine_wing*2);
+
+        mirror_x(x)
+        hull() {
+            translate([-spine_wing,0])
+            square([spine_wing+pad,height-top_wood-cubby]);
+            translate([-spine_wing,0])
+            square([pad,height-top_wood]);
+        }
+
+
+        translate([leg,-pad])
+        square([x-leg*2,inside_y+pad]);
+
+        intersection() {
+            translate([x/2,-r+leg_base_leg_offset_z-spine_wall+inside_y])
+            circle(r=r,$fn=900);
+            translate([leg,0])
+            square([x-leg*2,height]);
+        }
+
+        
+        tall=rack+rack_top_wood+rack_base_wood;
+        mirror_x(x)
+        mirror_x(leg_base_leg_x+leg_cover_wood*2)
+        translate([leg_cover_wood,0])
+        rotate([0,0,90])
+        tail_edge(spine_wood,leg_cover_wood+pad,tall);
+    }
+}
+
+
+module spine_assembled() {
+    mirror_y(top_y)
+    translate([rack_h+leg_wood,top_y/2-leg_base_top_y/2])
+    rotate([90,0,0])
+    linear_extrude(height=spine_wood)
+    spine();
+
+}
+
+module leg_cover_assembled() {
+
+    mirror_x(top_x)
+    translate([rack_h+leg_wood,
+    top_y/2-leg_base_top_y/2-spine_wood,
+    below_rack
+    ])
+    rotate([90,0,90])
+    linear_extrude(height=leg_cover_wood)
+    leg_cover();
+
+    mirror_x(top_x)
+    translate([rack_h+leg_wood+leg_cover_wood+leg_base_leg_x,
+    top_y/2-leg_base_top_y/2-spine_wood,
+    below_rack
+    ])
+    rotate([90,0,90])
+    linear_extrude(height=leg_cover_wood)
+    inner_leg_cover();
+}
 
 module assembled() {
     //#base();
@@ -667,9 +890,14 @@ module assembled() {
     if(covered_front)
     color("tan")
     fronts_assembled();
+    //#leg_bases_assembled();
 
-    if(double_top_wall)
-    double_top_assembled();
+    color("green")
+    spine_assembled();
+
+    leg_cover_assembled();
+
+    if(double_top_wall) double_top_assembled();
     //color("white")
     //blanks_assembled();
     //place_wheels() #wheel_max();
@@ -717,8 +945,9 @@ back_wire=6*in;
 module back_leg_tail() {
     translate([leg_wood,0])
     rotate([0,0,90])
-    tail_edge(back_wood,leg_wood+pad,top_wood+cubby+leg_wood);
+    short_tail_edge(back_wood,leg_wood+pad,top_wood+cubby+leg_wood);
 }
+
 
 module back_leg_tails() {
     back_leg_tail();
@@ -729,15 +958,30 @@ module back_leg_tails() {
 
 
 module back() {
+    bottom_x=tan(angle)*rack;
+    top_x=tan(angle)*(rack+rack_top_wood+cubby+top_wood);
     difference() {
         square([back_x,back_y]);
-        translate([0,cubby+rack_top_wood]) {
-            tail_edge(back_wood,top_wood+pad,back_x);
-            tail_screws(back_wood,top_wood+pad,back_x);
+        translate([top_x,cubby+rack_top_wood]) {
+            pin_edge(back_wood,top_wood+pad,back_x-top_x*2);
+            //tail_screws(back_wood,top_wood+pad,back_x-top_x*2);
         }
-        back_leg_tails();
+        // back_leg_tails();
+
+        mirror_x(back_x)
+        translate([bottom_x,0])
+        rotate([0,0,-angle])
+        translate([-bottom_x*2,-back_y/2])
+        square([bottom_x*2,back_y*2]);
+
+        mirror_x(back_x)
+        translate([bottom_x+leg_wood/cos(angle),0])
+        rotate([0,0,90-angle])
+        translate([-sin(angle)*leg_wood,0])
+        short_pin_edge(leg_wood,back_wood+pad,(top_wood+cubby)/cos(angle));
     }
 }
+
 
 module back_3d() {
     linear_extrude(height=back_wood)
@@ -839,6 +1083,36 @@ module pin_edge(pin_h, tail_h, edge) {
     }
 }
 
+module short_pin_edge(pin_h, tail_h, edge) {
+    if(details) {
+        
+        intersection() {
+            union() {
+                translate([edge/2,pin_h/2])
+                circle(d=pin_screw);
+                translate([-tail-pin/2+edge/2,0]) { 
+                    translate([0,0])
+                    mouse_ears(pin+pintail_gap*2,tail_h);
+                    translate([pintail,0])
+                    mouse_ears(pin+pintail_gap*2,tail_h);
+                }
+            }
+            translate([0,-pin_h/2])
+            square([edge,pin_h*2]);
+        }
+
+    }
+}
+
+
+module short_tail_edge(tail_h, pin_h, edge) {
+    if(details) {
+        translate([edge/2-pin/2,0])
+        mouse_ears(pin+pintail_gap*2,pin_h);
+    }
+}
+
+
 module tail_edge(tail_h, pin_h, edge) {
     if(details) {
         for(x=[0:pintail:edge-pintail]) {
@@ -876,8 +1150,8 @@ plywood_x=4*12*in;
 plywood_y=8*12*in;
 
 module plywood(show_plywood=1) {
-    line=0.5*in;
-    corner=3*in;
+    line=1;
+    corner=50;
 
     mirror_x(plywood_x)
     mirror_y(plywood_y)
@@ -911,6 +1185,7 @@ module plywood_text(text) {
 
     //plywood_text("sheet ");
 module sheet() {
+    plywood();
     sheet_gap=2*in;
 
     xp=cubby+rack/2+rack_top_wood-(rack_h+leg_wood+sheet_gap+below_rack)/2;
@@ -952,7 +1227,7 @@ module sheet() {
 module double_top_assembled() {
     translate([0,0,height])
     difference() {
-        linear_extrude(height=top_wood)
+        linear_extrude(height=double_top_wood)
         double_top();
         translate([0,0,top_wood-top_wire_lip])
         linear_extrude(height=top_wood)
@@ -960,7 +1235,7 @@ module double_top_assembled() {
         top_wire_pocket();
     }
 
-    mirror_x(top_x+double_top_wall*2)
+    mirror_x(top_x)
     color("green")
     translate([0,0,height-top_wood])
     linear_extrude(height=top_wood)
@@ -992,7 +1267,10 @@ module double_top() {
     difference() {
         double_top_profile();
         top_wire_placements()
-        top_wire_profile();
+        difference() {
+            top_wire_pocket();
+            top_wire_profile();
+        }
     }
 }
 
@@ -1004,15 +1282,31 @@ module double_top_edge() {
         translate([0,double_top_wall])
         rotate([0,0,270])
         mouse_ear();
+        gap=12*in;
+        start_x=(top_x+double_top_wall*2-gap/2)%gap+gap/4-double_top_wall;
+
+        translate([top_x/2-double_top_center/2,0])
+        for(x=[double_top_wall:(double_top_center-double_top_wall*2)/2:double_top_center-double_top_wall])
+        translate([x,double_top_wall/2])
+        circle(d=pin_screw);
+
+        for(y=[double_top_wall:(top_y-double_top_wall*2)/2:top_y-double_top_wall])
+        translate([-double_top_wall/2,y])
+        circle(d=pin_screw);
+
+        translate([top_x/2-double_top_center/2-double_top_wall,double_top_wall/2])
+        circle(d=pin_screw);
+
     }
 }
 
 double_top_center=42*in;
 
 module double_top_center() {
+    translate([-top_x/2+double_top_center/2,0])
     intersection() {
         double_top_edge();
-        translate([0,-pad])
+        translate([top_x/2-double_top_center/2,-pad])
         square([double_top_center,top_y+pad*2]);
     }
 }
@@ -1027,43 +1321,78 @@ module double_top_side() {
 
 module top_sheet() {
 
-	translate([top_y,double_top_wall])
-	rotate([0,0,90])
-	double_top();
+    plywood();
+    gap_x=(plywood_x-top_y*2+double_top_wall)/2;
+    from_edge=2*in;
 
-	translate([double_top_wall+plywood_x,0])
-	rotate([0,0,90])
-	top();
+    translate([0,from_edge]) {
 
-	translate([plywood_x/2-double_top_center/2,top_x+double_top_wall*3])
-	double_top_center();
+        translate([top_y+gap_x/2,double_top_wall])
+        rotate([0,0,90])
+        double_top();
 
-	translate([plywood_x-top_y/2,top_x+double_top_wall*6])
-	rotate([0,0,90])
-	double_top_side();
+        for(y=[0:(top_x+double_top_wall*2)/4:top_x+double_top_wall*2])
+        translate([gap_x+top_y,y])
+        circle(d=0.5*in);
 
-	translate([plywood_x+double_top_wall*2-top_y/2,top_x+double_top_wall*7+(top_x-double_top_center)/2])
-	rotate([0,0,90])
-	mirror([1,0])
-	double_top_side();
+        translate([top_y-double_top_wall+gap_x/2+gap_x,top_x+double_top_wall])
+        rotate([0,0,90+180])
+        top();
 
-	translate([0,plywood_y])
-	blank();
+        translate([plywood_x/2-double_top_center/2,top_x+double_top_wall*3])
+        double_top_center();
+
+        translate([plywood_x-top_y/2,top_x+double_top_wall*6])
+        rotate([0,0,90])
+        double_top_side();
+
+        translate([plywood_x+double_top_wall*2-top_y/2,top_x+double_top_wall*7+(top_x-double_top_center)])
+        rotate([0,0,90])
+        mirror([1,0])
+        double_top_side();
+
+        translate([0,plywood_y])
+        blank();
+    }
 }
 
 
 gap=6*in;
 
 module cut_sheets() {
-    plywood();
     sheet();
 	translate([plywood_x+gap,0]) {
-		plywood();
 		top_sheet();
 	}
 }
 
-cut_sheets();
 
-//assembled();
+display="";
+if(!display) 
+//spine();
+//double_top_edge();
+//cut_sheets();
+//top_sheet();
+assembled();
+//back_3d();
+//leg_cover();
+//rack_top();
+//inner_leg();
+//blank();
+//top();
 
+if(display=="desk_sheet_one_profiles.dxf") {
+    $fn=300;
+    rotate([0,0,90])
+    sheet();
+}
+if(display=="desk_top_sheet_profiles.dxf") {
+    $fn=300;
+    rotate([0,0,90+180])
+    top_sheet();
+}
+
+if(display=="desk_blank.dxf") {
+    $fn=300;
+    blank();
+}
