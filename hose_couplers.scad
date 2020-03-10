@@ -1,16 +1,18 @@
 in=25.4;
+$fn=90;
 
-magnet=3/8*in;
-magnet_h=1/8*in;
+magnet=10;
+magnet_extra=0.2; // make the magnet holes bigger without messing with ring calculation
+magnet_h=4.5;
 magnet_wall=3;
-magnet_z_wall=6;
+magnet_z_wall=10-magnet_h;
 magnet_z=magnet_h+magnet_z_wall;
 
-pipe_wall=2.5;
+pipe_wall=2;
 
 
-// vacuum = 2.5 inch hose
-vacuum=2.5*in;
+// vacuum = 1 inch hose
+vacuum=25.4+pipe_wall*2;
 vacuum_magnets=4;
 
 // hose = 4 inch hose
@@ -18,20 +20,16 @@ hose=4*in;
 hose_magnets=6;
 
 // collector = 5+ inch connector to dust collector
-collector=5.5*in;
+collector=5*in;
 collector_magnets=8;
-
-
-
-pipe_wall=3;
-
 
 clamp_h=50;
 
 pad=0.1;
 padd=pad*2;
 
-screw=3;
+screw=2.7;
+screw_h=12;
 
 guard_lines=6;
 
@@ -46,48 +44,134 @@ grid_gap=30;
 not_cut=clamp_h/2;
 cut_h=clamp_h-not_cut;
 
+magnet_z_extra=0.5; // extra for sagging bridges
+layer_height=0.2;
+screw_bridge_gap=layer_height*1;
+
+magnet_flange=1;
+outer_flange=0.4;
+air_flange=1;
+pipe_flange=1;
+
+dot=2;
+
+flip=1;
+
 gap=20;
 
+display="";
+
+//if (display == "" ) both_hoses_assembled();
+if (display == "" ) assembled();
+if (display == "dust_vacuum_coupler.stl" ) vacuum_coupler();
+if (display == "dust_vacuum_to_hose_adapter.stl" ) vacuum_to_hose_adapter();
+if (display == "dust_hose_grille.stl" ) hose_grille();
+if (display == "dust_flex_hose_coupler.stl" ) flex_hose();
+if (display == "dust_hose_to_collector_adapter.stl" ) hose_to_collector_adapter();
+if (display == "dust_vacuum_to_collector_adapter.stl" ) vacuum_to_collector_adapter()
+if (display == "dust_collector_coupler.stl" ) dust_collector();
+if (display == "dust_collector_pipe_test.stl" ) dust_collector_pipe_test();
+if (display == "dust_magnet_test.stl" ) magnet_test();
+
 module assembled() {
-    
-    translate([0,0,40])
-    mirror([0,0,1])
-    vacuum(-pipe_wall*2,0,40);
+    vacuum_coupler(flip)
+    vacuum_to_collector_adapter(flip)
+    dust_collector();
+}
 
-    translate([0,0,40+gap]) {
+module both_hoses_assembled() {
+    vacuum_coupler(flip)
+    vacuum_to_hose_adapter(flip)
+    rotate([0,0,180/hose_magnets])
+    hose_grille(flip) 
+    flex_hose()
+    flex_hose(flip)
+    hose_to_collector_adapter(flip)
+    dust_collector();
+}
 
-        translate([0,0,magnet_z])
-        mirror([0,0,1])
-        hose_adapter(vacuum, vacuum_magnets, vacuum);
+module vacuum_coupler(flip=0) {
+    // https://www.amazon.com/gp/product/B00LPOUW2Q/
+    h=40;
+    od=37.5;
+    flip(flip, h+magnet_z*2)
+    vacuum(vacuum,od,h);
+    stack(h+magnet_z*2) children();
+}
 
-        rotate([0,0,180/hose_magnets])
-        translate([0,0,magnet_z+gap]) {
-            translate([0,0,magnet_z])
-            mirror([0,0,1])
-            hose_grille();
-            translate([0,0,magnet_z+gap]) {
-                hose(-pipe_wall*2,0,50);
-                translate([0,0,50+gap]) {
-                    translate([0,0,50])
-                    mirror([0,0,1])
-                    hose(-pipe_wall*2,0,50);
-                    translate([0,0,50+gap]) {
+module flip(flag,z) {
+    translate([0,0,z*flag])
+    mirror([0,0,flag])
+    children();
+}
 
-                        translate([0,0,magnet_z])
-                        mirror([0,0,1])
-                        collector_adapter(hose, hose_magnets, hose);
-                        translate([0,0,magnet_z+gap]) {
-                            collector(-pipe_wall*2,0,50);
-                        }
-                    }
-                }
-            }
-        }
+module stack(h) {
+    translate([0,0,h+gap])
+    children();
+}
+
+module vacuum_to_hose_adapter(flip=0) {
+    flip(flip, magnet_z)
+    hose_adapter(vacuum, vacuum_magnets, vacuum);
+    stack(magnet_z) children();
+}
+
+module vacuum_to_collector_adapter(flip=0) {
+    flip(flip, magnet_z)
+    collector_adapter(vacuum, vacuum_magnets, vacuum);
+    stack(magnet_z) children();
+}
+
+module flex_hose(flip=0) {
+    h=30;
+    flip(flip,h+magnet_z*2)
+    hose(-pipe_wall*2, 0, h);
+    stack(h+magnet_z*2) children();
+}
+
+module hose_to_collector_adapter(flip=0) {
+    flip(flip, magnet_z)
+    collector_adapter(hose, hose_magnets, hose);
+    stack(magnet_z) children();
+}
+
+module dust_collector_pipe_test() {
+    pipe_test(collector,collector+pipe_wall*2);
+}
+
+module dust_collector(flip=0) {
+    h=50;
+    flip(flip, h+magnet_z*2)
+    collector(0,pipe_wall*2,h);
+    stack(magnet_z) children();
+}
+
+module pipe_test(id,od) {
+    h=5;
+    difference() {
+        pipe(od,h);
+        air(id,h);
     }
 }
 
+module edge_dot() {
+    translate([magnet/2+magnet_wall,0,magnet_z/2])
+    sphere(d=dot);
+}
 
-assembled();
+module surface_dot() {
+    translate([magnet+magnet_wall,0,0])
+    sphere(d=dot);
+}
+
+
+module magnet_test() {
+    difference() {
+        magnet_wall();
+        magnet();
+        edge_dot();
+    }
+}
 
 module flange(ring, magnets) {
     hull()
@@ -95,8 +179,10 @@ module flange(ring, magnets) {
     magnet_wall();
 }
 
-module hose_grille() {
+module hose_grille(flip=0) {
+    flip(flip, magnet_z)
     grille(hose, hose_magnets, hose, 15);
+    stack(magnet_z) children();
 }
 
 module grille(ring, magnets, id, gap) {
@@ -115,12 +201,19 @@ module grille(ring, magnets, id, gap) {
 }
 
 module pipe(od,h) {
-    cylinder(d=od,h=h);
+    cylinder(d=od,h=h-pipe_flange);
+    translate([0,0,h-pipe_flange])
+    cylinder(d1=od,d2=od-pipe_flange*2,h=pipe_flange);
 }
 
 module air(id,h) {
     translate([0,0,-pad])
     cylinder(d=id,h=h+padd);
+    translate([0,0,-pad])
+    cylinder(d1=id+air_flange*2+padd,d2=id-padd,h=air_flange+padd);
+
+    translate([0,0,h-air_flange-pad])
+    cylinder(d2=id+air_flange*2+padd,d1=id-padd,h=air_flange+padd);
 }
 
 module magnets(ring, magnets) {
@@ -130,7 +223,7 @@ module magnets(ring, magnets) {
 
 
 module vacuum(id,od,h) {
-    coupler(vacuum, vacuum_magnets, vacuum+id, vacuum+od, h);
+    coupler(vacuum, vacuum_magnets, id, od, h);
 }
 
 module hose(id,od,h) {
@@ -149,10 +242,12 @@ module coupler(ring, magnets, id, od, h) {
                 flange(ring, magnets);
                 pipe(od,magnet_z*2);
             }
-            pipe(od,h);
+            pipe(od,h+magnet_z*2);
         }
-        air(id,h);
+        air(id,h+magnet_z*2);
         magnets(ring, magnets);
+        place_magnets(ring,magnets/2)
+        edge_dot();
     }
 }
 
@@ -178,22 +273,42 @@ module adapter(big_ring, big_magnets, small_ring, small_magnets, id) {
     difference() {
         flange(big_ring, big_magnets);
         magnets(big_ring, big_magnets);
+        place_magnets(big_ring,big_magnets/2)
+        edge_dot();
         translate([0,0,magnet_z])
-        mirror([0,0,1])
-        magnets(small_ring,small_magnets);
-        air(id,magnet_z);
+        mirror([0,0,1]) {
+            magnets(small_ring,small_magnets);
+            air(id,magnet_z);
+            place_magnets(small_ring,small_magnets/2)
+            surface_dot();
+        }
     }
 }
 
 
 module magnet_wall() {
-    cylinder(d=magnet+magnet_wall*2,h=magnet_h+magnet_z_wall);
+    translate([0,0,outer_flange])
+    cylinder(d=magnet+magnet_wall*2,h=magnet_h+magnet_z_wall-outer_flange);
+    cylinder(
+        d1=magnet+magnet_wall*2-outer_flange*2,
+        d2=magnet+magnet_wall*2,
+        h=outer_flange
+    );
 }
+
 
 module magnet() {
     translate([0,0,-pad])
-    cylinder(d=magnet,h=magnet_h+pad);
-    cylinder(d=screw,h=magnet_h*2+magnet_wall*2);
+    cylinder(d=magnet+magnet_extra,h=magnet_h+pad);
+
+    translate([0,0,magnet_h+screw_bridge_gap+magnet_z_extra])
+    cylinder(d=screw,h=screw_h-magnet_h-screw_bridge_gap-magnet_z_extra);
+
+    translate([0,0,magnet_h])
+    cylinder(d1=magnet+magnet_extra,d2=magnet+magnet_extra-magnet_z_extra*2,h=magnet_z_extra);
+
+    translate([0,0,-pad])
+    cylinder(d1=magnet+magnet_extra+magnet_flange*2+padd,d2=magnet+magnet_extra-padd,h=magnet_flange+padd);
 }
 
 module place_magnets(pipe,magnets) {
