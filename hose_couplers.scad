@@ -23,6 +23,7 @@ hose_magnets=6;
 collector=5*in;
 collector_magnets=8;
 
+
 clamp_h=50;
 
 pad=0.1;
@@ -61,8 +62,13 @@ gap=20;
 
 display="";
 
+collector_h=50-magnet_z*2;
+collector_screw=5;
+collector_screw_offset=22;
+
 //if (display == "" ) both_hoses_assembled();
-if (display == "" ) assembled();
+//if (display == "" ) assembled();
+if (display == "" ) dust_collector();
 if (display == "dust_vacuum_coupler.stl" ) vacuum_coupler();
 if (display == "dust_vacuum_to_hose_adapter.stl" ) vacuum_to_hose_adapter();
 if (display == "dust_hose_grille.stl" ) hose_grille();
@@ -140,9 +146,14 @@ module dust_collector_pipe_test() {
 }
 
 module dust_collector(flip=0) {
-    h=50;
+    h=collector_h;
     flip(flip, h+magnet_z*2)
-    collector(0,pipe_wall*2,h);
+    difference() {
+        collector(0,pipe_wall*2,h);
+        translate([0,0,collector_screw_offset])
+        rotate([90,0,180/collector_magnets])
+        cylinder(d=collector_screw,h=collector);
+    }
     stack(magnet_z) children();
 }
 
