@@ -1,3 +1,5 @@
+//fiat
+
 groove=12;
 groove_h=47;
 // how wide the stand is
@@ -19,6 +21,33 @@ walll=wall*2;
 $fn=200;
 layer_h=0.4;
 mouse_ears_wall=50;
+
+
+//accord
+
+groove=12;
+groove_h=22; // to rest
+groove_h=38; // to clear
+// how wide the stand is
+stand=38;
+
+// flat section at top of the stand
+platform=73;
+// rounded part
+cup_w=38;
+cup_h=17*2;
+// bottom groove in jack stand
+bottom_groove=10;
+
+pad=0.1;
+padd=pad*2;
+
+wall=6;
+walll=wall*2;
+$fn=200;
+layer_h=0.4;
+mouse_ears_wall=50;
+
 
 module positive() {
     difference() {

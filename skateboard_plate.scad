@@ -29,31 +29,37 @@ padd=pad*2;
 
 between=34;
 
-difference() {
-    hull() {
-        cylinder(d=outer_truck,h=h);
-        translate([belt,0,0])
-        cylinder(d=outer_motor,h=h);
-    }
-    translate([0,0,-pad]) {
-        cylinder(d=truck,h=h+padd);
-        rotate([0,0,extra_rotation])
-        for(i=[0:360/truck_bolts:359]) {
-            for(j=[0:360/truck_bolts/between/2:360/truck_bolts/2]) {
-                rotate([0,0,i+j])
-                translate([truck_bolts_d/2,0,0])
-                cylinder(d=truck_bolt,h=h+padd);
-            }
+module plate() {
+    difference() {
+        hull() {
+            cylinder(d=outer_truck,h=h);
+            translate([belt,0,0])
+            cylinder(d=outer_motor,h=h);
         }
-        translate([belt,0,0]) {
-            cylinder(d=shaft,h=h+padd);
-            for(i=[0:360/motor_bolts:359]) {
-                rotate([0,0,i])
-                translate([motor_bolts_d/2,0,0])
-                cylinder(d=motor_bolt,h=h+padd);
+        translate([0,0,-pad]) {
+            cylinder(d=truck,h=h+padd);
+            rotate([0,0,extra_rotation])
+            for(i=[0:360/truck_bolts:359]) {
+                for(j=[0:360/truck_bolts/between/2:360/truck_bolts/2]) {
+                    rotate([0,0,i+j])
+                    translate([truck_bolts_d/2,0,0])
+                    cylinder(d=truck_bolt,h=h+padd);
+                }
+            }
+            translate([belt,0,0]) {
+                cylinder(d=shaft,h=h+padd);
+                for(i=[0:360/motor_bolts:359]) {
+                    rotate([0,0,i])
+                    translate([motor_bolts_d/2,0,0])
+                    cylinder(d=motor_bolt,h=h+padd);
+                }
             }
         }
     }
 }
+
+projection(cut=true)
+translate([0,0,-h/2])
+plate();
 
 

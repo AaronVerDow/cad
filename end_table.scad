@@ -9,8 +9,8 @@ leg_count = 4;
 leg_height = 5.5; // bottom shelf
 top_height = 18; //top to ground
 min_leg = 2; //smallest size a leg can be
-plywood = 0.5;
-gap = 1/16;
+plywood = 0.75;
+gap = 1/64;
 gapp = gap*2;
 pad = 0.1;
 padd = pad*2;
@@ -147,5 +147,5 @@ module plate() {
     }
 }
 
-assemble();
-//plate();
+//assemble();
+plate();

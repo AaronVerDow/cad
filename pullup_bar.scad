@@ -1,10 +1,11 @@
-x=4.5;
-y=8*12-4;
-d=1.4;
+x=4+5/8;
+
+y=46;
+d=1.5;
 angle=35;
 gap=6;
 
-slot_min=12;
+slot_min=5;
 slot_max=y;
 offset=0.7;
 $fn=90;

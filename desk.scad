@@ -467,12 +467,13 @@ module fancy_leg() {
         }
 }
 
+inner_leg_safety=cubby;
 
+function hyp(h) = h/cos(angle);
+function wood(h) = sin(angle)*h;
+function tilted(h,wood) = hyp(h)+wood(wood);
 
 module inner_leg() {
-    function hyp(h) = h/cos(angle);
-    function wood(h) = sin(angle)*h;
-    function tilted(h,wood) = hyp(h)+wood(wood);
 
     translate([-wood(leg_wood),0])
     difference() {
@@ -486,8 +487,12 @@ module inner_leg() {
         inner_leg_pins();
 
         // center cut
-        translate([0,top_y/2-leg_base_top_y/2-spine_wood])
-        square([height,leg_base_top_y+spine_wood*2]);
+        translate([0,top_y/2-leg_base_top_y/2
+        //-spine_wood
+        ])
+        square([tilted(height,leg_wood),leg_base_top_y
+        //+spine_wood*2
+        ]);
 
         // bottom box joint
         translate([tilted(rack_base_wood+below_rack, leg_wood),0])
@@ -513,6 +518,17 @@ module inner_leg() {
         rotate([0,0,90]) {
             pin_edge(leg_wood,tilted(top_wood+pad,leg_wood),top_y);
         }
+
+        // spine pins
+        mirror_y(top_y)
+        translate([inner_leg_safety,top_y/2-leg_base_top_y/2-spine_wood])
+        pin_edge(leg_wood,spine_wood+pad,hyp(height)-inner_leg_safety*2);
+
+        // spine pin ends
+        mirror_x(hyp(height))
+        translate([0,top_y/2-leg_base_top_y/2-spine_wood])
+        square([inner_leg_safety,leg_base_top_y+spine_wood*2]);
+
 
     }
 }
@@ -786,12 +802,27 @@ module leg_cover() {
 }
 
 module inner_leg_cover() {
-    leg_cover_common(height-top_wood-leg_base_leg_offset_z);
+    x=leg_base_top_y+spine_wood*2;
+    intersection() { 
+        leg_cover_common(height-top_wood-leg_base_leg_offset_z);
+        square([x,leg_base_leg_x/tan(angle)]);
+    }
 }
 
 spine_wall=1.5*in;
 
 spine_wing=rack_h;
+
+module spine_inner_leg(x,y) {
+    difference() {
+        children();
+        mirror_x(x)
+        translate([0,rack_base_wood+below_rack])
+        rotate([0,0,-angle])
+        translate([-x+leg_wood,-rack_base_wood-below_rack])
+        square([x,y]);
+    }
+}
 
 module spine() {
     x=top_x-rack_h*2-leg_wood*2;
@@ -817,10 +848,8 @@ module spine() {
             square([pad,height-top_wood]);
         }
 
-
-        translate([leg,-pad])
-        square([x-leg*2,inside_y+pad]);
-
+        // center
+        spine_inner_leg(x,y)
         intersection() {
             translate([x/2,-r+leg_base_leg_offset_z-spine_wall+inside_y])
             circle(r=r,$fn=900);
@@ -830,11 +859,27 @@ module spine() {
 
         
         tall=rack+rack_top_wood+rack_base_wood;
+
+        // inner cover pins
         mirror_x(x)
-        mirror_x(leg_base_leg_x+leg_cover_wood*2)
+        spine_inner_leg(x,y)
+        translate([leg_cover_wood+leg_base_leg_x+leg_cover_wood*2,0])
+        rotate([0,0,90])
+        tail_edge(spine_wood,leg_cover_wood+pad,tall);
+
+        // outer cover pins
+        mirror_x(x)
         translate([leg_cover_wood,0])
         rotate([0,0,90])
         tail_edge(spine_wood,leg_cover_wood+pad,tall);
+
+        // inner leg pins
+        //translate([0,rack_base_wood+below_rack])
+        //translate([leg_wood+inner_leg_safety,-rack_base_wood-below_rack])
+        rotate([0,0,90-angle])
+        translate([inner_leg_safety,0.25*in])
+        mirror([0,1])
+        tail_edge(spine_wood,leg_wood+pad,hyp(height)-inner_leg_safety*2);
     }
 }
 
