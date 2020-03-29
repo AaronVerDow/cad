@@ -22,13 +22,13 @@ fail() {
 }
 
 get_variable() {
-    variable=$( cat $file | egrep '( |^)if' | egrep '(.stl|.dxf)' | grep -Po '[^\s^(]*(?=\s*==)' | uniq )
+    variable=$( cat $file | egrep '( |^)if' | egrep '(.stl|.dxf|.svg)' | grep -Po '[^\s^(]*(?=\s*==)' | uniq )
     [ "$variable" ] || return 1
     echo "${INFO}Found variable \"$variable\" for defining multiple outputs."
 }
 
 process_all() {
-    for output in $( cat $file | egrep '( |^)if' | egrep -o '[^"^ ^'\'']*(.stl|.dxf)' ); do
+    for output in $( cat $file | egrep '( |^)if' | egrep -o '[^"^ ^'\'']*(.stl|.dxf|.svg)' ); do
         echo "${INFO}Starting $output...$NORMAL"
         time $openscad -o "$dir/$output" -D $variable'="'$output'"' $file && echo "$output ${GREEN}OK$NORMAL" || echo "$output ${RED}failed$NORMAL" &
     done
