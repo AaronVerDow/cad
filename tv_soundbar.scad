@@ -17,7 +17,7 @@ module dirror(x=0,y=0) {
 
 wall=2*in;
 
-bit=0.125*in;
+bit=0.15*in;
 
 tv_screw=0.25*in;
 soundbar_screw=bit;
