@@ -1,36 +1,50 @@
 in=25.4;
-can=12.625*in;
-angle=45;
-wall=3.5*in;
-r=wall/2;
 $fn=90;
-
-
-module twod() {
-    difference() {
-        minkowski() {
-            circle(d=r*2);
-            union() {
-                //circle(d=can+wall*2);
-                translate([-can/2-wall+r,0])
-                square([can+wall*2-r*2,can/2+wall-r]);
-                translate([0,-can/2-wall+r])
-                square([can/2+wall-r,can+wall*2-r*2]);
-            }
-        }
-        translate([-can/2-wall,-can/2-wall])
-        square([can/2+wall,can/2+wall]);
-        circle(d=can);
-    }
-    translate([0,-can/2-wall/2])
-    circle(d=wall);
-    translate([-can/2-wall/2,0])
-    circle(d=wall);
-}
-
-
 wood=0.5*in;
 
 
-//linear_extrude(height=wood)
-twod();
+
+//bathroom
+wall_x=1*in;
+wall_y=3*in;
+can=10*in;
+outer=wall_y+1*in;
+
+
+
+
+
+module placement(can, wall_x, wall_y, outer) {
+    intersection() {
+        translate([-outer/2,-outer/2])
+        circle(d=can+outer);
+        difference() {
+            translate([-can/2-wall_x,-can/2-wall_y])
+            square([can+wall_x,can+wall_y]);
+            circle(d=can);
+        }
+    }
+}
+
+module kitchen() {
+    wall=3.5*in;
+    can=12.625*in;
+    placement(can , wall, wall, wall+1*in);
+    translate([can,0])
+    children();
+}
+
+module bathroom() {
+    placement(10*in, 1*in, 3*in, 4*in);
+}
+
+
+module all() {
+    kitchen()
+    bathroom();
+}
+
+display="";
+if(display=="") all();
+if(display=="trash_placement_kitchen.svg")kitchen();
+if(display=="trash_placement_bathroom.svg")bathroom();
