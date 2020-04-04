@@ -15,14 +15,18 @@ base_r=base_wood/2;
 
 base_screw_wall=1*in;
 
-bit=0.25*in;
+bit=0.251*in;
 cut_gap=bit*3;
 
 
-base_screw=0.25*in;
-tv_screw=0.25*in;
+base_screw=bit;
+tv_screw=bit;
 tv_screw_pocket=1*in;
 washers=8;
+
+base_x_screws=5;
+base_y_screws=4;
+base_screw_pocket=1*in;
 
 module tv_placement() {
     translate([-tv_x/2,stand_y])
@@ -60,8 +64,6 @@ module mirror_x(x=0) {
     children();
 }
 
-
-
 module base() {
     hull() {
         mirror_x()
@@ -71,7 +73,6 @@ module base() {
         circle(d=base_r*2);
     }
 }
-
 
 module outside_profile() {
     hull() {
@@ -84,14 +85,10 @@ module outside_profile() {
     children();
 }
 
-base_x_screws=5;
-base_y_screws=4;
-base_screw_pocket=0.5*in;
-
-
-outside_profile()
-pocket()
-drill();
+module plywood() {
+    translate([0,0,-1])
+    #square([4*12*in,4*12*in],center=true);
+}
 
 module pocket() {
     color("lime") {
@@ -127,3 +124,31 @@ module place_base_screws() {
     translate([0,-y-base_r/2])
     children();
 }
+
+
+module place() {
+    translate([-270,-50])
+    rotate([0,0,-20])
+    children();
+}
+
+module anchor() {
+    translate([-2*12*in,2*12*in])
+    circle(d=bit);
+};
+
+anchor();
+
+module assembled() {
+    plywood();
+    place()
+    outside_profile()
+    pocket()
+    drill();
+}
+
+display="";
+if(display=="") assembled();
+if(display=="tv_stand_outside_profile.svg") place() outside_profile();
+if(display=="tv_stand_pocket.svg") place() pocket();
+if(display=="tv_stand_inside_profile.svg") place() drill();
