@@ -15,17 +15,20 @@ strut=radius*2;
 strut_angle=45;
 strut_length=36*in;
 
+panel_x=30;
+panel_y=10;
+
 module dirror_x(x) {
     children();
-    translate([x,0,0])
-    mirror([1,0,0])
+    translate([x,0])
+    mirror([1,0])
     children();
 }
 
 module dirror_y(y) {
     children();
-    translate([0,y,0])
-    mirror([0,1,0])
+    translate([0,y])
+    mirror([0,1])
     children();
 }
 
@@ -35,13 +38,16 @@ module strut_mount() {
 }
 
 module base() {
-    color("lime")
-    dirror_x()
-    hull() {
-        dirror_y()
-        translate([-slide_base_width/2,-slide_base_depth/2])
-        circle(r=radius);
-        strut_mount();
+    difference() {
+        hull() {
+            dirror_x()
+            dirror_y()
+            translate([-slide_base_width/2,-slide_base_depth/2])
+            circle(r=radius);
+            strut_mount();
+        }
+        translate([-panel_x/2,-slide_base_depth/2-radius])
+        square([panel_x,panel_y]);
     }
     translate([0,0,1])
     children();
@@ -50,4 +56,14 @@ module base() {
 module slide_base() {
 }
 
-base();
+module wood() {
+    linear_extrude(height=wood)
+    children();
+}
+
+module assembled() {
+    wood()
+    base();
+}
+
+//assembled();
