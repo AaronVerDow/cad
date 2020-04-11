@@ -1,14 +1,14 @@
-treadmill_width=500;
 in=25.4;
+treadmill_width=25*in;
 bit=0.25*in;
 pad=1;
 
-slide_base_width=300;
-slide_base_depth=200;
+slide_base_width=16.5*in;
+slide_base_depth=256;
 
 // size of the square
-slide_top_width=250;
-slide_top_depth=200;
+slide_top_width=14.75*in;
+slide_top_depth=12.5*in;
 
 
 slide_base_screw=bit;
@@ -16,7 +16,7 @@ slide_top_screw=bit;
 
 slide_height=30;
 
-radius=30;
+radius=32.5;
 
 wood=0.5*in;
 
@@ -26,12 +26,12 @@ strut_angle=45;
 strut_length=36*in;
 strut_screw=bit;
 
-panel_x=30;
-panel_y=10;
+panel_x=15*in;
+panel_y=25;
 
 cutgap=bit*3;
 
-top_wing=80;
+top_wing=100;
 top_skirt=1*in;
 top_x=treadmill_width;
 top_y=slide_top_depth+top_wing;
@@ -63,7 +63,7 @@ module top_edge_cutsheet(layer=0) {
     if(!layer) 
     translate([top_x/2,top_y/2]) {
         top_edge();
-        translate([0,top_y/2-slide_top_depth/2+cutgap])
+        translate([0,top_y/2-slide_top_depth/2+cutgap+10])
         slide_top();
     }
 
@@ -154,6 +154,7 @@ module strut() {
 
 module base_cutsheet(layer) {
     translate([0,slide_base_depth/2+radius,0]) {
+        mirror([0,1])
         if(layer) {
             base_holes();
         } else {
