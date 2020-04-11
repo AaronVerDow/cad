@@ -24,6 +24,7 @@ strut=radius*2;
 
 strut_angle=45;
 strut_length=36*in;
+strut_screw=bit;
 
 panel_x=30;
 panel_y=10;
@@ -59,16 +60,19 @@ module top_edge() {
 }
 
 module top_edge_cutsheet(layer=0) {
-    translate([0,top_y/2]) {
-        if(!layer)
+    if(!layer) 
+    translate([top_x/2,top_y/2]) {
         top_edge();
-        translate([0,top_y/2+cutgap])
-        children();
+        translate([0,top_y/2-slide_top_depth/2+cutgap])
+        slide_top();
     }
+
+    translate([0,top_y+cutgap])
+    children();
 }
 
 module top_cutsheet(layer=0) {
-    translate([0,top_y/2]) {
+    translate([top_x/2,top_y/2]) {
         if(!layer)
         top();
         translate([0,top_y/2+cutgap])
@@ -99,16 +103,54 @@ colors=["lime", "blue", "red"];
 
 module cutsheet(layer=0) {
     color(colors[layer])
+    strut_cutsheet(layer)
     top_edge_cutsheet(layer)
     top_cutsheet(layer)
-    base_cutsheet(layer)
-    slide_top_cutsheet(layer);
+    base_cutsheet(layer);
     translate([0,0,1])
     children();
 }
 
-cutsheet(0)
-cutsheet(1);
+module place_strut_cutsheet() {
+    children();
+    translate([strut+cutgap,0])
+    children();
+}
+
+module strut_cutsheet(layer=0) {
+    translate([strut/2,radius])
+    if (layer) {
+        place_strut_cutsheet()
+        strut_holes();
+    } else {  
+        place_strut_cutsheet()
+        strut();
+    }
+    translate([strut*2+cutgap*2,0])
+    children();
+}
+
+cutsheet(0)cutsheet(1);
+
+
+module strut_ends() {
+    children();
+    translate([0,strut_length])
+    children();
+}
+
+module strut_holes() {
+    strut_ends()
+    circle(d=strut_screw);
+}
+
+module strut() {
+    hull() {
+        strut_ends()
+        circle(d=strut);
+    }
+}
+
 
 module base_cutsheet(layer) {
     translate([0,slide_base_depth/2+radius,0]) {
@@ -177,15 +219,30 @@ module assembled() {
         base_holes();
     }
 
+    color("red")
     translate([0,0,slide_height+wood])
     wood()
     slide_top();
 
     translate([0,-top_y/2+slide_top_depth/2,slide_height+wood*2]) {
+        color("blue")
         wood()
         top();
+        color("magenta")
         translate([0,0,-wood])
         wood()
         top_edge();
     }
+    
+
+    dirror_x()
+    translate([treadmill_width/2,slide_base_depth/2,wood/2])
+    rotate([-90,0,90])
+    difference() {
+        wood()
+        strut();
+        wood_hole()
+        strut_holes();
+    }
+
 }
