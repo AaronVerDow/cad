@@ -4,9 +4,12 @@ bit=0.25*in;
 pad=1;
 
 slide_base_width=300;
-slide_top_width=250;
 slide_base_depth=200;
+
+// size of the square
+slide_top_width=250;
 slide_top_depth=200;
+
 
 slide_base_screw=bit;
 slide_top_screw=bit;
@@ -27,6 +30,52 @@ panel_y=10;
 
 cutgap=bit*3;
 
+top_wing=80;
+top_skirt=1*in;
+top_x=treadmill_width;
+top_y=slide_top_depth+top_wing;
+
+function segment_radius(height, chord) = (height/2)+(chord*chord)/(8*height);
+
+module top(extra=0) {
+    r = segment_radius(top_wing-top_skirt, top_x-radius*2);
+    minkowski() {
+        difference() {
+            square([top_x-radius*2,top_y-radius*2],center=true);
+            translate([0,-top_y/2-r+radius+top_wing-top_skirt])
+            circle(r=r,$fn=200);
+        }
+        circle(r=radius+extra);
+    }
+}
+
+module top_edge() {
+    difference() {
+        top();
+        top(-top_skirt);
+        translate([0,top_skirt+pad])
+        top(-top_skirt);
+    }
+}
+
+module top_edge_cutsheet(layer=0) {
+    translate([0,top_y/2]) {
+        if(!layer)
+        top_edge();
+        translate([0,top_y/2+cutgap])
+        children();
+    }
+}
+
+module top_cutsheet(layer=0) {
+    translate([0,top_y/2]) {
+        if(!layer)
+        top();
+        translate([0,top_y/2+cutgap])
+        children();
+    }
+}
+
 module dirror_x(x) {
     children();
     translate([x,0])
@@ -46,17 +95,25 @@ module strut_mount() {
         square([treadmill_width-wood*2,strut]);
 }
 
+colors=["lime", "blue", "red"];
+
 module cutsheet(layer=0) {
+    color(colors[layer])
+    top_edge_cutsheet(layer)
+    top_cutsheet(layer)
     base_cutsheet(layer)
     slide_top_cutsheet(layer);
+    translate([0,0,1])
+    children();
 }
 
-cutsheet();
+cutsheet(0)
+cutsheet(1);
 
 module base_cutsheet(layer) {
     translate([0,slide_base_depth/2+radius,0]) {
         if(layer) {
-            base_hole();
+            base_holes();
         } else {
             base();
         }
@@ -89,7 +146,8 @@ module base() {
     }
 }
 
-module slide_top_cutsheet() {
+module slide_top_cutsheet(layer) {
+    if(!layer)
     translate([0,slide_top_depth/2])
     slide_top();
 }
@@ -122,4 +180,12 @@ module assembled() {
     translate([0,0,slide_height+wood])
     wood()
     slide_top();
+
+    translate([0,-top_y/2+slide_top_depth/2,slide_height+wood*2]) {
+        wood()
+        top();
+        translate([0,0,-wood])
+        wood()
+        top_edge();
+    }
 }
