@@ -15,6 +15,10 @@ cubby_x=box_x+2*in;
 cubby_y=box_y/3*2;
 cubby_z=box_z+lid_h*1.5;
 
+function segment_radius(height, chord) = (height/2)+(chord*chord)/(8*height);
+
+
+
 // https://www.amazon.com/Pieces-Premium-Cedar-Wood-Shims/dp/B07V9PLBZM/
 shim_x=1/4*in;
 shim_y=(1+7/16)*in;
@@ -64,13 +68,22 @@ module shelf_cutsheet() {
 }
 
 module side_cutsheet() {
-    gap=side_x+cut_gap;
-    max=cut_gap*columns+side_x*columns+side_x;
+    less_gap=90;
+    gap=side_x+cut_gap-less_gap;
+    max=cut_gap*columns+side_x*columns+side_x-less_gap*columns-less_gap;
     plywood();
+
     rotate([0,0,90])
-    for(x=[0:gap:max])
+    for(x=[0:gap*2:max])
     translate([side_x/2+x+(plywood_y-max)/2,-side_y/2])
     side();
+
+    rotate([0,0,90])
+    for(x=[gap:gap*2:max])
+    translate([side_x/2+x+(plywood_y-max)/2,-side_y/2-cubby_x/2-extra_top/2-wood/2])
+    side();
+
+
     translate([0,plywood_y*1.2])
     children();
 }
@@ -158,12 +171,24 @@ module boxes() {
 }
 
 
+shelf_cut=shim_grip;
+
 module shelf() {
+    radius=segment_radius(shelf_cut,cubby_x-shim_target*2);
     difference() {
         square([shelf_x,shelf_y],center=true);
+
         for(row=[0:1:rows-2])
         translate([row*(cubby_x+wood)-shelf_x/2+shelf_ends+wood/2,-shelf_y/2+shim_grip/2])
         square([wood+shim_target*2,shim_grip+pad],center=true);
+
+        gap=cubby_x+wood;
+        max=cubby_x*columns+wood*columns-wood;
+        for(x=[0:gap:max])
+        translate([x-gap,-radius-shelf_y/2+shelf_cut])
+        circle(r=radius,$fn=400);
+
+
     }
 }
 
@@ -191,13 +216,22 @@ module shelves() {
     shelf();
 }
 
+side_cut=shelf_y;
+
 module side() {
+    radius=segment_radius(side_cut, cubby_z);
     difference() {
         square([side_x,side_y],center=true);
         dirror_x()
         for(row=[0:1:rows-1])
         translate([side_x/2-shelf_y-shelf_x_gap+shim_grip,(cubby_z+wood)*row+extra_bottom-side_y/2])
         square([shelf_y+pad+shelf_x_gap-shim_grip,wood+shelf_y_gap]);
+
+        dirror_x()
+        for(y=[0:cubby_z+wood:side_y-extra_top-extra_bottom-wood*2])
+        translate([-radius-side_x/2+side_cut,y-side_y/2+extra_bottom+wood+cubby_z/2])
+        circle(r=radius);
+
     }
 }
 
