@@ -98,7 +98,7 @@ module assembled() {
     sides();
     shelves();
     //boxes();
-    shims();
+    //shims();
 }
 
 module shims() {
@@ -230,7 +230,7 @@ module side() {
         dirror_x()
         for(y=[0:cubby_z+wood:side_y-extra_top-extra_bottom-wood*2])
         translate([-radius-side_x/2+side_cut,y-side_y/2+extra_bottom+wood+cubby_z/2])
-        circle(r=radius);
+        circle(r=radius,$fn=400);
 
     }
 }
@@ -248,3 +248,18 @@ module sides() {
         side();
     }
 }
+
+module vr() {
+    scale(1/1000)
+    children();
+}
+
+
+display="";
+if(display=="") shim();
+if(display=="bankers_shelf_assembled.stl") vr() assembled();
+if(display=="bankers_shelf_box.stl") vr() box();
+if(display=="bankers_shelf_side.stl") vr() wood() side();
+if(display=="bankers_shelf_shelf.stl") vr() wood() shelf();
+if(display=="bankers_shelf_box.stl") vr() box();
+if(display=="bankers_shelf_shim.stl") vr() shim();

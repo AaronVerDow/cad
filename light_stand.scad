@@ -29,15 +29,38 @@ screw=bit*1.1;
 
 function segment_radius(height, chord) = (height/2)+(chord*chord)/(8*height);
 
-module assembled() {
-    color("lime")
-    translate([0,0,leg_h+wood])
+module top_3d() {
     wood()
     difference() {
         top();
         top(pocket);
     }
+}
 
+module leg_tail_3d() {
+    wood()
+    difference() {
+        leg_tails();
+        leg_tails(pocket);
+        leg(-leg_wall);
+    }
+}
+
+module leg_pin_3d() {
+    wood()
+    difference() {
+        leg_pins();
+        leg_pins(pocket);
+        leg(-leg_wall);
+    }
+
+
+}
+
+module assembled() {
+    color("lime")
+    translate([0,0,leg_h+wood])
+    top_3d();
     legs();
 
 }
@@ -46,22 +69,12 @@ module legs() {
     color("blue")
     translate([leg_from_wall,wood+leg_from_wall,0])
     rotate([90,0,0])
-    wood()
-    difference() {
-        leg_pins();
-        leg_pins(pocket);
-        leg(-leg_wall);
-    }
+    leg_pin_3d();
 
     color("red")
     translate([leg_from_wall,leg_from_wall,0])
     rotate([90,0,90])
-    wood()
-    difference() {
-        leg_tails();
-        leg_tails(pocket);
-        leg(-leg_wall);
-    }
+    leg_tail_3d();
 }
 
 leg_cut=8*in;
@@ -147,11 +160,6 @@ module leg(extra=0) {
     }
 
 }
-
-color("lime")
-leg(-leg_wall);
-translate([0,0,-1])
-leg();
 
 module leg_cutsheet(layer=outside) {
     leg_pins(layer);
@@ -288,3 +296,15 @@ module negative_tails(edge,depth,pins) {
     pintail_gaps(edge,depth,pins);
 
 }
+
+module vr() {
+    scale(1/1000)
+    children();
+}
+
+display="";
+if(display=="") assembled();
+if(display=="light_stand_assembled.stl") vr() assembled();
+if(display=="light_stand_top.stl") vr() top_3d();
+if(display=="light_stand_leg_pin.stl") vr() leg_pin_3d();
+if(display=="light_stand_leg_tail.stl") vr() leg_tail_3d();

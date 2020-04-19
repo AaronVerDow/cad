@@ -1412,6 +1412,11 @@ module cut_sheets() {
 }
 
 
+module vr() {
+    scale(1/1000)
+    children();
+}
+
 display="";
 if(!display) 
 //spine();
@@ -1425,6 +1430,10 @@ assembled();
 //inner_leg();
 //blank();
 //top();
+
+if(display=="desk_assembled.stl") 
+vr()
+assembled();
 
 if(display=="desk_sheet_one_profiles.dxf") {
     $fn=300;
