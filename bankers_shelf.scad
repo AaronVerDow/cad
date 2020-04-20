@@ -27,8 +27,8 @@ shim_z=8.75*in;
 shim_target=shim_x;
 shim_grip=shim_y/3*2+bit/2;
 
-rows=5;
-columns=3;
+rows=6;
+columns=4;
 wood=0.75*in;
 
 pad=0.1;
