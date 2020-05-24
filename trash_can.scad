@@ -74,6 +74,8 @@ handle_location=h*5/7;
 // screw diameter
 screw=3;
 
+COLOR="";
+
 module fancy_body() {
         hull() {
             translate([0,0,h-lip_h])
@@ -162,14 +164,23 @@ module handles() {
     handle();
 }
 
+module if_color(_color) {
+    if(COLOR == _color || COLOR == "")
+    color(_color)
+    children();
+}
+
+// RENDER obj
+// RENDER stl
 module assembled() {
-    handles();
-    color("white")
+    if_color("white")
     fancy_can();
-    color("DimGray")
-    translate([0,0,h+wall])
-    rotate([180,0,10])
-    lip();
+    if_color("DimGray") {
+        translate([0,0,h+wall])
+        rotate([180,0,10])
+        lip();
+        handles();
+    }
 }
 
 module handle_profile() {
@@ -278,8 +289,8 @@ module lip_to_print() {
 
 
 display="";
-//if (display == "") assembled();
-if (display == "") lip_to_print();
+if (display == "") assembled();
+if (display == "trash_can_assembled.stl") assembled();
 if (display == "trash_can_v2.stl") fancy_can();
 if (display == "trash_can_lip_bed_grip_v2.stl") lip_to_print();
 if (display == "trash_can_lip_v2.stl") lip();

@@ -1,3 +1,1 @@
-use <grom_box.scad>;
-
-assembled();
+use <grom_box.scad>; assembled();

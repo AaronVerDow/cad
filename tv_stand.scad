@@ -3,6 +3,8 @@ tv_x=200;
 tv_y=200;
 tv_wall=1*in;
 
+pad=0.1;
+
 stand_x=100;
 stand_y=430;
 
@@ -27,6 +29,16 @@ washers=8;
 base_x_screws=5;
 base_y_screws=4;
 base_screw_pocket=1*in;
+
+pocket=0.25*in;
+
+module pocket_extrude() {
+    translate([0,0,base_wood-pocket])
+    linear_extrude(height=pocket+pad)
+    children();
+}
+
+
 
 module tv_placement() {
     translate([-tv_x/2,stand_y])
@@ -114,6 +126,12 @@ module drill() {
     children();
 }
 
+module wood(padding=0) {
+    translate([0,0,-padding])
+    linear_extrude(height=base_wood+padding*2)
+    children();
+}
+
 module place_base_screws() {
 
     for(x=[0:(base_x-base_screw_wall*2)/(base_x_screws-1):base_x-base_screw_wall*2])
@@ -139,7 +157,7 @@ module anchor() {
 
 anchor();
 
-module assembled() {
+module assembled() { // tv_stand_.scad.assembled.scad
     plywood();
     place()
     outside_profile()

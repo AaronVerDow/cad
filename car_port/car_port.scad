@@ -1,12 +1,6 @@
 $fn=200;
 in=25.4;
 
-translate([340,0,-600])
-translate([base_l/2,base_w/2,0])
-rotate([0,0,-90])
-scale(304.8)
-color("cyan")
-import("fiat_500.stl");
 
 panel_w=3*12*in;
 
@@ -21,7 +15,7 @@ tabs=stud*4;
 back_h=5*12*in;
 front_h=7*12*in;
 base_l=9.5*12*in;
-base_w=7*12*in;
+base_w=8*12*in;
 roof_back=1*12*in;
 roof_front=1.5*12*in;
 
@@ -46,44 +40,58 @@ cutaway_min=3.5*in;
 
 cutaway=back_h*circle_multiplier;
 
-assembled();
+// RENDER obj
+// RENDER stl
+module with_car() {
+    color("cyan")
+    translate([0,200,-600])
+    scale(304.8)
+    import("fiat_500.stl");
+    assembled();
+}
+
+with_car();
 
 module assembled() {
-    assembled_side();
-    translate([0,base_w,0])
-    mirror([0,1,0])
-    assembled_side();
+    rotate([0,0,90])
+    translate([-base_l/2,-base_w/2]) {
+        assembled_side();
+        translate([0,base_w,0])
+        mirror([0,1,0])
+        assembled_side();
 
-    color("lime") {
-        joist(0,0);
-        joist(0,back_h-stud);
-        joist(base_l-stud,front_h-stud);
+        color("lime") {
+            joist(0,0);
+            joist(0,back_h-stud);
+            joist(base_l-stud,front_h-stud);
+        }
+
+        color("peru")
+        translate([0,0,back_h])
+        rotate([0,-roof_angle,0])
+        translate([-roof_back,-roof_side,0])
+        linear_extrude(height=plywood)
+        square([roof_l,roof_w]);
+
+        assembled_back();
+
+        translate([0,0,stud])
+        corner();
+
+        mirror([0,1,0])
+        translate([0,-base_w,stud])
+        corner();
+
+        translate([base_l,0,front_h])
+        rotate([0,90,0])
+        corner();
+
+        mirror([0,1,0])
+        translate([base_l,-base_w,front_h])
+        rotate([0,90,0])
+        corner();
+
     }
-
-    color("peru")
-    translate([0,0,back_h])
-    rotate([0,-roof_angle,0])
-    translate([-roof_back,-roof_side,0])
-    linear_extrude(height=plywood)
-    square([roof_l,roof_w]);
-
-    assembled_back();
-
-    translate([0,0,stud])
-    corner();
-
-    mirror([0,1,0])
-    translate([0,-base_w,stud])
-    corner();
-
-    translate([base_l,0,front_h])
-    rotate([0,90,0])
-    corner();
-
-    mirror([0,1,0])
-    translate([base_l,-base_w,front_h])
-    rotate([0,90,0])
-    corner();
 }
 
 module assembled_back() {

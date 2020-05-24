@@ -15,8 +15,9 @@ cubby_x=box_x+2*in;
 cubby_y=box_y/3*2;
 cubby_z=box_z+lid_h*1.5;
 
-function segment_radius(height, chord) = (height/2)+(chord*chord)/(8*height);
+COLOR="";
 
+function segment_radius(height, chord) = (height/2)+(chord*chord)/(8*height);
 
 
 // https://www.amazon.com/Pieces-Premium-Cedar-Wood-Shims/dp/B07V9PLBZM/
@@ -27,7 +28,7 @@ shim_z=8.75*in;
 shim_target=shim_x;
 shim_grip=shim_y/3*2+bit/2;
 
-rows=6;
+rows=5;
 columns=4;
 wood=0.75*in;
 
@@ -52,10 +53,28 @@ echo(side_y/in);
 shelf_x=wood+(cubby_x+wood)*columns+shelf_ends*2;
 shelf_y=cubby_y/3;
 
+room_height=76*in;
+room_width=20*12*in;
+
+module room() {
+    translate([0,cubby_z,0])
+    rotate([90,0,0])
+    square([room_width,room_height]);
+
+    for(x=[0:shelf_x+cubby_x-shelf_ends*2:room_width-cubby_x/2-shelf_ends])
+    translate([x+shelf_ends+cubby_x/2+wood,0,0])
+    preview();
+}
 
 module cutsheets() {
     side_cutsheet()
     shelf_cutsheet();
+}
+
+module if_color(_color) {
+    if(COLOR == _color || COLOR == "")
+    color(_color)
+    children();
 }
 
 module shelf_cutsheet() {
@@ -93,26 +112,44 @@ module plywood() {
     #square([plywood_x,plywood_y]);
 }
 
+// RENDER obj
 module assembled() {
-    color("cyan")
+    if_color("wheat")
     sides();
+    if_color("rosybrown")
     shelves();
-    //boxes();
-    //shims();
+}
+
+// RENDER obj
+module assembled_with_shims() {
+    if_color("chocolate")
+    shims();
+    assembled();
+}
+
+// RENDER obj
+module preview() {
+    boxes();
+    assembled_with_shims();
 }
 
 module shims() {
-    for(row=[0:1:rows-1])
-    for(column=[0:1:columns])
-    translate([(cubby_x+wood)*column,0,(cubby_z+wood)*row])
-    dirror_y()
-    translate([-cubby_x/2,-cubby_y/2+shelf_y+shim_y/2-shim_grip,extra_bottom+wood/2])
-    dirror_x(-wood)
-    shim();
+    difference() {
+        union() {
+            for(row=[0:1:rows-1])
+            for(column=[0:1:columns])
+            translate([(cubby_x+wood)*column,0,(cubby_z+wood)*row])
+            dirror_y()
+            translate([-cubby_x/2,-cubby_y/2+shelf_y+shim_y/2-shim_grip,extra_bottom+wood/2])
+            dirror_x(-wood)
+            shim();
+        }
+        translate([-cubby_x,-cubby_y/2,-shim_z])
+        cube([(columns+1)*cubby_x,cubby_y,shim_z]);
+    }
 }
 
 module shim() {
-    color("red")
     translate([0,-shim_y/2,-shim_z/2])
     hull() {
         cube([pad,shim_y,shim_z]);
@@ -140,11 +177,12 @@ module corners() {
     corner();
 }
 
+// RENDER obj
 module box() {
     translate([0,0,box_z/2-lid_h/2+pad]) {
-        color("white")
+        if_color("white")
         cube([box_x,box_y,box_z-lid_h],center=true);
-        color("gray")
+        if_color("gray")
         translate([0,0,box_z/2])
         cube([box_x+lid*2,box_y+lid*2,lid_h],center=true);
     }
@@ -173,19 +211,20 @@ module boxes() {
 
 shelf_cut=shim_grip;
 
+shelf();
 module shelf() {
     radius=segment_radius(shelf_cut,cubby_x-shim_target*2);
     difference() {
         square([shelf_x,shelf_y],center=true);
 
-        for(row=[0:1:rows-2])
-        translate([row*(cubby_x+wood)-shelf_x/2+shelf_ends+wood/2,-shelf_y/2+shim_grip/2])
+        for(column=[0:1:columns])
+        translate([column*(cubby_x+wood)-shelf_x/2+shelf_ends+wood/2,-shelf_y/2+shim_grip/2])
         square([wood+shim_target*2,shim_grip+pad],center=true);
 
         gap=cubby_x+wood;
         max=cubby_x*columns+wood*columns-wood;
         for(x=[0:gap:max])
-        translate([x-gap,-radius-shelf_y/2+shelf_cut])
+        translate([x-max/2+gap/2,-radius-shelf_y/2+shelf_cut])
         circle(r=radius,$fn=400);
 
 
@@ -241,8 +280,8 @@ module wood() {
 }
 
 module sides() {
-    for(row=[0:1:rows-2]) {
-        translate([row*(cubby_x+wood)-cubby_x/2-wood/2,0,side_y/2])
+    for(column=[0:1:columns]) {
+        translate([column*(cubby_x+wood)-cubby_x/2-wood/2,0,side_y/2])
         rotate([90,0,90])
         wood()
         side();
@@ -256,7 +295,7 @@ module vr() {
 
 
 display="";
-if(display=="") shim();
+//if(display=="") shim();
 if(display=="bankers_shelf_assembled.stl") vr() assembled();
 if(display=="bankers_shelf_box.stl") vr() box();
 if(display=="bankers_shelf_side.stl") vr() wood() side();

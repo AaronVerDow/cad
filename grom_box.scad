@@ -1,10 +1,16 @@
 in=25.4;
 bag_x=16*in;
 bag_y=10*in;
-bag_z=12*in;
+bag_z=10*in;
 
 wood=1/2*in;
 
+echo("vpr");
+echo($vpr);
+echo("vpt");
+echo($vpt);
+echo("vpd");
+echo($vpd);
 box_x=bag_x+wood*2;
 box_y=bag_y+wood*2;
 box_z=8*in;
@@ -26,6 +32,7 @@ module dirror_x(x=0) {
     children();
 }
 
+// RENDER stl
 module onewheel() {
     #translate([0,0,onewheel_z/2+wood]) {
         cylinder(d=onewheel_d,h=onewheel_h,center=true);
@@ -39,6 +46,9 @@ module wood(padding=0) {
     children();
 }
 
+// RENDER stl
+// PREVIEW
+// RENDER png
 module assembled() {
     onewheel();
 
@@ -54,6 +64,10 @@ module assembled() {
     side();
 }
 
+// RENDER svg
+// PREVIEW
+// RENDER png --camera=0,0,0,0,0,0,0
+// RENDER scad
 module cutsheet() {
     base_cutsheet()
     side_cutsheet()

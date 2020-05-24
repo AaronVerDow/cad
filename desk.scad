@@ -162,6 +162,14 @@ leg_base_leg_offset=[
 
 rack_top_extra=3*in;
 
+COLOR="";
+
+module if_color(_color) {
+    if(COLOR == _color || COLOR == "")
+    color(_color)
+    children();
+}
+
 module wheel_max() {
     translate([0,0,below_rack]) {
         cylinder(r=wheel_max,h=wheel_h);
@@ -917,30 +925,31 @@ module leg_cover_assembled() {
     inner_leg_cover();
 }
 
+// RENDER obj
 module assembled() {
     //#base();
-    color("purple")
+    if_color("purple")
     top_assembled();
     //leg_us();
-    color("red")
+    if_color("red")
     inner_legs_assembled();
-    color("blue")
+    if_color("blue")
     outer_legs_assembled();
-    color("lime")
+    if_color("lime")
     rack_bases_assembled();
-    color("lime")
+    if_color("lime")
     rack_tops_assembled();
-    color("gray")
+    if_color("gray")
     back_assembled();
     if(back_wings)
-    color("gray")
+    if_color("gray")
     back_wings_assembled();
     if(covered_front)
-    color("tan")
+    if_color("tan")
     fronts_assembled();
     //#leg_bases_assembled();
 
-    color("green")
+    if_color("green")
     spine_assembled();
 
     leg_cover_assembled();
@@ -1284,12 +1293,12 @@ module double_top_assembled() {
     }
 
     mirror_x(top_x)
-    color("green")
+    if_color("green")
     translate([0,0,height-top_wood])
     linear_extrude(height=top_wood)
     double_top_side();
 
-    color("blue")
+    if_color("blue")
     translate([top_x/2-double_top_center/2,0,height-top_wood])
     linear_extrude(height=top_wood)
     double_top_center();
