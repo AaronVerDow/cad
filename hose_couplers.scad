@@ -66,9 +66,83 @@ collector_h=50-magnet_z*2;
 collector_screw=5;
 collector_screw_offset=22;
 
+
+mz_x=90;
+mz_y=90;
+mz_z=0.5*in;
+mz_tab=29;
+mz_tab_h=mz_z;
+mz_angle=30;
+
+module mz_wood() {
+    translate([0,0,mz_tab_h/2+magnet_z]) {
+        cube([mz_x,mz_y,mz_z],center=true);
+        cube([mz_x+mz_tab_h*2,mz_tab,mz_z],center=true);
+    }
+} 
+
+module place_mz_air() {
+    translate([0,5,0])
+    children();
+}
+
+mz_screw=7;
+mz_screw_h=magnet_z+mz_z;
+mz_screw_head=14;
+mz_screw_head_h=(mz_screw_head-mz_screw)/2;
+module mz_screw() {
+    translate([0,0,-pad*2])
+    cylinder(d=mz_screw,h=mz_screw_h+pad*3);
+    translate([0,0,-pad])
+    cylinder(d2=mz_screw-pad*2,d1=mz_screw_head+pad*2,h=mz_screw_head_h+pad*2);
+}
+
+
+difference() {
+    union() {
+        place_mz_air()
+        flange(hose, hose_magnets);
+        mz_wood();
+        translate([0,-magnet_z/2,magnet_z/2])
+        cube([mz_x+mz_z*2,mz_y+magnet_z,magnet_z],center=true);
+    }
+    place_mz_air() {
+        magnets(hose, hose_magnets);
+    }
+
+    intersection() {
+        translate([0,0,mz_tab_h/2+magnet_z/2])
+        cube([mz_x-pipe_wall*2,mz_y-pipe_wall*2,mz_z+magnet_z+pad*2],center=true);
+        place_mz_air()
+        air(hose,30);
+    }
+    // angle slice at bottom
+    translate([-mz_x,-mz_y/2,magnet_z])
+    rotate([180-mz_angle,0,0])
+    translate([0,0,-mz_x])
+    cube([mz_x*2,mz_z*2,mz_x*2]);
+
+    double_mirror()
+    translate([mz_x/2+mz_z/2,(mz_x-mz_tab)/4+mz_tab/2,0])
+    mz_screw();
+
+}
+
+module double_mirror() {
+    children();
+    mirror([1,0,0])
+    children();
+    mirror([0,1,0])
+    children();
+    mirror([1,0,0])
+    mirror([0,1,0])
+    children();
+}
+
+
 //if (display == "" ) both_hoses_assembled();
 //if (display == "" ) assembled();
-if (display == "" ) dust_collector();
+//if (display == "" ) flex_hose();
 if (display == "dust_vacuum_coupler.stl" ) vacuum_coupler();
 if (display == "dust_vacuum_to_hose_adapter.stl" ) vacuum_to_hose_adapter();
 if (display == "dust_hose_grille.stl" ) hose_grille();
