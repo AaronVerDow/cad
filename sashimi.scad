@@ -1,14 +1,15 @@
-corner=3;
-base_x=40;
-base_y=30;
-base_z=3;
+$fn=45;
+corner=2;
+base_x=69;
+base_y=42;
+base_z=1.5;
 
-led_x=30;
+led_x=50;
 led_y=10;
 
-led_angle=15;
+led_angle=30;
 
-led_offset=4;
+led_offset=9;
 
 wire_x=10;
 wire_y=2;
@@ -24,11 +25,21 @@ module body() {
     }
 }
 
+module place_led(angle=0) {
+        translate([0,-led_y/2+led_offset,0])
+        rotate([angle,0,0])
+        translate([-led_x/2,0,0])
+        children();
+}
+pad=0.1;
+
 module led() {
-    translate([0,-led_y/2+led_offset,0])
-    rotate([led_angle,0,0])
-    translate([-led_x/2,0,-base_z])
-    cube([led_x,led_y,base_z]);
+    hull() {
+        place_led(led_angle)
+        cube([led_x,led_y,pad]);
+        place_led()
+        cube([led_x,led_y,pad]);
+    }
 }
 
 module positive() {
