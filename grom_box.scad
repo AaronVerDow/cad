@@ -1,6 +1,6 @@
 in=25.4;
-bag_x=16*in;
-bag_y=13*in;
+bag_y=16*in;
+bag_x=18.5*in;
 bag_z=10*in;
 
 wood=1/2*in;
@@ -302,4 +302,4 @@ module pattern() {
     }
 }
 
-pattern();
+assembled();
