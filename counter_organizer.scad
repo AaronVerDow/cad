@@ -36,6 +36,14 @@ balmuda_foot=in;
 balmuda_foot_x=(12+5/16)*in;
 balmuda_foot_y=(8+7/16)*in;
 
+pad=0.1;
+
+module dirror_x(x=0) {
+    children();
+    translate([x,0])
+    mirror([1,0,0])
+    children();
+}
 
 module place_balmuda() {
     translate([whirlpool_x,-balmuda_y,balmuda_lift])
@@ -48,7 +56,12 @@ module place_whirlpool() {
 }
 
 module whirlpool() {
-    square([whirlpool_x+wood,whirlpool_y]);
+    difference() {
+        square([whirlpool_x+wood,whirlpool_y]);
+        dirror_x(whirlpool_x)
+        translate([whirlpool_x/2-whirlpool_foot_gap/2,whirlpool_foot_to_front])
+        circle(d=whirlpool_foot);
+    }
 }
 
 module balmuda() {
@@ -61,9 +74,21 @@ module wood() {
     children();
 }
 
+module mock_whirlpool() {
+    translate([0,0,pad])
+    cube([whirlpool_x,whirlpool_y-whirlpool_x/2,whirlpool_z]);
+    difference(){
+        translate([whirlpool_x/2,whirlpool_y-whirlpool_x/2-pad])
+        cylinder(d=whirlpool_x,h=whirlpool_z-pad*2);
+        translate([0,-whirlpool_x/2,-pad])
+        cube([whirlpool_x,whirlpool_y,whirlpool_z+pad*2]);
+    }
+}
+
 module assembled() {
     place_whirlpool()
-    #cube([whirlpool_x,whirlpool_y,whirlpool_z]);
+    #mock_whirlpool();
+    translate([0,0,pad])
     place_balmuda()
     #cube([balmuda_x,balmuda_y,balmuda_z]);
 
