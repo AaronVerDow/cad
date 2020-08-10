@@ -35,8 +35,8 @@ joint_holes=0;
 
 skirt=wall;
 
-grom_x=[140,100,100];
-grom_y=[0,100,120];
+grom_x=[140,115,111];
+grom_y=[0,104,131];
 
 
 pintail_gap=bit/2;
@@ -46,7 +46,7 @@ pattern_hole=1.5*in;
 pattern_gap=2.75*in;
 pattern_max=box_x;
 
-grom_overhang=[4*in,6*in,8*in];
+grom_overhang=[3*in,5*in,8*in];
 
 module dirror_x(x=0) {
     children();
@@ -116,14 +116,25 @@ module cutsheet_corner() {
     square([bit*1.1,cutgap]);
 }
 
-translate([0,0,2])
-color("red")
-cutsheet(display="drill");
-translate([0,0,1])
-color("blue")
-cutsheet(display="inside");
-color("lime")
-cutsheet(display="outside");
+// RENDER svg
+module cutsheet_drill() {
+    translate([0,0,2])
+    color("red")
+    cutsheet(display="drill");
+}
+
+// RENDER svg
+module cutsheet_inside() {
+    translate([0,0,1])
+    color("blue")
+    cutsheet(display="inside");
+}
+
+// RENDER svg
+module cutsheet_outside() {
+    color("lime")
+    cutsheet(display="outside");
+}
 
 // RENDER svg
 // RENDER png --camera=0,0,0,0,0,0,0
@@ -213,30 +224,35 @@ module base(display="") {
 side_base_pins=2;
 
 module side_outside() {
-    square([box_y,box_z+skirt],center=true);
+    difference() {
+        square([box_y,box_z+skirt],center=true);
 
-    translate([-box_y/2-pad,-box_z/2+skirt/2]) {
-        negative_pins(box_z,wood+pad,2);
-        pin_holes(box_z,wood+pad,2,joint_holes);
+        translate([-box_y/2-pad,-box_z/2+skirt/2]) {
+            negative_pins(box_z,wood+pad,2);
+            pin_holes(box_z,wood+pad,2,joint_holes);
+        }
+        translate([box_y/2-wood,-box_z/2-skirt/2]) {
+            negative_pins(box_z+skirt,wood+pad,2);
+            pin_holes(box_z+skirt,wood+pad,2,joint_holes);
+        }
+        translate([onewheel_offset-onewheel_y/2,skirt/2-box_z/2+wood+wall])
+        square([onewheel_y,onewheel_z]);
     }
-    translate([box_y/2-wood,-box_z/2-skirt/2]) {
-        negative_pins(box_z+skirt,wood+pad,2);
-        pin_holes(box_z+skirt,wood+pad,2,joint_holes);
-    }
-    translate([onewheel_offset-onewheel_y/2,skirt/2-box_z/2+wood+wall])
-    square([onewheel_y,onewheel_z]);
 }
 
 module side(display="") {
-    if(!display)
-    color("blue")
-    translate([0,-skirt/2])
-    difference() {
-        side_outside();
+    translate([0,-skirt/2]) {
+        if(!display)
+        color("blue")
+        difference() {
+            side_outside();
+            side_inside();
+        }
+        if(display=="inside")
         side_inside();
+        if(display=="outside")
+        side_outside();
     }
-    if(display=="inside")
-    side_inside();
 }
 
 module side_inside() {
@@ -275,24 +291,30 @@ module end_pattern() {
     }
 }
 
-module front(display="") {
-    if(!display)
-    color("red")
+module front_outside() {
     difference() {
         square([box_x,box_z],center=true);
         end_holes();
-        dirror_x()
 
+        dirror_x()
         translate([-box_x/2-pad,-box_z/2]) {
             negative_tails(box_z,wood+pad,2);
             tail_holes(box_z,wood+pad,2,joint_holes);
         }
+    }
+}
 
+module front(display="") {
+    if(!display)
+    color("red")
+    difference() {
+        front_outside();
         end_pattern();
-        
     }
     if(display=="inside")
     end_pattern();
+    if(display=="outside")
+    front_outside();
 }
 
 
@@ -304,9 +326,7 @@ module end_holes() {
     }
 }
 
-module back(display="") {
-    if(!display)
-    color("magenta")
+module back_outside() {
     difference() {
         translate([0,-skirt/2])
         square([box_x,box_z+skirt],center=true);
@@ -316,6 +336,14 @@ module back(display="") {
             negative_tails(box_z+skirt,wood+pad,2);
             tail_holes(box_z+skirt,wood+pad,2,joint_holes);
         }
+    }
+}
+
+module back(display="") {
+    if(!display)
+    color("magenta")
+    difference() {
+        back_outside();
         end_holes();
         end_pattern();
     }
@@ -323,6 +351,9 @@ module back(display="") {
         end_holes();
         end_pattern();
     }
+
+    if(display=="outside")
+    back_outside();
 }
 
 module pintail_gaps(edge,depth,pins) {
