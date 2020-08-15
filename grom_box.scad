@@ -1,3 +1,5 @@
+// this file must be downloaded and placed in the same directory
+use <joints.scad>;
 in=25.4;
 
 // size of intended cargo
@@ -16,23 +18,23 @@ box_x=bag_x+wood*2;
 box_y=bag_y+wood*2;
 box_z=8*in;
 
-// change to true to add a onewheel slot
-onewheel=false;
+// comment out for a normal box
+onewheel=true;
 
 // wheel size 
-onewheel_d=10*in;
+onewheel_d=10.5*in;
 onewheel_h=7*in;
 
 // board size
 onewheel_x=22*in;
-onewheel_y=2*in;
+onewheel_y=2.5*in;
 onewheel_z=8*in;
 
 // how far to slide in from center
-onewheel_offset=-3*in;
+onewheel_offset=-2.5*in;
 
-grom_bolt=10;
 
+// meta variable used in other places
 bit=0.25*in;
 
 // how far apart to space parts in cutsheet
@@ -42,23 +44,47 @@ cutgap=2*in;
 joint_holes=0;
 //joint_holes=bit;
 
+// diameter of cuts in corners of joints
+// zero to disable
+ear=bit;
+
+// more aggressive corner cuts
+ear_extra=0;
+
+// extra wood below bottom
+// this is a must have for cargo nets
 skirt=wall;
 
+// diameter of mounting bolt holes
+grom_bolt=10;
+
+// placement of bolts within mounting pattern
+// these will be mirrored across x axis
 grom_x=[140,115,111];
 grom_y=[0,104,131];
 
-
-// gap between
-pintail_gap=bit/2;
-pad=0.1;
-
-pattern_hole=1.5*in;
-pattern_gap=2.75*in;
-pattern_max=box_x;
-
-// how far in the mounting pattern is cut
+// move mounting pattern back on y axis
 // multiple points can be defined
 grom_overhang=[8*in];
+
+// gap between joints
+pintail_gap=bit/4;
+
+// used to cleanup previews, should not impact actual part
+pad=0.1;
+
+// size of circles in the mesh pattern
+pattern_hole=1.5*in;
+
+// how far apart the circles are
+pattern_gap=2.75*in;
+
+// defines max size of cutsheet so anchors can be placed
+cutsheet_x=box_x+box_z+skirt+cutgap*3;
+cutsheet_y=box_y+box_z*2+skirt+cutgap*4;
+
+// how many pins between side and base
+side_base_pins=2;
 
 module dirror_x(x=0) {
     children();
@@ -74,6 +100,7 @@ module dirror_y(y=0) {
     children();
 }
 
+// simple 3d model for preview
 module onewheel() {
     #translate([0,0,onewheel_z/2+wood]) {
         cylinder(d=onewheel_d,h=onewheel_h,center=true);
@@ -81,6 +108,7 @@ module onewheel() {
     }
 }
 
+// extrude 2d drawings for preview
 module wood(padding=0) {
     translate([0,0,-padding])
     linear_extrude(height=wood+padding*2)
@@ -121,9 +149,6 @@ module assembled() {
 
 }
 
-cutsheet_x=box_x+box_z+skirt+cutgap*3;
-cutsheet_y=box_y+box_z*2+skirt+cutgap*4;
-
 module cutsheet_corner() {
     square([cutgap,bit*1.1]);
     square([bit*1.1,cutgap]);
@@ -150,6 +175,7 @@ module cutsheet_outside() {
 }
 
 // RENDER svg
+// RENDER dxf
 // RENDER png --camera=0,0,0,0,0,0,0
 // PREVIEW
 // RENDER scad
@@ -167,7 +193,6 @@ module cutsheet(display="") {
     dirror_y(cutsheet_y)
     cutsheet_corner();
 }
-
 
 module base_cutsheet(display="") {
     translate([box_x/2,box_y/2])
@@ -211,11 +236,11 @@ module base_outside() {
         dirror_y()
         translate([box_x/2,-box_y/2-pad,0])
         rotate([0,0,90])
-        negative_pins(box_x,wood+pad,2);
+        negative_pins(box_x,wood+pad,2,pintail_gap,joint_holes,ear,ear_extra);
 
         dirror_x()
         translate([-box_x/2-pad,-box_y/2,0])
-        negative_pins(box_y,wood+pad,2);
+        negative_pins(box_y,wood+pad,2,pintail_gap,joint_holes,ear,ear_extra);
     }
 }
 
@@ -234,20 +259,18 @@ module base(display="") {
     base_outside();
 }
 
-side_base_pins=2;
-
 module side_outside() {
     difference() {
         square([box_y,box_z+skirt],center=true);
 
-        translate([-box_y/2-pad,-box_z/2+skirt/2]) {
-            negative_pins(box_z,wood+pad,2);
-            pin_holes(box_z,wood+pad,2,joint_holes);
-        }
-        translate([box_y/2-wood,-box_z/2-skirt/2]) {
-            negative_pins(box_z+skirt,wood+pad,2);
-            pin_holes(box_z+skirt,wood+pad,2,joint_holes);
-        }
+        translate([-box_y/2-pad,-box_z/2+skirt/2])
+        negative_pins(box_z,wood+pad,2,pintail_gap,joint_holes,ear,ear_extra);
+
+        translate([box_y/2-wood,-box_z/2-skirt/2])
+        translate([wood,0])
+        mirror([1,0,0])
+        negative_pins(box_z+skirt,wood+pad,2,pintail_gap,joint_holes,ear,ear_extra);
+
         if(onewheel)
         translate([onewheel_offset-onewheel_y/2,skirt/2-box_z/2+wood+wall])
         square([onewheel_y,onewheel_z]);
@@ -271,10 +294,9 @@ module side(display="") {
 
 module side_inside() {
     translate([box_y/2,-box_z/2+skirt/2,0])
-    rotate([0,0,90]) {
-        negative_tails(box_y,wood,side_base_pins);
-        tail_holes(box_y,wood,side_base_pins,joint_holes);
-    }
+    rotate([0,0,90])
+    dirror_x(wood)
+    negative_tails(box_y,wood,side_base_pins,pintail_gap,joint_holes,ear,ear_extra);
 
     translate([0,skirt/2+wood/2])
     intersection() {
@@ -302,10 +324,8 @@ module front_outside() {
         end_holes();
 
         dirror_x()
-        translate([-box_x/2-pad,-box_z/2]) {
-            negative_tails(box_z,wood+pad,2);
-            tail_holes(box_z,wood+pad,2,joint_holes);
-        }
+        translate([-box_x/2-pad,-box_z/2])
+        negative_tails(box_z,wood+pad,2,pintail_gap,joint_holes,ear,ear_extra);
     }
 }
 
@@ -325,10 +345,8 @@ module front(display="") {
 
 module end_holes() {
     translate([box_x/2,-box_z/2])
-    rotate([0,0,90]) {
-        negative_tails(box_x,wood,2);
-        tail_holes(box_x,wood,2,joint_holes);
-    }
+    rotate([0,0,90])
+    negative_tails(box_x,wood,2,pintail_gap,joint_holes,ear,ear_extra);
 }
 
 module back_outside() {
@@ -337,11 +355,20 @@ module back_outside() {
         square([box_x,box_z+skirt],center=true);
 
         dirror_x()
-        translate([box_x/2-wood,-box_z/2-skirt]) {
-            negative_tails(box_z+skirt,wood+pad,2);
-            tail_holes(box_z+skirt,wood+pad,2,joint_holes);
-        }
+        translate([-box_x/2-pad,-box_z/2-skirt]) 
+        negative_tails(box_z+skirt,wood+pad,2,pintail_gap,joint_holes,ear,ear_extra);
     }
+}
+
+module back_capture() {
+    // fix dog bones because back is captured but front isn't
+    
+    // i'll pay for this later
+    translate([box_x/2,-box_z/2])
+    rotate([0,0,90]) 
+    translate([wood,0])
+    mirror([1,0])
+    negative_tails(box_x,wood,2,pintail_gap,joint_holes,ear,ear_extra);
 }
 
 module back(display="") {
@@ -350,10 +377,12 @@ module back(display="") {
     difference() {
         back_outside();
         end_holes();
+        back_capture();
         end_pattern();
     }
     if(display=="inside") {
         end_holes();
+        back_capture();
         end_pattern();
     }
 
@@ -361,69 +390,8 @@ module back(display="") {
     back_outside();
 }
 
-module pintail_gaps(edge,depth,pins) {
-    segments=pins*2+1;
-    segment=edge/segments;
-
-    for(y=[segment:segment:edge-1])
-    translate([0,y-pintail_gap/2])
-    square([depth,pintail_gap]);
-}
-
-module negative_pins(edge,depth,pins) {
-    segments=pins*2+1;
-    segment=edge/segments;
-
-    for(y=[0:segment*2:edge])
-    translate([0,y])
-    square([depth,segment]);
-
-    pintail_gaps(edge,depth,pins);
-
-}
-
-module pintail_test(count=2) {
-    test=200;
-    color("lime")
-    negative_pins(test,wood,count);
-    color("blue")
-    negative_tails(test,wood,count);
-    color("red")
-    translate([0,0,1])
-    pin_holes(test,wood,count,4);
-}
-
-module tail_holes(edge,depth,pins,hole) {
-    segments=pins*2+1;
-    segment=edge/segments;
-
-    for(y=[segment/2:segment*2:edge])
-    translate([depth/2,y])
-    circle(d=hole);
-}
-
-
-module pin_holes(edge,depth,pins,hole) {
-    segments=pins*2+1;
-    segment=edge/segments;
-
-    for(y=[segment*1.5:segment*2:edge])
-    translate([depth/2,y])
-    circle(d=hole);
-}
-
-module negative_tails(edge,depth,pins) {
-    segments=pins*2+1;
-    segment=edge/segments;
-
-    for(y=[segment:segment*2:edge-1])
-    translate([0,y])
-    square([depth,segment]);
-    pintail_gaps(edge,depth,pins);
-
-}
-
 module pattern() {
+    pattern_max=box_x;
     translate([-pattern_gap/2,0])
     dirror_y()
     dirror_x() {
@@ -438,7 +406,6 @@ module pattern() {
         circle(d=pattern_hole);
     }
 }
-
 
 module grom_plate() {
     for(i=[0:1:2])
