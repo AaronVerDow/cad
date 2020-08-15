@@ -1,37 +1,46 @@
 in=25.4;
+
+// size of intended cargo
 bag_y=16*in;
 bag_x=18.5*in;
 bag_z=10*in;
 
+// how thick the wood is.  I keep this a little large or the slots will be too tight
 wood=1/2*in;
 
+// thickness of wood around edges and joints
 wall=0.75*in;
 
-echo("vpr");
-echo($vpr);
-echo("vpt");
-echo($vpt);
-echo("vpd");
-echo($vpd);
+// outer size of box
 box_x=bag_x+wood*2;
 box_y=bag_y+wood*2;
 box_z=8*in;
 
+// change to true to add a onewheel slot
+onewheel=false;
 
+// wheel size 
 onewheel_d=10*in;
 onewheel_h=7*in;
 
+// board size
 onewheel_x=22*in;
 onewheel_y=2*in;
 onewheel_z=8*in;
 
+// how far to slide in from center
 onewheel_offset=-3*in;
 
 grom_bolt=10;
 
 bit=0.25*in;
+
+// how far apart to space parts in cutsheet
 cutgap=2*in;
+
+// add holes for screwing in joints
 joint_holes=0;
+//joint_holes=bit;
 
 skirt=wall;
 
@@ -39,6 +48,7 @@ grom_x=[140,115,111];
 grom_y=[0,104,131];
 
 
+// gap between
 pintail_gap=bit/2;
 pad=0.1;
 
@@ -46,7 +56,9 @@ pattern_hole=1.5*in;
 pattern_gap=2.75*in;
 pattern_max=box_x;
 
-grom_overhang=[3*in,5*in,8*in];
+// how far in the mounting pattern is cut
+// multiple points can be defined
+grom_overhang=[8*in];
 
 module dirror_x(x=0) {
     children();
@@ -80,6 +92,7 @@ module wood(padding=0) {
 // PREVIEW
 // RENDER scad
 module assembled() {
+    if(onewheel)
     translate([0,onewheel_offset,wall])
     onewheel();
 
@@ -235,6 +248,7 @@ module side_outside() {
             negative_pins(box_z+skirt,wood+pad,2);
             pin_holes(box_z+skirt,wood+pad,2,joint_holes);
         }
+        if(onewheel)
         translate([onewheel_offset-onewheel_y/2,skirt/2-box_z/2+wood+wall])
         square([onewheel_y,onewheel_z]);
     }
@@ -262,20 +276,11 @@ module side_inside() {
         tail_holes(box_y,wood,side_base_pins,joint_holes);
     }
 
-
-    // mirrored pattern
-    //x=box_y/2-onewheel_y/2-wall*2-wood;
-    //dirror_x()
-    //translate([onewheel_y/2+wall+x/2,skirt/2+wood/2])
-    //intersection() {
-        //square([x,box_z-wall*2-wood],center=true);
-        //pattern();
-    //}
-
     translate([0,skirt/2+wood/2])
     intersection() {
         difference() {
             square([box_y-wood*2-wall*2,box_z-wall*2-wood],center=true);
+            if(onewheel)
             translate([onewheel_offset,0])
             square([onewheel_y+wall*2,box_z],center=true);
         }
