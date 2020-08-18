@@ -28,6 +28,14 @@ module ear(ear=0,extra=0) {
     }
 }
 
+module dirror_x(x=0) {
+    children();
+    translate([x,0,0])
+    mirror([1,0,0])
+    children();
+}
+
+
 module dirror_y(y=0) {
     children();
     translate([0,y,0])
@@ -82,6 +90,7 @@ module negative_pins(edge,depth,pins,gap=0,hole=0,ear=0,extra=0) {
 module pintail_test(edge=200,depth=12,pins=4,gap=3,hole=6,ear=3,extra=0) {
     //color("lime")negative_pins(edge,depth,pins,gap,hole,ear,extra);
     color("blue")negative_tails(edge,depth,pins,gap,hole,ear,extra);
+    //color("blue")negative_slot(edge,depth,ear,extra);
 }
 
 module tail_holes(edge,depth,pins,hole) {
@@ -116,6 +125,13 @@ module negative_tails(edge,depth,pins,gap=0,hole=0,ear=0,extra=0) {
 
     if(hole)
     tail_holes(edge,depth,pins,hole);
+}
+
+module negative_slot(edge,depth,ear=0,extra=0) {
+    square([depth,edge]);
+    translate([depth,edge])
+    rotate([0,0,90])
+    ear(ear,extra);
 }
 
 pintail_test();
