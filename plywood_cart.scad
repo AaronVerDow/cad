@@ -10,6 +10,17 @@ wheel_x=5.5*in;
 wheel_y=2*in;
 wheel_z=5.5*in;
 
+wheel_x=150;
+wheel_y=70;
+wheel_z=127;
+
+// how high does the lever go
+wheel_open_min=65;
+wheel_open_max=95;
+
+// how much do the wheels lift
+wheel_locked=150-wheel_z;
+
 wood=0.75*in;
 
 spine_x=4*in;
