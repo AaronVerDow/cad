@@ -161,9 +161,9 @@ module wing_cutsheet() {
     wing();
 }
 
-translate([0,-wheelbase_y*2,0])assembled(25,98,true);
+//translate([0,-wheelbase_y*2,0])assembled(25,98,true);
 
-//assembled(0);
+assembled(0);
 
 module assembled(tilt=0,wing_tilt=0,bar_stored=false) {
     color("lime")
@@ -228,14 +228,29 @@ module assembled(tilt=0,wing_tilt=0,bar_stored=false) {
     wood()
     back_fillet();
 
-    //wheels();
+    wheels();
 }
 
 module wheels() {
     dirror_x(plywood_x)
     dirror_y(wheelbase_y-wheel_y)
-    translate([plywood_x/2-wheelbase_x/2-wheel_x,-wheel_y/2,-in])
-    #cube([wheel_x,wheel_y,wheel_z]);
+    translate([plywood_x/2-wheelbase_x/2-wheel_x,-wheel_y/2,]) {
+
+        color("orangered")
+        translate([0,0,-wheel_locked])
+        cube([wheel_x,wheel_y,wheel_locked]);
+
+        color("orange")
+        cube([wheel_x,wheel_y,wheel_z]);
+
+        color("yellow")
+        translate([0,0,wheel_z])
+        cube([wheel_x,wheel_y,wheel_open_min]);
+
+        color("khaki")
+        translate([0,0,wheel_z+wheel_open_min])
+        cube([wheel_x,wheel_y,wheel_open_max]);
+    }
 }
 
 module dirror_z(z=0) {
