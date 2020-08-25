@@ -1,3 +1,4 @@
+use <joints.scad>;
 in=25.4;
 box_x=12.5*in;
 box_y=16.2*in;
@@ -17,6 +18,8 @@ cubby_z=box_z+lid_h*1.5;
 
 COLOR="";
 
+big_fn=90;
+
 function segment_radius(height, chord) = (height/2)+(chord*chord)/(8*height);
 
 
@@ -25,17 +28,20 @@ shim_x=1/4*in;
 shim_y=(1+7/16)*in;
 shim_z=8.75*in;
 
+// extra on the bottom
+stabilizer=2*in;
+
 shim_target=shim_x;
 shim_grip=shim_y/3*2+bit/2;
 
 rows=5;
 columns=4;
-wood=0.75*in;
+wood=0.5*in;
 
 pad=0.1;
 
-shelf_x_gap=1/8*in;
-shelf_y_gap=bit/2;
+shelf_x_gap=in/8;
+shelf_y_gap=0;
 
 corner_x=lid_h;
 corner_y=lid_h;
@@ -56,16 +62,19 @@ shelf_y=cubby_y/3;
 room_height=76*in;
 room_width=20*12*in;
 
+
 module room() {
     translate([0,cubby_z,0])
     rotate([90,0,0])
     square([room_width,room_height]);
 
-    for(x=[0:shelf_x+cubby_x-shelf_ends*2:room_width-cubby_x/2-shelf_ends])
+    for(x=[0:shelf_x+cubby_x-shelf_ends*2:room_width-cubby_x-shelf_ends])
     translate([x+shelf_ends+cubby_x/2+wood,0,0])
     preview();
 }
 
+// PREVIEW
+// RENDER scad
 module cutsheets() {
     side_cutsheet()
     shelf_cutsheet();
@@ -78,11 +87,17 @@ module if_color(_color) {
 }
 
 module shelf_cutsheet() {
+    translate([-cubby_x/2,0])
     plywood();
     gap=shelf_y+cut_gap;
     max=cut_gap*rows*2+shelf_y*rows*2-cut_gap;
-    for(y=[0:gap:max])
+    for(y=[0:gap*2:max])
     translate([shelf_x/2,shelf_y/2+y+(plywood_y-max)/2])
+    shelf();
+
+    for(y=[gap:gap*2:max])
+    translate([shelf_x/2+cubby_x/2+shelf_ends/2,shelf_y/2+y+(plywood_y-max)/2+17])
+    mirror([0,1])
     shelf();
 }
 
@@ -90,11 +105,13 @@ module side_cutsheet() {
     less_gap=90;
     gap=side_x+cut_gap-less_gap;
     max=cut_gap*columns+side_x*columns+side_x-less_gap*columns-less_gap;
+    translate([-10*in,2*in])
     plywood();
 
     rotate([0,0,90])
     for(x=[0:gap*2:max])
     translate([side_x/2+x+(plywood_y-max)/2,-side_y/2])
+    mirror([0,1])
     side();
 
     rotate([0,0,90])
@@ -122,11 +139,12 @@ module assembled() {
 
 // RENDER obj
 module assembled_with_shims() {
-    if_color("chocolate")
-    shims();
+    if_color("chocolate") shims();
     assembled();
 }
 
+// PREVIEW
+// REDNER scad
 // RENDER obj
 module preview() {
     boxes();
@@ -211,21 +229,27 @@ module boxes() {
 
 shelf_cut=shim_grip;
 
-shelf();
+cutsheets();
+
 module shelf() {
     radius=segment_radius(shelf_cut,cubby_x-shim_target*2);
+    slot_x=wood+shim_target*2;
+    slot_y=shim_grip+pad;
     difference() {
         square([shelf_x,shelf_y],center=true);
 
         for(column=[0:1:columns])
         translate([column*(cubby_x+wood)-shelf_x/2+shelf_ends+wood/2,-shelf_y/2+shim_grip/2])
-        square([wood+shim_target*2,shim_grip+pad],center=true);
+        dirror_x()
+        translate([-slot_x/2,-slot_y/2])
+        negative_slot(slot_y,slot_x,bit,0);
+
 
         gap=cubby_x+wood;
         max=cubby_x*columns+wood*columns-wood;
-        for(x=[0:gap:max])
+        for(x=[-shim_target:gap:max])
         translate([x-max/2+gap/2,-radius-shelf_y/2+shelf_cut])
-        circle(r=radius,$fn=400);
+        circle(r=radius,$fn=big_fn);
 
 
     }
@@ -259,18 +283,26 @@ side_cut=shelf_y;
 
 module side() {
     radius=segment_radius(side_cut, cubby_z);
+    slot_x=shelf_y+pad+shelf_x_gap-shim_grip;
+    slot_y=wood+shelf_y_gap;
     difference() {
-        square([side_x,side_y],center=true);
+        union() {
+            square([side_x,side_y],center=true);
+            translate([0,-side_y/2+extra_bottom/2])
+            square([side_x+stabilizer*2,extra_bottom],center=true);
+        }
         dirror_x()
         for(row=[0:1:rows-1])
         translate([side_x/2-shelf_y-shelf_x_gap+shim_grip,(cubby_z+wood)*row+extra_bottom-side_y/2])
-        square([shelf_y+pad+shelf_x_gap-shim_grip,wood+shelf_y_gap]);
+        translate([slot_x,0])
+        rotate([0,0,90])
+        dirror_x(slot_y)
+        negative_slot(slot_x,slot_y,bit,0);
 
         dirror_x()
         for(y=[0:cubby_z+wood:side_y-extra_top-extra_bottom-wood*2])
         translate([-radius-side_x/2+side_cut,y-side_y/2+extra_bottom+wood+cubby_z/2])
-        circle(r=radius,$fn=400);
-
+        circle(r=radius,$fn=big_fn);
     }
 }
 
@@ -292,6 +324,7 @@ module vr() {
     scale(1/1000)
     children();
 }
+
 
 
 display="";
