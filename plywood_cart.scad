@@ -56,6 +56,11 @@ ear=bit;
 spine_back_pins=4;
 
 
+module anchor() {
+    translate([0,plywood_y-in])
+    square([in,in]);
+}
+
 module back_fillet() {
     difference() {
         hull() {
@@ -97,54 +102,72 @@ module rest() {
 outer_edge=6*in;
 top_edge=6*in;
 
-module back() {
+// RENDER svg
+module inside_profiles() {
+    dirror_x(plywood_x)
+    translate([(plywood_x-wheelbase_x)/2,0])
+    dirror_x(wood)
+    negative_tails(spine_y,wood+gap,spine_back_pins,gap,joint_hole,ear);
+
+    dirror_x(plywood_x)
+    translate([plywood_x/2-wheelbase_x/2+wood/2,0,0])
+    dirror_y(spine_y)
+    translate([0,spine_y/8])
+    rotate([0,0,90])
+    dirror_x(wood)
+    negative_tails(back_fillet_x,wood+gap,1,gap,joint_hole,ear);
+
+    anchor();
+}
+
+// RENDER svg
+module outside_profiles() {
+
+    tighten=in*2;
+
+    translate([0,-bar_wall])
+    wings_cutsheet();
+
+    translate([plywood_x/2,plywood_y-top_edge-in])
+    //rotate([0,0,back_angle+angle-13])
+    bar();
+
+    dirror_x(plywood_x)
+    translate([outer_edge+spine_x+tighten,plywood_y/2-rest-in])
+    rotate([0,0,-90])
+    back_fillet();
+
+    dirror_x(plywood_x)
+    translate([plywood_x-outer_edge-spine_x*2-tighten,plywood_y/2])
+    mirror([0,1])
+    rotate([0,0,-90])
+    back_fillet();
+
+    //translate([0,plywood_y/3*2])
+    dirror_x(plywood_x)
+    translate([outer_edge+rest+spine_x-in*1.5+tighten,plywood_y/2+rest-in/2])
+    rotate([0,0,180-45])
+    rest();
+    
+    dirror_x(plywood_x)
+    translate([plywood_x-outer_edge-tighten,(plywood_y-spine_y-rest)/2+in/2])
+    rotate([0,0,angle])
+    side();
+
+    anchor();
+}
+
+module back(display="") {
+    if(!display)
     difference() {
         square([plywood_x,plywood_y]);
-         
-        dirror_x(plywood_x)
-        translate([plywood_x-outer_edge,(plywood_y-spine_y-rest)/2])
-        rotate([0,0,angle])
-        side();
-
-
-        translate([0,-bar_wall])
-        wings_cutsheet();
-
-        translate([plywood_x/2,plywood_y-top_edge])
-        //rotate([0,0,back_angle+angle-13])
-        bar();
-
-        
-        dirror_x(plywood_x)
-        translate([outer_edge+spine_x,plywood_y/2-rest-in])
-        rotate([0,0,-90])
-        back_fillet();
-
-        dirror_x(plywood_x)
-        translate([plywood_x-outer_edge-spine_x*2,plywood_y/2])
-        mirror([0,1])
-        rotate([0,0,-90])
-        back_fillet();
-
-        dirror_x(plywood_x)
-        translate([(plywood_x-wheelbase_x)/2,0])
-        dirror_x(wood)
-        negative_tails(spine_y,wood+gap,spine_back_pins,gap,joint_hole,ear);
-
-        dirror_x(plywood_x)
-        translate([plywood_x/2-wheelbase_x/2+wood/2,0,0])
-        dirror_y(spine_y)
-        translate([0,spine_y/8])
-        rotate([0,0,90])
-        dirror_x(wood)
-        negative_tails(back_fillet_x,wood+gap,1,gap,joint_hole,ear);
-
-        //translate([0,plywood_y/3*2])
-        dirror_x(plywood_x)
-        translate([outer_edge+rest+spine_x,plywood_y/2+rest])
-        rotate([0,0,180-45])
-        rest();
+        inside_profiles();
+        outside_profiles();
     }
+    if(display=="inside")
+    inside_profiles();
+    if(display=="outside")
+    outside_profiles();
 }
 
 module bar() {
