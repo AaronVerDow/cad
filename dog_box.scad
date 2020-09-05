@@ -60,12 +60,12 @@ grom_bolt=10;
 
 // placement of bolts within mounting pattern
 // these will be mirrored across x axis
-grom_x=[140,115,111];
-grom_y=[0,104,131];
+grom_x=[160,110,160,110];
+grom_y=[0,57,225,282];
 
 // move mounting pattern back on y axis
 // multiple points can be defined
-grom_overhang=[8*in];
+grom_overhang=[65,30];
 
 // gap between joints
 pintail_gap=bit/4;
@@ -80,8 +80,8 @@ pattern_hole=1.5*in;
 pattern_gap=2.75*in;
 
 // defines max size of cutsheet so anchors can be placed
-cutsheet_x=box_x+box_z+skirt+cutgap*3;
-cutsheet_y=box_y+box_z*2+skirt+cutgap*4;
+cutsheet_x=box_x+box_z*2+skirt*2+cutgap*4;
+cutsheet_y=box_y+box_z+skirt+cutgap*3;
 
 // how many pins between side and base
 side_base_pins=2;
@@ -182,16 +182,20 @@ module cutsheet_outside() {
 module cutsheet(display="") {
     translate([cutgap,cutgap]) {
         base_cutsheet(display)
-        back_cutsheet(display)
         front_cutsheet(display);
         translate([box_x+cutgap,0])
         side_cutsheet(display)
+        back_cutsheet(display);
+        translate([box_x+box_z+skirt+cutgap*2,0])
         side_cutsheet(display);
     }
     color("white")
     dirror_x(cutsheet_x)
     dirror_y(cutsheet_y)
     cutsheet_corner();
+
+    //translate([0,0,-1])
+    //#square([in*12*4,in*12*4]);
 }
 
 module base_cutsheet(display="") {
@@ -225,7 +229,7 @@ module back_cutsheet(display="") {
 
 module base_drill() {
     for(y=grom_overhang)
-    translate([0,y-box_x/2])
+    translate([0,y-box_y/2])
     grom_plate();
 }
 
@@ -391,7 +395,7 @@ module back(display="") {
 }
 
 module pattern() {
-    pattern_max=box_x;
+    pattern_max=box_x+box_y;
     translate([-pattern_gap/2,0])
     dirror_y()
     dirror_x() {
@@ -408,10 +412,11 @@ module pattern() {
 }
 
 module grom_plate() {
-    for(i=[0:1:2])
+    for(i=[0:1:3])
     dirror_x()
     translate([grom_x[i]/2,grom_y[i]])
     circle(d=grom_bolt);
 }
 
-assembled();
+//assembled();
+cutsheet();
