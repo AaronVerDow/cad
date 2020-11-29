@@ -1,4 +1,4 @@
-estop_hole=30;
+estop_hole=22.5;
 estop_gap=30;
 
 arcade_hole=28;
@@ -15,15 +15,19 @@ max_y=84;
 
 gaps=0;
 
-face_h=5;
+face_h=3;
 base_h=2;
-support_h=5;
+support_h=3;
 
-screw_offset=10;
+screw_offset=6;
+
+flat_small=16.5;
+flat_big=19.5;
+flat_gap=35;
 
 
-estop_behind=45+face_h;
-depth=max_y*1.5+5;
+estop_behind=40+face_h;
+depth=max_y*1.5;
 
 $fn=90;
 
@@ -54,17 +58,32 @@ module assembled() {
             
         }
 
+        difference() {
+            translate([-max_x/2+screw_offset+support_h,screw_offset+support_h,-base_h-pad])
+            cube([max_x-screw_offset*2-support_h*2,depth-screw_offset*2-support_h*2,base_h+pad*2]);
+            place_screws()
+            cylinder(r=screw_offset,h=base_h+pad*4);
+        }
+
         place_face()
         translate([0,0,-pad])
         linear_extrude(height=face_h+pad*2)
         buttons();
 
         translate([-max_x/2-pad,0,-max_y/2])
-        rotate([90,0,90])
-        translate([estop_behind,0])
-        linear_extrude(height=support_h+pad*2)
-        stacked_arcade()
-        arcade();
+        rotate([90,0,90]) {
+            translate([estop_behind,0])
+            linear_extrude(height=support_h+pad*2)
+            stacked_arcade()
+            translate([arcade_stack-arcade_gap*2,0])
+            stacked_arcade();
+
+            translate([estop_behind/2,-flat_gap/2])
+            cylinder(d=flat_small,h=support_h+pad*2);
+
+            translate([estop_behind/2,flat_gap/2])
+            cylinder(d=flat_big,h=support_h+pad*2);
+        }
         
         //holes();
 
@@ -76,11 +95,16 @@ module assembled() {
 
 screw=4.5;
 
-module screws() {
+module place_screws() {
     translate([0,depth/2])
     dirror_x()
     dirror_y()
     translate([max_x/2-support_h-screw_offset,(depth-face_h-support_h)/2-screw_offset,-base_h-pad])
+    children();
+}
+
+module screws() {
+    place_screws()
     cylinder(d=screw,h=base_h+pad*2);
 }
 
