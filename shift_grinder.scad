@@ -1,8 +1,8 @@
-motor=24;
-motor_h=12;
+motor=26.5;
+motor_h=12.5;
 
-weight=15;
-weight_h=10;
+weight=13;
+weight_h=12;
 
 stick=10;
 stick_h=18;
@@ -17,13 +17,13 @@ ball=45;
 
 ball_offset=3;
 
-screw=3.5;
-screw_h=10;
-screw_head=5;
+screw=3;
+screw_h=12;
+screw_head=6;
 screw_head_h=3;
-screw_grip=1;
+screw_grip=2;
 
-screw_ring=motor+screw_head+1;
+screw_ring=motor+screw+1;
 
 screws=6;
 
@@ -55,7 +55,7 @@ module wire() {
     }
 }
 
-module inner() {
+module inner(explode=0) {
     translate([0,0,explode*4])
     color("darkslategray")
     screws();
@@ -73,23 +73,23 @@ module inner() {
 
     translate([0,0,explode])
     color("darkslategray")
-    bolt();
+    bolt(1);
 
 }
 
 
-module assembled() {
+module assembled(explode=0) {
     translate([0,0,explode*2.5])
     top();
 
-    inner();
+    inner(explode);
 
     base();
 
 }
 
 //insides();
-assembled();
+assembled(30);
 
 module insides() {
     inner();
@@ -97,10 +97,11 @@ module insides() {
     #ball();
 }
 
-module bolt() {
+module bolt(display=0) {
     translate([0,0,-bolt_head_h]) {
         difference() {
             cylinder(d1=bolt,d2=bolt_head+pad*2,h=bolt_head_h+pad);
+	    if(display)
             translate([0,0,screw_head_h/4+pad])
             cylinder(d=screw_head/3*2,h=screw_head_h/4*3,$fn=6);
         }
@@ -109,12 +110,12 @@ module bolt() {
     }
 }
 
-module screws(extra=0) {
+module screws(extra=0,pilot=0) {
     for(r=[0:360/screws:359])
     rotate([0,0,r])
     translate([screw_ring/2,0,motor_h+screw_grip]) {
         translate([0,0,-screw_h])
-        cylinder(d=screw,h=screw_h+pad);
+        cylinder(d=screw+pilot,h=screw_h+pad);
         difference() {
             cylinder(d=screw_head,h=screw_head_h+extra);
             if(!extra)
@@ -124,7 +125,7 @@ module screws(extra=0) {
     }
 }
 
-
+// RENDER stl
 module base() {
     difference() {
         ball();
@@ -138,15 +139,17 @@ module base() {
     }
 }
 
+screw_pilot=0.5;
 
 
+// RENDER stl
 module top() {
     difference() {
         ball();
         translate([0,0,-ball/2+motor_h])
         cube([ball,ball,ball],center=true);
         motor(-pad);
-        screws(ball);
+        screws(ball,screw_pilot);
     }
 
 }
@@ -154,7 +157,7 @@ module top() {
 
 module ball() {
     translate([0,0,motor_h+weight_h-ball/2+ball_offset])
-    sphere(d=ball);
+    sphere(d=ball,$fn=200);
 }
 
 
