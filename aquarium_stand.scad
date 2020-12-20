@@ -202,7 +202,7 @@ module rails(height) {
     rail(rail_three, height);
 }
 
-pin_screw=0.125*in;
+pin_screw=0.125*in*1.1;
 
 module tail_screws(pin_h, tail_h, edge) {
     if (details) {
@@ -277,6 +277,10 @@ module place_side_holes(side_hole) {
 		//translate([0,height-top_wood-side_hole_wall-side_hole/2+lip]) children(); // top
 	}
 }
+
+//top(800,400);
+//tail_edge(top_wood,side_wood+pad,400);
+
 module top(width,depth) {
     difference() {
         translate([blind,0])
@@ -286,13 +290,15 @@ module top(width,depth) {
         translate([side_wood,depth])
         mirror([0,1])
         rotate([0,0,90]) {
-            pin_edge(bottom_wood,side_wood,depth);
-            pin_screws(bottom_wood,side_wood,depth);
+            tail_edge(top_wood,side_wood+pad,depth);
+            //pin_edge(top_wood,side_wood+pad,depth);
+            //pin_screws(top_wood,side_wood,depth);
+            tail_screws(top_wood,side_wood,depth);
         }
 
 
         translate([0,depth-back_wood])
-        tail_edge(back_wood+pad,bottom_wood+pad,width);
+        tail_edge(back_wood+pad,top_wood+pad,width);
 
         shaded_pockets(width);
     }
@@ -329,6 +335,7 @@ module bottom_3d(width,depth) {
     linear_extrude(height=bottom_wood)
     bottom(width,depth);
 }
+
 
 module side_3d(width,depth,height,side_hole) {
     translate([side_wood,depth,0])
@@ -396,8 +403,8 @@ module side_cuts(depth,height) {
 
     // top
     translate([0,height-top_wood]) {
-        tail_edge(top_wood+pad,side_wood+pad,depth);
-        tail_screws(top_wood,side_wood,depth);
+        pin_edge(top_wood+pad,side_wood+pad,depth);
+        pin_screws(top_wood,side_wood,depth);
     }
 
     // back
@@ -682,6 +689,7 @@ module plywood(show_plywood=1) {
     translate([0,0,-pad*2])
     square([plywood_x,plywood_y]);
     
+    if(anchor)
     mirror_y(plywood_y)
     mirror_x(plywood_x)
     color("lime")
@@ -791,9 +799,12 @@ module cut_sheet_three(width, depth, height, show_plywood=1,show_profiles=1,show
     spaced_shade() {
     translate([shade_h,0])
     rotate([0,0,90])
-        bottom_shade(width);
-        shade_to_cut();
-        shade_to_cut();
+    bottom_shade(width);
+    translate([shade_h,0])
+    rotate([0,0,90])
+    bottom_shade(width);
+        //shade_to_cut();
+        //shade_to_cut();
     }
 }
 
@@ -951,8 +962,9 @@ display="";
 //if(display=="") assembled(width,depth,my_height,my_side_hole);
 //cut_sheets(width, depth, my_height, my_side_hole, show_plywood, 1, 1);
 //if(display=="short_1_profiles.dxf")high_res()
-high_res()cut_sheet_one(width,depth,my_height,my_side_hole,0,1,0);
+high_res()
+cut_sheet_one(width,depth,my_height,my_side_hole,0,1,0);
 if(display=="short_2_profiles.dxf")high_res()
-cut_sheet_two(width,depth,my_height,my_side_hole,0,1,0);
-if(display=="short_3_profiles.dxf") high_res()
+//cut_sheet_two(width,depth,my_height,my_side_hole,0,1,0);
+//if(display=="short_3_profiles.dxf") high_res()
 cut_sheet_three(width,depth,my_height,0,1,0);
