@@ -54,7 +54,7 @@ lazy_offset=0;
 
 mount_z_offset=bolt/2+mount_wall+bolt/2;
 
-module case() {
+module case(phone_x,phone_y,phone_z) {
     translate([-phone_x/2,-wall-phone_y,wall])
     difference() {
         minkowski() {
@@ -70,7 +70,8 @@ module case() {
         }
         translate([-wall-pad,-wall-pad,phone_z])
         cube([phone_x+walll+padd,phone_y+walll+padd,lip+walll+pad]);
-        translate([charger_center,phone_y/2,-wall-pad])
+
+        translate([phone_x/2,phone_y/2,-wall-pad])
         cylinder(d=tripod,h=wall+padd);
         
         //cube([charger,phone_y,wall+padd]);
@@ -132,10 +133,23 @@ module back_bolts() {
     }
 }
 
+light_x=91;
+
+light_y=12;
+light_z=phone_z;
+
+light_charger_y=light_y-2;
+light_charger_z=6;
 
 module assembled() {
+    case(phone_x,phone_y,phone_z);
     difference() {
-        case();
+        translate([0,-wall])
+        mirror([0,1])
+        case(light_x,light_y,light_z);
+        translate([light_x/2-pad,light_y/2-light_charger_y/2,light_charger_z+wall])
+        #cube([wall+pad*2,light_charger_y,phone_z]);
+
     }
 }
 
