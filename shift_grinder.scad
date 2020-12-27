@@ -112,10 +112,10 @@ module assembled_three(explode=0) {
 }
 
 
-module cap_screws(extra=0,pilot=0) {
+module cap_screws(extra=0,pilot=0,base_extra=0) {
     rotate([0,0,360/screws/2])
     translate([0,0,middle_h])
-    screws(extra,pilot,weight+screw*2);
+    screws(extra,pilot,weight+screw*2,base_extra);
 }
 
 module insides() {
@@ -137,12 +137,12 @@ module bolt(display=0) {
     }
 }
 
-module screws(extra=0,pilot=0,ring=screw_ring) {
+module screws(extra=0,pilot=0,ring=screw_ring,base_extra=0) {
     for(r=[0:360/screws:359])
     rotate([0,0,r])
     translate([ring/2,0,motor_h+screw_grip]) {
-        translate([0,0,-screw_h])
-        cylinder(d=screw+pilot,h=screw_h+pad);
+        translate([0,0,-screw_h-base_extra])
+        cylinder(d=screw+pilot,h=screw_h+pad+base_extra);
         difference() {
             cylinder(d=screw_head,h=screw_head_h+extra);
             if(!extra)
@@ -205,7 +205,7 @@ module middle() {
         translate([0,0,ball/2+motor_h+middle_h])
         cube([ball,ball,ball],center=true);
     
-        cap_screws(ball,screw_pilot);
+        cap_screws(ball,screw_pilot,middle_h);
     }
 
 }
