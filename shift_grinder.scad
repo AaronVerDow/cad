@@ -13,9 +13,9 @@ pad=0.1;
 
 stick_grip=3;
 
-ball=45;
+ball=55;
 
-ball_offset=3;
+ball_offset=9;
 
 screw=3;
 screw_h=12;
@@ -25,23 +25,28 @@ screw_grip=2;
 
 screw_ring=motor+screw+1;
 
-screws=6;
+screws=3;
 
 bolt_head=10;
 bolt_head_h=2.5;
 bolt=4;
 bolt_h=5;
 
+screw_pilot=0.5;
 //explode=(sin($t*360)/2+0.5)*25;
 explode=0;
 
-wire=4;
+middle_h=13;
 
+wire=7;
 
-module motor(pad=0) {
+//insides();
+assembled_three(30);
+
+module motor(pad=0,extra=0) {
         cylinder(d=motor,h=motor_h+pad);
         translate([0,0,pad])
-        cylinder(d=weight,h=weight_h+motor_h-pad);
+        cylinder(d=weight,h=weight_h+motor_h-pad+extra);
 }
 
 module wire() {
@@ -56,9 +61,14 @@ module wire() {
 }
 
 module inner(explode=0) {
+    translate([0,0,explode*5.5])
+    color("darkslategray")
+    cap_screws();
+    
     translate([0,0,explode*4])
     color("darkslategray")
     screws();
+
 
     translate([0,0,explode*1.5])
     color("gray")
@@ -88,8 +98,25 @@ module assembled(explode=0) {
 
 }
 
-//insides();
-assembled(30);
+module assembled_three(explode=0) {
+    translate([0,0,explode*4.5])
+    cap();
+
+    translate([0,0,explode*2.5])
+    middle();
+
+    inner(explode);
+
+    base();
+
+}
+
+
+module cap_screws(extra=0,pilot=0) {
+    rotate([0,0,360/screws/2])
+    translate([0,0,middle_h])
+    screws(extra,pilot,weight+screw*2);
+}
 
 module insides() {
     inner();
@@ -110,10 +137,10 @@ module bolt(display=0) {
     }
 }
 
-module screws(extra=0,pilot=0) {
+module screws(extra=0,pilot=0,ring=screw_ring) {
     for(r=[0:360/screws:359])
     rotate([0,0,r])
-    translate([screw_ring/2,0,motor_h+screw_grip]) {
+    translate([ring/2,0,motor_h+screw_grip]) {
         translate([0,0,-screw_h])
         cylinder(d=screw+pilot,h=screw_h+pad);
         difference() {
@@ -139,10 +166,8 @@ module base() {
     }
 }
 
-screw_pilot=0.5;
 
 
-// RENDER stl
 module top() {
     difference() {
         ball();
@@ -154,6 +179,36 @@ module top() {
 
 }
 
+// RENDER stl
+module cap() {
+    difference() {
+        ball();
+        translate([0,0,-ball/2+motor_h+middle_h])
+        cube([ball,ball,ball],center=true);
+        motor(-pad);
+        cap_screws(ball,screw_pilot);
+    }
+
+}
+
+
+
+// RENDER stl
+module middle() {
+    difference() {
+        ball();
+        translate([0,0,-ball/2+motor_h])
+        cube([ball,ball,ball],center=true);
+        motor(-pad,middle_h);
+        screws(ball,screw_pilot);
+
+        translate([0,0,ball/2+motor_h+middle_h])
+        cube([ball,ball,ball],center=true);
+    
+        cap_screws(ball,screw_pilot);
+    }
+
+}
 
 module ball() {
     translate([0,0,motor_h+weight_h-ball/2+ball_offset])
