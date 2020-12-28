@@ -4,8 +4,8 @@ motor_h=12.5;
 weight=13;
 weight_h=12;
 
-stick=10;
-stick_h=18;
+stick=10.5;
+stick_h=16;
 stick_flat=1.5;
 
 $fn=90;
@@ -15,7 +15,7 @@ stick_grip=3;
 
 ball=55;
 
-ball_offset=9;
+ball_offset=4;
 
 screw=3;
 screw_h=12;
@@ -23,9 +23,9 @@ screw_head=6;
 screw_head_h=3;
 screw_grip=2;
 
-screw_ring=motor+screw+1;
+screw_ring=motor+screw+8;
 
-screws=3;
+screws=6;
 
 bolt_head=10;
 bolt_head_h=2.5;
@@ -40,8 +40,8 @@ middle_h=13;
 
 wire=7;
 
-//insides();
-assembled_three(30);
+insides();
+//assembled(30);
 
 module motor(pad=0,extra=0) {
         cylinder(d=motor,h=motor_h+pad);
@@ -61,9 +61,7 @@ module wire() {
 }
 
 module inner(explode=0) {
-    translate([0,0,explode*5.5])
-    color("darkslategray")
-    cap_screws();
+    //translate([0,0,explode*5.5]) color("darkslategray") cap_screws();
     
     translate([0,0,explode*4])
     color("darkslategray")
@@ -168,6 +166,7 @@ module base() {
 
 
 
+// RENDER stl
 module top() {
     difference() {
         ball();
@@ -179,7 +178,6 @@ module top() {
 
 }
 
-// RENDER stl
 module cap() {
     difference() {
         ball();
@@ -191,9 +189,6 @@ module cap() {
 
 }
 
-
-
-// RENDER stl
 module middle() {
     difference() {
         ball();
@@ -215,7 +210,6 @@ module ball() {
     sphere(d=ball,$fn=200);
 }
 
-
 module stick() {
     translate([0,0,-stick_h*2-stick_grip])
     difference() {
@@ -224,4 +218,3 @@ module stick() {
         cube([stick,stick,stick_h+pad*2]);
     }
 }
-
