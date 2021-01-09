@@ -10,59 +10,79 @@ use <maslow_ingot_mount.scad>;
 use <joints.scad>;
 use <../hose_couplers.scad>;
 
-show_threads=true; // shows the lead screw or not, no impact on output 
-base=500; // diameter of sled
-
 in=25.4;
+box_wood=in/4;
+base_wood=box_wood;
+box_h=1.5*in-base_wood;
+show_threads=false; // shows the lead screw or not, no impact on output 
+//base=500; // diameter of sled
+base=450; // diameter of sled
+top=base+box_h*2;;
 
+//window=120; // meticulous Z
+window=95; // meticulous Z
+dust_wood=in/2;
+top_window=window+dust_wood; 
+
+//tower_h=355; // meticulous Z
+tower_h=205; // meticulous Z
+//rod_h=300; // meticulous Z
+rod_h=tower_h; // meticulous Z
+//scs_gap=103; // meticulous Z
+scs_gap=90; // meticulous Z
+//leadscrew_h=rod_h; //meticulous Z
+leadscrew_h=120;
+//dust=160; //meticulous Z 
+dust=window; //meticulous Z 
+
+bit=in/4;
 
 router=92;
-router_body_h=130;
-chuck=40;
-chuck_h=30;
-bit=in/4;
-bit_h=30;
-cap=110;
-cap_h=50;
+router_body_h=110;
+
+bit_h=35;
+chuck=24;
+chuck_h=27;
+cap=100;
+cap_h=88;
+spindle=20;
+spindle_h=12;
+collet=15;
+collet_h=3;
+
+beam_max=base/2-40;
+beams=5;
+beam_gap=(beam_max*2)/(beams-1);
+
 
 router_to_sled=21.75;
 
 
-window=120; // meticulous Z
 
 function chord(h,r) = sqrt(8*h*(r-h/2));
 
 sk=SK8;
 pillow=KP08_18;
 scs=SCS8UU;
-scs_gap=103; // meticulous Z
 rod_gap=160; // meticulous Z
 sled_x=rod_gap+scs[4];
 sled_y=scs_gap+scs[5];
 
-max_travel=100;
-travel=sin($t*360)*max_travel/2;
+max_travel=40;
+travel=(sin($t*360)/2+0.5)*max_travel;
 
 
 zero=0.0001;
 
-box_wood=in/4;
-base_wood=box_wood;
 
 wood=in/2;
 sled_wood=wood;
 
-box_h=1.5*in-base_wood;
 
 
-dust_wood=in/2;
-dust=160;
-dust_max=chord(base/2-window/2-dust_wood,base/2);
-dust_x=dust_max/2+window/2;
 
 tower_wood=in/2;
 tower=base/2-tower_wood-sk[2]-scs[2]-sled_wood-router/2-router_to_sled;
-tower_h=355; // meticulous Z
 tower_x=chord(tower,base/2);
 tower_top_x=chord(tower+tower_wood,base/2);
 
@@ -81,36 +101,37 @@ ab_x=ab-ab_less;
 
 //sk_bracket(SK8);
 
-rod_h=300; // meticulous Z
 rod=8;
 
 bracket_gap=rod_h-20;
-pillow_gap=rod_h/5*4;
 
 ring_top=122;
 ring_side=[115.655,43.679];
 ring_side_angle=60;
-support_h=70;
+support_h=75;
 support=40;
 
 
-dust_tower=tower-(base-dust_max)/2;
-dust_angle=atan(dust_tower/tower_h);
 outlet_wood=in/4;
 
 outlet_x=dust+dust_wood*2;
-outlet_y=125;
+outlet_y=112;
 
 support_wood=in/2;
-support_w=support*3;
-support_brace=100;
+support_w=support*7;
+support_brace=80;
 support_brace_ramp=support_brace/2;
-
 
 show_labels=false;
 
-module assembled() {
+include_horizontal_brace=false;
+include_angled_brace=false;
+old_braces=false;
+
+module assembled(travel=max_travel/2) {
     weights();
+    dirror_x()
+    //rotate([0,0,-54]) translate([base/2-ingot_base_x/2+20,0]) color("gray") ingot();
 
     place_outlet() {
         outlet_magnets();
@@ -120,29 +141,71 @@ module assembled() {
 
     ring();
 
+    if(old_braces)
     place_supports() support_and_brace();
 
-    router();
+    place_router(travel) router();
+    //place_router(0) router();
+    //place_router(max_travel) router();
 
     place_rails() rails();
 
     top_3d();
-    base_3d();
+    #base_3d();
     tower_3d();
 
+
+    if(include_horizontal_brace)
     angle_brace_3d();
 
+    if(include_horizontal_brace)
     horizontal_brace_3d();
 
     dust_3d();
 
-    place_sled() sled_3d();
+    place_sled(travel) sled_3d();
+    //place_sled(0) sled_3d();
+    //place_sled(max_travel) sled_3d();
 
     z_bracket();
 }
 
 //rotate([0,0,$t*360])
 assembled();
+
+skid_angle=55;
+skid_grip=(base-top_window)/2-30;
+skid_h=box_h;
+skid_overhang=tan(skid_angle)*skid_h;
+skid_wood=box_wood;
+skid_offset=6;
+skid_range=240;
+skids=10;
+skid_gap=skid_range/(skids-1);
+
+
+module skids() {
+    for(z=[0:skid_gap:skid_range])
+    rotate([0,0,-30+z])
+    translate([base/2,skid_wood/2])
+    rotate([90,0])
+    linear_extrude(height=skid_wood)
+    skid();
+}
+
+// RENDER scad
+module skid() {
+    difference() {
+        hull() {
+            translate([-skid_grip,0])
+            square([skid_grip+skid_offset,box_h]);
+            translate([0,skid_h-zero])
+            square([skid_overhang+skid_offset,zero]);
+        }
+        translate([-skid_grip,box_h])
+        square([skid_grip,skid_h]);
+    }
+}
 
 module label(text) {
     if(show_labels)
@@ -189,6 +252,7 @@ module outlet() {
 
 module outlet_magnets() {
     color("maroon")
+    rotate([0,0,360/6])
     my_z();
 }
 
@@ -261,35 +325,60 @@ module place_supports() {
     children();
 }
 
+module place_router(travel=max_travel/2) {
+    translate([0,0,travel+collet_h+chuck_h+spindle_h-base_wood])
+    children();
+}
+// RENDER scad
 module router() {
-    translate([0,0,tower_h/2-sled_y/2+box_h/2-20+travel]) {
-        color("orangered")
-        translate([0,0,router_body_h])
-        cylinder(d=cap,h=cap_h);
+    color("orangered")
+    translate([0,0,router_body_h])
+    cylinder(d=cap,h=cap_h);
 
-        color("gray")
-        cylinder(d=router,h=router_body_h);
+    color("gray")
+    cylinder(d=router,h=router_body_h);
+    lock=25;
+    lock_h=11;
 
-        color("silver")
-        translate([0,0,-chuck_h])
-        cylinder(d=chuck,h=chuck_h,$fn=6);
-
-        color("rosybrown")
-        translate([0,0,-chuck_h-bit_h])
-        cylinder(d=bit,h=bit_h);
+    color("gray")
+    intersection() {
+        translate([chuck/2+4,-lock/2,-lock_h])
+        cube([router,lock,lock_h]);
+        translate([0,0,-lock_h*2])
+        cylinder(d=router-pad*2,h=router_body_h);
     }
+
+    translate([0,0,-spindle_h])
+    cylinder(d=spindle,h=spindle_h);
+
+    color("silver")
+    translate([0,0,-chuck_h-spindle_h])
+    cylinder(d=chuck,h=chuck_h,$fn=6);
+
+
+    color("black")
+    translate([0,0,-collet_h-spindle_h-chuck_h])
+    cylinder(d=collet,h=collet_h);
+
+    color("rosybrown")
+    translate([0,0,-collet_h-spindle_h-chuck_h-bit_h])
+    cylinder(d=bit,h=bit_h);
 }
 
-leadscrew_h=rod_h;
 leadscrew=8;
 leadscrew_overhang=20;
+pillow_gap=(leadscrew_h-leadscrew_overhang)/5*4;
 
 // RENDER scad
 module rails() {
 
     dirror_x()
-    dirror_y()
     translate([rod_gap/2,bracket_gap/2,sk[2]])
+    rotate([90,0])
+    sk_bracket(sk);
+
+    dirror_x()
+    translate([rod_gap/2,-16,sk[2]])
     rotate([90,0])
     sk_bracket(sk);
 
@@ -300,9 +389,10 @@ module rails() {
 
     rail_center=box_h+(tower_h-box_h)/2;
 
-    translate([0,rail_center+leadscrew_h/2-tower_h-leadscrew_overhang,0]) {
+    //translate([0,rail_center+leadscrew_h/2-tower_h-leadscrew_overhang,0]) {
+    translate([0,leadscrew_h/2-tower_h/2,0]) {
 
-        translate([0,0,pillow[2]])
+        translate([0,-leadscrew_overhang,pillow[2]])
         rotate([90,0,0])
         leadscrew(leadscrew,leadscrew_h,8,4);
 
@@ -353,9 +443,11 @@ module sled_3d() {
     import("lead_screw_nut_block.stl"); // https://www.thingiverse.com/thing:4050066
 }
 
-module place_sled() {
+module place_sled(travel=max_travel/2) {
     place_rails()
-    translate([0,-travel,sk[2]+scs[2]+sled_wood])
+    //translate([0,0,travel+collet_h+chuck_h+spindle_h-base_wood])
+    //translate([0,sled_y/2-collet_h-chuck_h-spindle_h,sk[2]+scs[2]+sled_wood])
+    translate([0,tower_h/2-sled_y/2+base_wood/2-collet_h-chuck_h-spindle_h-travel,sk[2]+scs[2]+sled_wood])
     children();
 }
 
@@ -365,7 +457,7 @@ module sled() {
 
 
 module place_rails() {
-    translate([0,tower-base/2+tower_wood,box_h+(tower_h-box_h)/2])
+    translate([0,tower-base/2+tower_wood,tower_h/2])
     rotate([-90,0,0])
     children();
 }
@@ -382,32 +474,48 @@ tower_top_pins=4;
 // RENDER scad
 module top() {
     difference() {
-        circle(d=base);
-        circle(d=window);
-        translate([0,tower/2-base/2])
-        square([base,tower],center=true);
-        dirror_x()
-        translate([dust/2,tower-base/2])
-        dirror_x(dust_wood)
-        my_negative_tails(dust_x-dust_tower,dust_wood,dust_box_pins);
+        circle(d=top);
+        circle(d=top_window);
+        translate([-top_window/2,0])
+        square([top_window,beam_gap]);
 
+        translate([0,tower/2-base/2-(top-base)/2]) square([dust+dust_wood*2,tower+(top-base)],center=true);
+
+
+        if(include_horizontal_brace)
         translate([hb_x/2,hb-base/2-box_wood])
         rotate([0,0,90])
         dirror_x(box_wood) 
         my_negative_tails(hb_x,box_wood,hb_top_pins,0);
 
+        if(include_angled_brace)
         place_angle_brace()
         translate([ab_x/2,-box_wood])
         rotate([0,0,90]) 
         dirror_x(box_wood) 
         my_negative_tails(ab_x,box_wood,ab_top_pins,0);
 
-        translate([tower_top_x/2,tower-base/2-pad])
-        rotate([0,0,90])
-        my_negative_pins(tower_top_x,tower_wood+pad,tower_top_pins,0);
-
+        if(old_braces)
         place_supports() support_and_brace_hole();
+        beam_slot();
     }
+}
+
+module cross() {
+    children();
+    rotate([0,0,90])
+    children();
+}
+
+module beam_slot() {
+    for(y=[-beam_max:beam_gap:beam_max])
+    for(x=[-beam_max:beam_gap:beam_max])
+    translate([x,y])
+    cross()
+    dirror_x()
+    dirror_y()
+    translate([-box_wood/2,-beam_pin/2])
+    negative_slot(beam_pin,box_wood,pintail_ear,pintail_extra);
 }
 
 module place_angle_brace() {
@@ -461,6 +569,63 @@ module tower_3d() {
     tower();
 }
 
+module beam_3d(n=0,x=0) {
+    translate([0,n])
+    rotate([90,0])
+    linear_extrude(height=box_wood,center=true)
+    beam(n,x);
+}
+
+for(y=[-beam_max:beam_gap:beam_max])
+beam_3d(y,0);
+
+rotate([0,0,90])
+for(x=[-beam_max:beam_gap:beam_max])
+beam_3d(x,1);
+
+beam_tail=beam_gap/3*2;
+beam_pin=beam_gap-beam_tail;
+
+module beam_base(n=0) {
+
+    my_base=base/2+base_wood/2;
+    b=chord(my_base+n,my_base);
+    t=chord(top/2+n,top/2);
+    hull() {
+        translate([-b/2,0])
+        square([b,zero]);
+
+        translate([-t/2,box_h-box_wood])
+        square([t,box_wood]);
+    }
+
+}
+
+// RENDER scad
+module beam(n=0,x=0) {
+
+    difference() {
+        beam_base(n);
+        for(y=[-beam_max-beam_gap/2:beam_gap:beam_max+beam_gap])
+        translate([-beam_tail/2+y,box_h+pad])
+        rotate([0,0,-90])
+        dirror_y(beam_tail)
+        negative_slot(beam_tail,box_wood+pad,pintail_ear,pintail_extra);
+
+        if(x) {
+            if(n > -dust/2 && n < dust/2) {
+                translate([beam_gap-top,-pad])
+                square([top,box_h+pad*2]);
+            }
+        } else {
+            if(n < beam_gap) {
+                translate([-dust/2,-pad])
+                square([dust,box_h+pad*2]);
+            }
+        }
+    }
+}
+
 // RENDER scad
 module tower() {
     difference() {
@@ -469,19 +634,14 @@ module tower() {
             square([tower_x,box_h],center=true);
             square([tower_top,tower_h],center=true);
         }
-        translate([0,box_h/2-tower_h/2-box_wood])
-        square([dust,box_h],center=true);
+        translate([0,box_h/2-tower_h/2])
+        square([base*2,box_h],center=true);
 
         dirror_x()
         translate([dust/2,-tower_h/2+box_h])
         dirror_x(dust_wood)
         my_negative_tails(tower_h-box_h,dust_wood,tower_dust_pins);
 
-        
-        translate([tower_top_x/2,box_h-box_wood-tower_h/2])
-        rotate([0,0,90])
-        dirror_x(box_wood)
-        my_negative_tails(tower_top_x,box_wood,tower_top_pins,0);
 
     }
 }
@@ -524,49 +684,58 @@ module angle_brace() {
 module dust_3d() {
     color("sienna")
     dirror_x()
-    translate([dust/2,dust_x/2-dust_max/2,box_h/2])
+    translate([dust/2+dust_wood/2,0,0])
     rotate([90,0,90])
-    linear_extrude(height=dust_wood)
+    linear_extrude(height=dust_wood,center=true)
     dust();
 }
 
 module place_outlet() {
-    translate([0,outlet_wood-dust_max/2])
-    rotate([90-dust_angle,0])
-    translate([0,outlet_y/2,outlet_wood]) 
+    translate([0,-dust_max/2,box_h])
+    rotate([dust_angle,0])
+    translate([0,outlet_y/2,0]) 
     children();
 }
 
 tower_dust_pins=3;
 dust_box_pins=1;
 
-// PREVIEW
+
+dust_max=chord(top/2+dust/2+dust_wood/2,top/2);
+dust_tower=dust_max/2-base/2+tower;
+dust_angle=atan((tower_h-box_h)/dust_tower);
+
+echo(top=top);
+echo(dust_max=dust_max);
+echo(tower=tower);
+echo(dust_tower=dust_tower);
+echo(tower_h=tower_h);
+echo(box_h=box_h);
+
 // RENDER scad
 module dust() {
     difference() {
         union() {
-            translate([tower-tower/2,0])
-            square([dust_x-tower,box_h],center=true);
+            beam_base(dust/2+dust_wood/2);
             hull() {
-                translate([dust_tower-dust_x/2+tower_wood/2,tower_h/2-box_h/2])
+                translate([tower-base/2+tower_wood/2,tower_h/2])
                 square([tower_wood,tower_h],center=true);
 
-                translate([dust_tower/2-dust_x/2,-box_h/2])
-                square([dust_tower,zero],center=true);
+                difference() {
+                    beam_base(dust/2+dust_wood/2);
+                    translate([tower-base/2,-pad])
+                    square([top,box_h+pad*2]);
+                }
             }
         }
-        translate([outlet_wood-dust_x/2,-box_h/2])
-        rotate([0,0,-dust_angle])
-        translate([-outlet_wood+pad,0])
+        translate([-dust_max/2,box_h])
+        rotate([0,0,dust_angle-90])
+        translate([-pad,0])
         my_negative_pins(outlet_y,outlet_wood+pad,outlet_pins,0);
 
-        translate([pad-dust_x/2+dust_tower+tower_wood,box_h/2])
+        translate([pad-base/2+tower+tower_wood,box_h,0])
         mirror([1,0])
         my_negative_pins(tower_h-box_h,tower_wood+pad,tower_dust_pins,0);
-
-        translate([dust_tower-dust_x/2,pad+box_h/2])
-        rotate([0,0,-90])
-        my_negative_pins(dust_x-dust_tower,box_wood+pad,dust_box_pins,0);
     }
 
 }
@@ -644,7 +813,7 @@ module placed_ingot_horizontal() {
 
 
 module place_ingot() {
-    angle=-45;
+    angle=-90;
     hyp = ingot_base_x/2;
     x = cos(angle)*hyp;
     y = sin(angle)*hyp;
@@ -714,5 +883,5 @@ module ingot_tree(pad=0) {
 
 module ingot_assembled() {
     place_ingot() { ingot(); ingot_tree(); }
-    part();
+    //part();
 }
