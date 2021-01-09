@@ -10,7 +10,7 @@ use <maslow_ingot_mount.scad>;
 use <joints.scad>;
 use <../hose_couplers.scad>;
 
-show_threads=false; // shows the lead screw or not, no impact on output 
+show_threads=true; // shows the lead screw or not, no impact on output 
 base=500; // diameter of sled
 
 in=25.4;
@@ -64,6 +64,7 @@ tower_wood=in/2;
 tower=base/2-tower_wood-sk[2]-scs[2]-sled_wood-router/2-router_to_sled;
 tower_h=355; // meticulous Z
 tower_x=chord(tower,base/2);
+tower_top_x=chord(tower+tower_wood,base/2);
 
 tower_top=dust+dust_wood*2;
 
@@ -76,6 +77,7 @@ ab_dlt=atan(ab_opp/ab_adj);
 ab=sqrt((ab_adj*ab_adj)+(ab_opp*ab_opp));
 ab_x_offset=20;
 ab_less=40;
+ab_x=ab-ab_less;
 
 //sk_bracket(SK8);
 
@@ -135,6 +137,8 @@ module assembled() {
     dust_3d();
 
     place_sled() sled_3d();
+
+    z_bracket();
 }
 
 //rotate([0,0,$t*360])
@@ -194,9 +198,17 @@ module ring() {
     import("Ring.stl");
 }
 
+module z_bracket() {
+    color("dimgray")
+    translate([0,tower-base/2,tower_h])
+    rotate([180,0])
+    translate([-20,2,2])
+    import("Z-Axis Bracket.stl");
+}
+
 module support() {
     square([support,support_h],center=true);
-    translate([0,box_h/2-support_h/2])
+    translate([0,box_h/2-support_h/2-box_wood/2])
     square([support_w,box_h-box_wood],center=true);
 }
 
@@ -208,27 +220,44 @@ module support_brace() {
     square([support_brace,box_h-box_wood]);
 }
 
+// RENDER scad
 module support_and_brace() {
+    translate([0,0,support_h/2])
     color("saddlebrown")
     rotate([90,0])
     linear_extrude(height=support_wood)
     support();
 
     color("sienna")
-    translate([-support_wood/2,0,-support_h/2])
+    translate([-support_wood/2,0,0])
     rotate([90,0,90])
     linear_extrude(height=support_wood)
     support_brace();
+
+}
+
+module support_and_brace_hole() {
+    translate([support/2,-support_wood])
+    rotate([0,0,90])
+    dirror_y(support)
+    dirror_x(support_wood)
+    negative_slot(support,support_wood,pintail_ear,pintail_extra);
+
+    
+    translate([-support_wood/2,0])
+    dirror_x(support_wood)
+    negative_slot(support_brace_ramp,support_wood,pintail_ear,pintail_extra);
+
 }
 
 module place_supports() {
-    translate([0,support_wood+ring_top,support_h/2])
+    translate([0,support_wood+ring_top,0])
     children();
 
     dirror_x()
     translate(-ring_side)
     rotate([0,0,180-ring_side_angle])
-    translate([0,support_wood,support_h/2])
+    translate([0,support_wood,0])
     children();
 }
 
@@ -251,6 +280,11 @@ module router() {
     }
 }
 
+leadscrew_h=rod_h;
+leadscrew=8;
+leadscrew_overhang=20;
+
+// RENDER scad
 module rails() {
 
     dirror_x()
@@ -259,19 +293,24 @@ module rails() {
     rotate([90,0])
     sk_bracket(sk);
 
-    dirror_y()
-    translate([0,pillow_gap/2,pillow[2]])
-    rotate([90,0])
-    kp_pillow_block(pillow);
-
-    translate([0,0,pillow[2]])
-    rotate([90,0,0])
-    leadscrew(rod,rod_h,8,4);
-
     dirror_x()
     translate([rod_gap/2,0,sk[2]])
     rotate([90,0,0])
     rod(rod,rod_h);
+
+    rail_center=box_h+(tower_h-box_h)/2;
+
+    translate([0,rail_center+leadscrew_h/2-tower_h-leadscrew_overhang,0]) {
+
+        translate([0,0,pillow[2]])
+        rotate([90,0,0])
+        leadscrew(leadscrew,leadscrew_h,8,4);
+
+        dirror_y()
+        translate([0,pillow_gap/2,pillow[2]])
+        rotate([90,0])
+        kp_pillow_block(pillow);
+    }
 
 
 }
@@ -338,15 +377,56 @@ module base() {
     }
 }
 
+tower_top_pins=4;
+
+// RENDER scad
 module top() {
     difference() {
         circle(d=base);
         circle(d=window);
         translate([0,tower/2-base/2])
         square([base,tower],center=true);
+        dirror_x()
+        translate([dust/2,tower-base/2])
+        dirror_x(dust_wood)
+        my_negative_tails(dust_x-dust_tower,dust_wood,dust_box_pins);
 
+        translate([hb_x/2,hb-base/2-box_wood])
+        rotate([0,0,90])
+        dirror_x(box_wood) 
+        my_negative_tails(hb_x,box_wood,hb_top_pins,0);
+
+        place_angle_brace()
+        translate([ab_x/2,-box_wood])
+        rotate([0,0,90]) 
+        dirror_x(box_wood) 
+        my_negative_tails(ab_x,box_wood,ab_top_pins,0);
+
+        translate([tower_top_x/2,tower-base/2-pad])
+        rotate([0,0,90])
+        my_negative_pins(tower_top_x,tower_wood+pad,tower_top_pins,0);
+
+        place_supports() support_and_brace_hole();
     }
 }
+
+module place_angle_brace() {
+    dirror_x()
+    translate([0,base/2])
+    rotate([0,0,ab_dlt-90])
+    translate([ab/2,ab_x_offset,0])
+    children();
+}
+
+module angle_brace_3d() {
+    color("chocolate")
+    place_angle_brace()
+    translate([0,0,box_h/2])
+    rotate([90,0])
+    linear_extrude(height=box_wood)
+    angle_brace();
+}
+
 
 module top_3d() {
     color("tan")
@@ -389,18 +469,35 @@ module tower() {
             square([tower_x,box_h],center=true);
             square([tower_top,tower_h],center=true);
         }
-        translate([0,box_h/2-tower_h/2])
+        translate([0,box_h/2-tower_h/2-box_wood])
         square([dust,box_h],center=true);
 
         dirror_x()
         translate([dust/2,-tower_h/2+box_h])
         dirror_x(dust_wood)
-        my_negative_tails(tower_h-box_h,dust_wood,tower_dust_pins,0);
+        my_negative_tails(tower_h-box_h,dust_wood,tower_dust_pins);
+
+        
+        translate([tower_top_x/2,box_h-box_wood-tower_h/2])
+        rotate([0,0,90])
+        dirror_x(box_wood)
+        my_negative_tails(tower_top_x,box_wood,tower_top_pins,0);
+
     }
 }
 
+hb_x=chord(hb,base/2);
+hb_top_pins=4;
+
+// RENDER scad
 module horizontal_brace() {
-    square([chord(hb,base/2),box_h],center=true);
+    difference() {
+        
+        square([hb_x,box_h],center=true);
+        translate([-hb_x/2,box_h/2+pad])
+        rotate([0,0,-90])
+        my_negative_pins(hb_x,box_wood+pad,hb_top_pins,0);
+    }
 }
 
 module horizontal_brace_3d() {
@@ -411,20 +508,18 @@ module horizontal_brace_3d() {
     horizontal_brace();
 } 
 
+ab_top_pins=3;
+
+// RENDER scad
 module angle_brace() {
-    square([ab-ab_less,box_h],center=true);
+    difference() {
+        square([ab_x,box_h],center=true);
+        translate([-ab_x/2,box_h/2+pad])
+        rotate([0,0,-90])
+        my_negative_pins(ab_x,box_wood+pad,ab_top_pins,0);
+    }
 }
 
-module angle_brace_3d() {
-    color("chocolate")
-    dirror_x()
-    translate([0,base/2])
-    rotate([0,0,ab_dlt-90])
-    translate([ab/2,ab_x_offset,box_h/2])
-    rotate([90,0])
-    linear_extrude(height=box_wood)
-    angle_brace();
-}
 
 module dust_3d() {
     color("sienna")
@@ -443,6 +538,7 @@ module place_outlet() {
 }
 
 tower_dust_pins=3;
+dust_box_pins=1;
 
 // PREVIEW
 // RENDER scad
@@ -467,6 +563,10 @@ module dust() {
         translate([pad-dust_x/2+dust_tower+tower_wood,box_h/2])
         mirror([1,0])
         my_negative_pins(tower_h-box_h,tower_wood+pad,tower_dust_pins,0);
+
+        translate([dust_tower-dust_x/2,pad+box_h/2])
+        rotate([0,0,-90])
+        my_negative_pins(dust_x-dust_tower,box_wood+pad,dust_box_pins,0);
     }
 
 }
