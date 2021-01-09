@@ -7,6 +7,7 @@ include <NopSCADlib/vitamins/scs_bearing_blocks.scad>;
 include <NopSCADlib/vitamins/leadnuts.scad>;
 
 use <maslow_ingot_mount.scad>;
+use <joints.scad>;
 use <../hose_couplers.scad>;
 
 show_threads=false; // shows the lead screw or not, no impact on output 
@@ -151,13 +152,6 @@ module weights() {
     ingot_assembled();
 }
 
-module place_outlet() {
-    translate([0,outlet_wood-dust_max/2])
-    rotate([90-dust_angle,0])
-    translate([0,outlet_y/2,outlet_wood]) 
-    children();
-}
-
 module outlet_3d() {
     color("tan")
     translate([0,0,-outlet_wood])
@@ -165,11 +159,27 @@ module outlet_3d() {
     outlet();
 }
 
-// RENDER scad
+outlet_pins=2;
+pintail_gap=in/64;
+pintail_hole=in/8;
+pintail_ear=bit;
+pintail_extra=0;
+
+module my_negative_tails(edge,depth,pins,hole=1) {
+    negative_tails(edge,depth,pins,pintail_gap,pintail_hole*hole,pintail_ear,pintail_extra);
+}
+
+module my_negative_pins(edge,depth,pins,hole=1) {
+    negative_pins(edge,depth,pins,pintail_gap,pintail_hole*hole,pintail_ear,pintail_extra);
+}
+
 module outlet() {
     difference() {
         square([outlet_x,outlet_y],center=true);
         circle(d=4*in);
+        dirror_x()
+        translate([-outlet_x/2-pad,-outlet_y/2])
+        my_negative_tails(outlet_y,dust_wood+pad,outlet_pins);
     }
 }
 
@@ -219,12 +229,6 @@ module place_supports() {
     translate(-ring_side)
     rotate([0,0,180-ring_side_angle])
     translate([0,support_wood,support_h/2])
-    children();
-}
-
-module dirror_y() {
-    children();
-    mirror([0,1])
     children();
 }
 
@@ -377,6 +381,7 @@ module tower_3d() {
     tower();
 }
 
+// RENDER scad
 module tower() {
     difference() {
         hull() {
@@ -386,6 +391,11 @@ module tower() {
         }
         translate([0,box_h/2-tower_h/2])
         square([dust,box_h],center=true);
+
+        dirror_x()
+        translate([dust/2,-tower_h/2+box_h])
+        dirror_x(dust_wood)
+        my_negative_tails(tower_h-box_h,dust_wood,tower_dust_pins,0);
     }
 }
 
@@ -405,12 +415,6 @@ module angle_brace() {
     square([ab-ab_less,box_h],center=true);
 }
 
-module dirror_x() {
-    children();
-    mirror([1,0])
-    children();
-}
-
 module angle_brace_3d() {
     color("chocolate")
     dirror_x()
@@ -422,7 +426,6 @@ module angle_brace_3d() {
     angle_brace();
 }
 
-
 module dust_3d() {
     color("sienna")
     dirror_x()
@@ -432,18 +435,40 @@ module dust_3d() {
     dust();
 }
 
+module place_outlet() {
+    translate([0,outlet_wood-dust_max/2])
+    rotate([90-dust_angle,0])
+    translate([0,outlet_y/2,outlet_wood]) 
+    children();
+}
+
+tower_dust_pins=3;
+
+// PREVIEW
 // RENDER scad
 module dust() {
-    translate([tower-tower/2,0])
-    square([dust_x-tower,box_h],center=true);
+    difference() {
+        union() {
+            translate([tower-tower/2,0])
+            square([dust_x-tower,box_h],center=true);
+            hull() {
+                translate([dust_tower-dust_x/2+tower_wood/2,tower_h/2-box_h/2])
+                square([tower_wood,tower_h],center=true);
 
-    hull() {
-        translate([dust_tower-dust_x/2+tower_wood/2,tower_h/2-box_h/2])
-        square([tower_wood,tower_h],center=true);
+                translate([dust_tower/2-dust_x/2,-box_h/2])
+                square([dust_tower,zero],center=true);
+            }
+        }
+        translate([outlet_wood-dust_x/2,-box_h/2])
+        rotate([0,0,-dust_angle])
+        translate([-outlet_wood+pad,0])
+        my_negative_pins(outlet_y,outlet_wood+pad,outlet_pins,0);
 
-        translate([dust_tower/2-dust_x/2,-box_h/2])
-        square([dust_tower,zero],center=true);
+        translate([pad-dust_x/2+dust_tower+tower_wood,box_h/2])
+        mirror([1,0])
+        my_negative_pins(tower_h-box_h,tower_wood+pad,tower_dust_pins,0);
     }
+
 }
 
 
