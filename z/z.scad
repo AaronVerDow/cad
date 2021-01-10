@@ -14,7 +14,7 @@ in=25.4;
 box_wood=in/4;
 base_wood=box_wood;
 box_h=1.5*in-base_wood;
-show_threads=false; // shows the lead screw or not, no impact on output 
+show_threads=true; // shows the lead screw or not, no impact on output 
 //base=500; // diameter of sled
 base=450; // diameter of sled
 top=base+box_h*2;;
@@ -130,7 +130,6 @@ old_braces=false;
 
 module assembled(travel=max_travel/2) {
     weights();
-    dirror_x()
     //rotate([0,0,-54]) translate([base/2-ingot_base_x/2+20,0]) color("gray") ingot();
 
     place_outlet() {
@@ -476,11 +475,11 @@ module top() {
     difference() {
         circle(d=top);
         circle(d=top_window);
-        translate([-top_window/2,0])
-        square([top_window,beam_gap]);
+        translate([-top_window/2,-top_window/2])
+        square([top_window,beam_gap+top_window/2-box_wood/2]);
 
-        translate([0,tower/2-base/2-(top-base)/2]) square([dust+dust_wood*2,tower+(top-base)],center=true);
-
+        translate([0,tower/2-base/2-(top-base)/2+tower_wood/2])
+        square([top,tower+(top-base)+tower_wood],center=true);
 
         if(include_horizontal_brace)
         translate([hb_x/2,hb-base/2-box_wood])
@@ -497,7 +496,17 @@ module top() {
 
         if(old_braces)
         place_supports() support_and_brace_hole();
-        beam_slot();
+    
+        difference() {
+            beam_slot();
+            translate([0,-top/4])
+            square([dust,top/2],center=true);
+        }
+
+        dirror_x()
+        translate([dust/2,beam_gap])
+        dirror_x(dust_wood)
+        my_negative_tails(dust_max/2-beam_gap,dust_wood,1);
     }
 }
 
@@ -602,7 +611,7 @@ module beam_base(n=0) {
 }
 
 // RENDER scad
-module beam(n=0,x=0) {
+module beam(n=beam_gap,y=1) {
 
     difference() {
         beam_base(n);
@@ -612,16 +621,23 @@ module beam(n=0,x=0) {
         dirror_y(beam_tail)
         negative_slot(beam_tail,box_wood+pad,pintail_ear,pintail_extra);
 
-        if(x) {
+        if(y) {
             if(n > -dust/2 && n < dust/2) {
                 translate([beam_gap-top,-pad])
                 square([top,box_h+pad*2]);
+
             }
+            translate([tower-top-base/2+tower_wood,-pad])
+            square([top,box_h+pad*2]);
         } else {
             if(n < beam_gap) {
                 translate([-dust/2,-pad])
                 square([dust,box_h+pad*2]);
             }
+            if(n < -base/2+tower )
+            translate([-top/2,-pad])
+            square([top,box_h+pad*2]);
+
         }
     }
 }
@@ -630,12 +646,14 @@ module beam(n=0,x=0) {
 module tower() {
     difference() {
         hull() {
-            translate([0,box_h/2-tower_h/2])
-            square([tower_x,box_h],center=true);
+            translate([0,box_h/2-tower_h/2]) square([tower_x,box_h],center=true);
+            translate([0,-tower_h/2])
+            beam_base(tower+tower_wood*1.5);
             square([tower_top,tower_h],center=true);
         }
+
         translate([0,box_h/2-tower_h/2])
-        square([base*2,box_h],center=true);
+        square([dust,box_h],center=true);
 
         dirror_x()
         translate([dust/2,-tower_h/2+box_h])
@@ -691,7 +709,7 @@ module dust_3d() {
 }
 
 module place_outlet() {
-    translate([0,-dust_max/2,box_h])
+    translate([0,-base/2,0])
     rotate([dust_angle,0])
     translate([0,outlet_y/2,0]) 
     children();
@@ -703,14 +721,19 @@ dust_box_pins=1;
 
 dust_max=chord(top/2+dust/2+dust_wood/2,top/2);
 dust_tower=dust_max/2-base/2+tower;
-dust_angle=atan((tower_h-box_h)/dust_tower);
+//dust_angle=atan((tower_h-box_h)/dust_tower);
 
-echo(top=top);
-echo(dust_max=dust_max);
-echo(tower=tower);
-echo(dust_tower=dust_tower);
-echo(tower_h=tower_h);
-echo(box_h=box_h);
+dust_angle=75;
+
+
+module place_dust_outlet() {
+    //translate([-dust_max/2,box_h])
+    translate([-base/2,0])
+    rotate([0,0,dust_angle-90])
+    children();
+}
+
+dust_tower_min=tower_wood*2;
 
 // RENDER scad
 module dust() {
@@ -718,9 +741,13 @@ module dust() {
         union() {
             beam_base(dust/2+dust_wood/2);
             hull() {
-                translate([tower-base/2+tower_wood/2,tower_h/2])
-                square([tower_wood,tower_h],center=true);
+                translate([tower-base/2,tower_h/2])
+                square([dust_tower_min,tower_h],center=true);
+                
+                place_dust_outlet()
+                square([outlet_wood,outlet_y]);
 
+                if(0)
                 difference() {
                     beam_base(dust/2+dust_wood/2);
                     translate([tower-base/2,-pad])
@@ -728,14 +755,21 @@ module dust() {
                 }
             }
         }
-        translate([-dust_max/2,box_h])
-        rotate([0,0,dust_angle-90])
+        place_dust_outlet()
         translate([-pad,0])
         my_negative_pins(outlet_y,outlet_wood+pad,outlet_pins,0);
 
         translate([pad-base/2+tower+tower_wood,box_h,0])
         mirror([1,0])
         my_negative_pins(tower_h-box_h,tower_wood+pad,tower_dust_pins,0);
+
+        translate([beam_gap,box_h+pad])
+        rotate([0,0,-90])
+        my_negative_pins(dust_max/2-beam_gap,box_wood+pad,1,0);
+
+        translate([-base/2+tower,box_h+pad-box_wood])
+        square([base/2-tower+beam_gap+pad,box_wood+pad]);
+    
     }
 
 }
@@ -813,7 +847,7 @@ module placed_ingot_horizontal() {
 
 
 module place_ingot() {
-    angle=-90;
+    angle=-45;
     hyp = ingot_base_x/2;
     x = cos(angle)*hyp;
     y = sin(angle)*hyp;
@@ -883,5 +917,5 @@ module ingot_tree(pad=0) {
 
 module ingot_assembled() {
     place_ingot() { ingot(); ingot_tree(); }
-    //part();
+    part();
 }
