@@ -128,6 +128,25 @@ include_horizontal_brace=false;
 include_angled_brace=false;
 old_braces=false;
 
+tower_dust_pins=2;
+dust_box_pins=1;
+dust_max=chord(top/2+dust/2+dust_wood/2,top/2);
+dust_tower=dust_max/2-base/2+tower;
+//dust_angle=atan((tower_h-box_h)/dust_tower);
+dust_angle=75;
+dust_tower_min=tower_wood*2;
+
+dust_clip=sk[2]+scs[2];
+outlet_adj=cos(dust_angle)*outlet_y;
+outlet_opp=sin(dust_angle)*outlet_y;
+ramp_adj=dust_clip+tower_wood;
+chute_adj=ramp_adj+tower-outlet_adj;
+chute_opp=outlet_opp-box_h;
+ramp_angle=atan(chute_opp/chute_adj);
+chute_angle=ramp_angle;
+chute_hyp=chute_opp/sin(chute_angle);
+ramp_opp=tan(ramp_angle)*ramp_adj;
+
 module assembled(travel=max_travel/2) {
     weights();
     //rotate([0,0,-54]) translate([base/2-ingot_base_x/2+20,0]) color("gray") ingot();
@@ -150,7 +169,7 @@ module assembled(travel=max_travel/2) {
     place_rails() rails();
 
     top_3d();
-    #base_3d();
+    //base_3d();
     tower_3d();
 
 
@@ -169,8 +188,13 @@ module assembled(travel=max_travel/2) {
     z_bracket();
 }
 
-//rotate([0,0,$t*360])
-assembled();
+assembled(max_travel);
+
+// ENDER gif
+module spin() {
+    rotate([0,0,$t*360])
+    assembled();
+}
 
 skid_angle=55;
 skid_grip=(base-top_window)/2-30;
@@ -475,11 +499,15 @@ module top() {
     difference() {
         circle(d=top);
         circle(d=top_window);
+
         translate([-top_window/2,-top_window/2])
         square([top_window,beam_gap+top_window/2-box_wood/2]);
 
         translate([0,tower/2-base/2-(top-base)/2+tower_wood/2])
         square([top,tower+(top-base)+tower_wood],center=true);
+
+        translate([0,dust_clip/2-base/2+tower+tower_wood-pad])
+        square([dust+dust_wood*2,dust_clip+pad],center=true);
 
         if(include_horizontal_brace)
         translate([hb_x/2,hb-base/2-box_wood])
@@ -642,6 +670,8 @@ module beam(n=beam_gap,y=1) {
     }
 }
 
+tower_ramp_hole=ramp_opp;
+
 // RENDER scad
 module tower() {
     difference() {
@@ -652,13 +682,13 @@ module tower() {
             square([tower_top,tower_h],center=true);
         }
 
-        translate([0,box_h/2-tower_h/2])
-        square([dust,box_h],center=true);
+        translate([0,box_h/2-tower_h/2+tower_ramp_hole/2])
+        square([dust+dust_wood*2,box_h+tower_ramp_hole],center=true);
 
         dirror_x()
-        translate([dust/2,-tower_h/2+box_h])
+        translate([dust/2,-tower_h/2+box_h+tower_ramp_hole])
         dirror_x(dust_wood)
-        my_negative_tails(tower_h-box_h,dust_wood,tower_dust_pins);
+        my_negative_tails(tower_h-box_h-tower_ramp_hole,dust_wood,tower_dust_pins);
 
 
     }
@@ -700,12 +730,25 @@ module angle_brace() {
 
 
 module dust_3d() {
-    color("sienna")
     dirror_x()
     translate([dust/2+dust_wood/2,0,0])
-    rotate([90,0,90])
-    linear_extrude(height=dust_wood,center=true)
-    dust();
+    rotate([90,0,90]) {
+        color("sienna")
+        difference() {
+            linear_extrude(height=dust_wood,center=true)
+            dust();
+            translate([0,0,-dust_wood])
+            linear_extrude(height=dust_wood)
+            ramp_slot();
+        }
+
+        color("cyan")
+        translate([0,0,-dust-dust_wood])
+        linear_extrude(height=dust+dust_wood)
+        ramp_slot();
+    }
+
+
 }
 
 module place_outlet() {
@@ -715,17 +758,6 @@ module place_outlet() {
     children();
 }
 
-tower_dust_pins=3;
-dust_box_pins=1;
-
-
-dust_max=chord(top/2+dust/2+dust_wood/2,top/2);
-dust_tower=dust_max/2-base/2+tower;
-//dust_angle=atan((tower_h-box_h)/dust_tower);
-
-dust_angle=75;
-
-
 module place_dust_outlet() {
     //translate([-dust_max/2,box_h])
     translate([-base/2,0])
@@ -733,45 +765,75 @@ module place_dust_outlet() {
     children();
 }
 
-dust_tower_min=tower_wood*2;
 
 // RENDER scad
 module dust() {
     difference() {
         union() {
-            beam_base(dust/2+dust_wood/2);
-            hull() {
-                translate([tower-base/2,tower_h/2])
-                square([dust_tower_min,tower_h],center=true);
+            difference() { 
+                // base
+                beam_base(dust/2+dust_wood/2);
                 
-                place_dust_outlet()
-                square([outlet_wood,outlet_y]);
-
-                if(0)
-                difference() {
-                    beam_base(dust/2+dust_wood/2);
-                    translate([tower-base/2,-pad])
-                    square([top,box_h+pad*2]);
-                }
+                // minus tower
+                translate([-top-base/2+tower,-pad])
+                square([top,box_h+pad*2]);
             }
+            difference() {
+                hull() {
+                    // min tower
+                    translate([tower-base/2,tower_h/2])
+                    square([dust_tower_min,tower_h],center=true);
+                    
+                    // outlet
+                    place_dust_outlet()
+                    square([zero,outlet_y]);
+
+                    // ramped back if(0) difference() { beam_base(dust/2+dust_wood/2); translate([tower-base/2,-pad]) square([top,box_h+pad*2]); }
+                }
+                // space for ramp
+                translate([tower-base/2,0])
+                square([tower_wood+pad,box_h+tower_ramp_hole+pad]);
+            }
+            
+            hull() {
+                // ramp 
+                translate([tower-base/2+dust_clip+tower_wood,box_h])
+                rotate([0,0,180-ramp_angle])
+                square([chute_hyp,zero]);
+
+                // below tower
+                translate([-base/2+tower_wood,0]) // this is wrong
+                square([tower,zero]);
+            }
+            
+
         }
+
         place_dust_outlet()
         translate([-pad,0])
         my_negative_pins(outlet_y,outlet_wood+pad,outlet_pins,0);
 
-        translate([pad-base/2+tower+tower_wood,box_h,0])
+        translate([pad-base/2+tower+tower_wood,box_h+tower_ramp_hole,0])
         mirror([1,0])
-        my_negative_pins(tower_h-box_h,tower_wood+pad,tower_dust_pins,0);
+        my_negative_pins(tower_h-box_h-tower_ramp_hole,tower_wood+pad,tower_dust_pins,0);
 
         translate([beam_gap,box_h+pad])
         rotate([0,0,-90])
         my_negative_pins(dust_max/2-beam_gap,box_wood+pad,1,0);
 
-        translate([-base/2+tower,box_h+pad-box_wood])
-        square([base/2-tower+beam_gap+pad,box_wood+pad]);
+        translate([-base/2+tower+tower_wood+dust_clip,box_h+pad-box_wood])
+        square([base/2-tower+beam_gap+pad-tower_wood-dust_clip,box_wood+pad]);
     
     }
+}
 
+ramp_h=in/8;
+
+module ramp_slot(){
+    translate([tower-base/2+dust_clip+tower_wood,box_h])
+    rotate([0,0,180-ramp_angle])
+    translate([0,-pad])
+    square([chute_hyp-outlet_wood,ramp_h+pad]);
 }
 
 
@@ -916,6 +978,7 @@ module ingot_tree(pad=0) {
 }
 
 module ingot_assembled() {
+    translate([0,0,-pad*1.5])
     place_ingot() { ingot(); ingot_tree(); }
     part();
 }
