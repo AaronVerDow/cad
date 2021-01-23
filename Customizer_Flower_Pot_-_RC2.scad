@@ -3,17 +3,18 @@
 // All values in milimeters
 // Diameter of base - minimum is set later to 10, maximum to 350
 // (mm) measured from outer edge (min 10mm, max 350mm)
-base_diameter = 122; // my base
-base_diameter = 110; // my pot 
+//base_diameter = 122; // my base
+//base_diameter = 110; // my pot 
 base_diameter = 75; // my small pot 
-base_diameter = 75*122/110; // my small base 
+//base_diameter = 75*122/110; // my small base 
 
 // Height of the pot - min is set later to 10, max to 350
 // (mm) measured from bottom to top (min 10mm, max 350mm)
-height_of_pot = 22; // my base
-height_of_pot = 130; // my pot
+//height_of_pot = 22; // my base
+//height_of_pot = 130/2; // my cat grass pot
+//height_of_pot = 130; // my pot
 height_of_pot = 75*130/110; // my small pot
-height_of_pot = 75*22/110; // my small pot
+//height_of_pot = 75*22/110; // my small pot base
 
 // Angle of pot sides - 
 // (deg) Number of degrees past vertical
@@ -25,22 +26,22 @@ rim_side_angle = 5;   //[0:30]
 
 // Height of rim - 
 // (mm) excluding round-over : '0' gives round rim : S/B << Height of Pot
-height_of_rim = 22;   //[0:200] // my pot
+//height_of_rim = 22;   //[0:200] // my pot
 height_of_rim = 75*22/110;   //my small pot
 
 // Rim thickness - 
 // (mm) [0-10] '0' gives no rim
 rim_thickness = 1.2;  //my pot 
-rim_thickness = 0;   // my base
+//rim_thickness = 0;   // my base
 
 // Drain hole in the bottom? (usually "Yes" for pots)(cancels any risers)
 drain_hole = "Yes";  //[Yes,No] // my pot 
-drain_hole = "No";  //[Yes,No] // my base
+//drain_hole = "No";  //[Yes,No] // my base
 
 // Note: Drain hole == "Yes" turns off Risers.
 // Risers on inside-bottom to let pot drain? (usually "Yes" for saucers) 
 pot_risers = "No"; //[Yes,No] // my pot
-pot_risers = "Yes"; //[Yes,No] // my base
+//pot_risers = "Yes"; //[Yes,No] // my base
 
 // (mm) Thickness of the side walls [0-6.0] - if 0, software calculates based on diameter
 sidewall_thickness = 1.2;
