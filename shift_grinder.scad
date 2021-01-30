@@ -4,9 +4,10 @@ motor_h=12.5;
 weight=13;
 weight_h=12;
 
-stick=10.5;
+fudge=0.3;
+stick=10+fudge;
 stick_h=16;
-stick_flat=1.5;
+stick_flat=stick-8.5;
 
 $fn=90;
 pad=0.1;
@@ -25,7 +26,7 @@ screw_grip=2;
 
 screw_ring=motor+screw+8;
 
-screws=6;
+screws=5;
 
 bolt_head=10;
 bolt_head_h=2.5;
@@ -40,8 +41,8 @@ middle_h=13;
 
 wire=7;
 
-insides();
-//assembled(30);
+//insides();
+assembled(30);
 
 module motor(pad=0,extra=0) {
         cylinder(d=motor,h=motor_h+pad);
@@ -49,7 +50,7 @@ module motor(pad=0,extra=0) {
         cylinder(d=weight,h=weight_h+motor_h-pad+extra);
 }
 
-module wire() {
+module wire(wire=wire) {
     translate([0,motor/2,0])
     cylinder(d=wire,h=motor_h+pad);
     hull() {
@@ -94,7 +95,42 @@ module assembled(explode=0) {
 
     base();
 
+    translate([0,explode])
+    wire_key();
+
 }
+
+wire_key=wire-0.7;
+
+module slice(w,extra=0) {
+    difference() {
+        intersection() {
+            //ball();
+            cube([w,ball*1.1,ball*1.1],center=true);
+        }
+        translate([0,0,extra])
+        trim_top();
+        translate([0,-extra])
+        hull() {
+            wire(w+pad*2);
+            translate([0,-ball])
+            wire(w+pad*2);
+        }
+    }
+}
+
+// RENDER stl
+module wire_key() {
+    difference() {
+        intersection() {
+            slice(wire_key);
+            ball();
+        }
+        screws();
+    }
+}
+
+//base();
 
 module assembled_three(explode=0) {
     translate([0,0,explode*4.5])
@@ -137,7 +173,7 @@ module bolt(display=0) {
 
 module screws(extra=0,pilot=0,ring=screw_ring,base_extra=0) {
     for(r=[0:360/screws:359])
-    rotate([0,0,r])
+    rotate([0,0,r+90])
     translate([ring/2,0,motor_h+screw_grip]) {
         translate([0,0,-screw_h-base_extra])
         cylinder(d=screw+pilot,h=screw_h+pad+base_extra);
@@ -150,17 +186,22 @@ module screws(extra=0,pilot=0,ring=screw_ring,base_extra=0) {
     }
 }
 
+module trim_top() {
+    translate([0,0,ball/2+motor_h])
+    cube([ball,ball,ball],center=true);
+}
+
 // RENDER stl
 module base() {
     difference() {
         ball();
-        translate([0,0,ball/2+motor_h])
-        cube([ball,ball,ball],center=true);
+        trim_top();
         motor(pad);
         stick();
         screws();
         bolt();
         wire();
+        slice(wire,1);
     }
 }
 
