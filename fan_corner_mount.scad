@@ -2,7 +2,7 @@ fan=153;
 cage=141;
 screw=4;
 
-fan_h=11;
+fan_h=15.5;
 
 shock=3;
 shock_x=5.5;
@@ -24,7 +24,7 @@ screw_offset=7;
 
 pad=0.1;
 
-keep=30;
+keep=20;
 big_fn=400;
 $fn=90;
 
