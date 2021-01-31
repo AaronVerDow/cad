@@ -11,13 +11,15 @@ wall=5;
 
 pad=0.1;
 padd=pad*2;
-screw=4;
+screw=2.7;
+
+fan_screw=4;
 
 fan=120;
 fan_bolts=105/2;
 raise=6;
 
-module hole() {
+module hole(screw=screw) {
     translate([0,0,-pad])
     cylinder(d=screw,h=z+padd);
 }
@@ -29,14 +31,10 @@ module screw() {
 module fan() {
     translate([0,0,-pad])
     cylinder(d=fan,h=z+padd);
+    for(r=[0:90:359])
+    rotate([0,0,r])
     translate([fan_bolts,fan_bolts,0])
-    hole();
-    translate([-fan_bolts,fan_bolts,0])
-    hole();
-    translate([fan_bolts,-fan_bolts,0])
-    hole();
-    translate([-fan_bolts,-fan_bolts,0])
-    hole();
+    hole(fan_screw);
 }
 
 difference() {
