@@ -8,14 +8,15 @@ in=25.4;
 
 groove_d=0.25*in;
 
-groove=0.25*in*1.1;
+//groove=0.25*in*1.1;
+groove=0;
 
 side=rake_edge*2+rake_width*6+groove_d*2;
 
 top_h=12;
 base_h=10;
 wood=0.5*in;
-base_wood=0.25*in;
+base_wood=0.0625*in;
 
 side_h=top_h+base_wood*2+base_h;
 
@@ -75,6 +76,7 @@ module side_groove(x=edge) {
 }
 
 
+// RENDER stl
 module assembled() {
     for(n=[0:90:359])
     rotate([0,0,n])
