@@ -1,61 +1,158 @@
-screw=5;
-u=45;
-rail_inside=17.75*25.4;
-rail_outside=19.25*25.4;
-front_gap=80;
-us=13;
-depth=20*25.4;
-wall=60;
-walll=wall*2;
-max_x=rail_outside+walll;
-max_y=us*u+walll;
-max_z=depth+wall+front_gap;
-pad=0.1;
-padd=pad*2;
+use <vescher.scad>;
+in=25.4;
+total_h=7*12*in;
 
-module pillar(){ 
-    cylinder(d=wall, $fn=0, h=max_z);
-}
-module shell_face() {
-    for(n=[0:wall:max_x]) {
-        translate([0,n,0])
-        pillar();
+rack=38*in;
+base=75;
+
+width=19*in;
+
+depth=24*in;
+
+lip=4*in;
+
+//wood=in/4*3;
+wood=in/2;
+
+shelves=[
+    base-wood,
+    base+rack,
+    total_h-wood
+];
+
+side_wall=3*in;
+
+rack_wall=depth/2;
+
+top_back=18*in;
+
+castor_clearance=5*in;
+
+translate([-240,30,base+rack+wood])
+import("The_Wedge.stl");
+
+module side() {
+    walled_vescher([depth,total_h]) {
+        for(z=shelves)
+        translate([0,-side_wall+z])
+        square([depth,side_wall*2+wood]);
+        square([rack_wall,base+rack]);
     }
 }
 
-module rack() {
+module wood(height=wood) {
+    linear_extrude(height=height)
+    children();
+}
+
+module dirror_y(y=0) {
+    children();
+    translate([0,y])
+    mirror([0,1])
+    children();
+}
+
+
+module dirror_x(x=0) {
+    children();
+    translate([x,0])
+    mirror([1,0])
+    children();
+}
+
+
+color("lime")
+dirror_x(width)
+rotate([90,0,90])
+wood()
+side();
+
+dirror_y(depth)
+color("blue")
+translate([0,depth-castor_clearance])
+rotate([90,0,00])
+wood()
+base_brace(); 
+
+color("blue")
+translate([0,depth,total_h-top_back])
+rotate([90,0,0])
+wood()
+top_back();
+
+color("red")
+translate([0,0,shelves[2]])
+wood()
+top();
+
+// https://www.asus.com/Displays-Desktops/Monitors/All-series/VT168H/techspec/
+monitor=[377.8,44,235.9];
+
+color("gray")
+translate([width/2,depth-monitor[1]/2-wood,total_h-top_back+100])
+cube(monitor,center=true);
+
+
+dirror_y(depth)
+translate([0,depth,base+rack-lip+wood])
+rotate([90,0])
+wood()
+lip();
+
+translate([0,wood,total_h-lip])
+rotate([90,0])
+wood()
+lip();
+
+module lip() {
+    square([width,lip]);
+}
+
+module top() {
+    walled_vescher([width,depth]);
+}
+
+module walled_vescher(box,wall=side_wall) {
     difference() {
-        cube([max_x, max_y, max_z]);
-        translate([max_x/2-rail_inside/2, wall, -pad])
-        cube([rail_inside, us*u, max_z+padd]);
-        translate([wall, wall, max_z-wall/2-front_gap+pad])
-        cube([rail_outside, us*u, wall/2+front_gap+pad]);
-
+        square(box);
+        translate(box/2)
+        vescher(box)
+        translate(-box/2) {
+            children();
+            difference() {
+                square(box);
+                offset(-side_wall)
+                square(box);
+            }
+        }
     }
 }
 
-module back_lid() {
-    translate([max_x/2-rail_inside/2, wall, -pad])
-    cube([rail_inside, us*u, wall]);
-    cube([max_x, max_y, wall/2]);
+
+
+    color("red")
+    translate([0,0,shelves[0]])
+    wood()
+    shelf();
+
+    color("red")
+    translate([0,0,shelves[1]])
+    wood()
+    bench();
+
+module bench() {
+    walled_vescher([width,depth]);
 }
 
-module front_lid() {
-    translate([wall, wall, 0])
-    cube([rail_outside, us*u, wall]);
-    cube([max_x, max_y, wall/2]);
+
+module base_brace() {
+    square([width,base]);
 }
 
-module assembled(gap) {
-
-    translate([0,0,gap])
-    color("lime")
-    rack();
-
-    back_lid();
-
-    translate([0,0,max_z+gap*2])
-    front_lid();
+module shelf() {
+    square([width,depth]);
 }
 
-assembled(walll);
+module top_back() {
+    walled_vescher([width,top_back]);
+}
