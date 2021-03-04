@@ -1,22 +1,23 @@
 use <vescher.scad>;
 in=25.4;
-total_h=7*12*in;
+total_h=1900;
 
-rack=38*in;
+rack=900;
 base=75;
 
-width=19*in;
 
-depth=24*in;
+depth=500;
 
 lip=4*in;
 
 //wood=in/4*3;
 wood=in/2;
+width=487+wood*2;
 
+bench_h=base+rack+lip;
 shelves=[
     base-wood,
-    base+rack,
+    bench_h,
     total_h-wood
 ];
 
@@ -24,19 +25,21 @@ side_wall=3*in;
 
 rack_wall=depth/2;
 
-top_back=18*in;
+top_back=16*in;
 
 castor_clearance=5*in;
 
-translate([-240,30,base+rack+wood])
+translate([-240,30,bench_h+wood])
 import("The_Wedge.stl");
+
+echo(bench=bench_h);
 
 module side() {
     walled_vescher([depth,total_h]) {
         for(z=shelves)
         translate([0,-side_wall+z])
         square([depth,side_wall*2+wood]);
-        square([rack_wall,base+rack]);
+        square([rack_wall,base+rack+lip]);
     }
 }
 
@@ -88,13 +91,15 @@ top();
 // https://www.asus.com/Displays-Desktops/Monitors/All-series/VT168H/techspec/
 monitor=[377.8,44,235.9];
 
+monitor_h=total_h-top_back+100;
+echo(monitor=monitor_h);
 color("gray")
-translate([width/2,depth-monitor[1]/2-wood,total_h-top_back+100])
+translate([width/2,depth-monitor[1]/2-wood,monitor_h])
 cube(monitor,center=true);
 
 
 dirror_y(depth)
-translate([0,depth,base+rack-lip+wood])
+translate([0,depth,bench_h-lip+wood])
 rotate([90,0])
 wood()
 lip();
@@ -130,15 +135,16 @@ module walled_vescher(box,wall=side_wall) {
 
 
 
-    color("red")
-    translate([0,0,shelves[0]])
-    wood()
-    shelf();
+color("red")
+translate([0,0,shelves[0]])
+wood()
+shelf();
 
-    color("red")
-    translate([0,0,shelves[1]])
-    wood()
-    bench();
+color("red")
+translate([0,0,bench_h])
+wood()
+bench();
+
 
 module bench() {
     walled_vescher([width,depth]);
