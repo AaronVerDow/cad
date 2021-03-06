@@ -1,23 +1,48 @@
 // Maximim card width (default 64)
-card_size_x = 66;  // timeline x2
-card_size_x = 89;  // get bit
-card_size_x = 90;  // iron and ale
+//card_size_x = 66;  // timeline x2
+//card_size_x = 89;  // get bit
+//card_size_x = 90;  // iron and ale
 
 // Maximum card lenght (default 102)
-card_size_y = 75;   // timeline x2
-card_size_y = 63.5;   // get bit
-card_size_y = 52;   // iron and ale
+//card_size_y = 75;   // timeline x2
+//card_size_y = 63.5;   // get bit
+//card_size_y = 52;   // iron and ale
 
 // Maximum internal height (default 30)
-height = 43;    // timeline x2
-height = 19;    // get bit
-height = 62;    // iron and ale
+//height = 43;    // timeline x2
+//height = 19;    // get bit
+//height = 62;    // iron and ale
+
+// RENDER stl
+module codenames_duet_spies() {
+    assembled(75,35,50);
+}
+
+// RENDER stl
+module codenames_duet_clues() {
+    assembled(83,70,45);
+}
+
+// RENDER stl
+module codenames_duet_maps() {
+    assembled(83,50,64);
+}
+
+
+// RENDER stl
+module codenames_duet_people() {
+    assembled(24,20,25);
+}
 
 // Thickness of the walls (default 1.75)
 wall_thickness = 0.8;
 
 // Separation between upper and lower (default 0.5)
 tolerance = 0.5;
+
+card_size_x = 85;
+card_size_y = 70;
+height = 45;
 
 /* {{{ %%SECTION_HEADER%%
  * * * *
@@ -50,16 +75,11 @@ $fn=60;
 
 //Standard case size 64x102x30
 
-display="";
-if(display=="") assembled();
-if(display=="targetero_lower.stl") lower();
-if(display=="targetero_upper.stl") upper();
-
-module assembled() {
-lower();
-translate([card_size_x+(wall_thickness*2+tolerance)*2+5,0,0]) upper();
+module assembled(card_size_x=card_size_x,card_size_y=card_size_y,height=height) {
+lower(card_size_x,card_size_y,height);
+translate([card_size_x+(wall_thickness*2+tolerance)*2+5,0,0]) upper(card_size_x,card_size_y,height);
 }
-module upper() {
+module upper(card_size_x=card_size_x,card_size_y=card_size_y,height=height) {
     box_x=card_size_x+(wall_thickness*2+tolerance)*2;
     box_y=card_size_y+(wall_thickness*2+tolerance)*2;
     box_z=height+wall_thickness;
@@ -80,7 +100,7 @@ module upper() {
     }
 }
 
-module lower() {
+module lower(card_size_x=card_size_x,card_size_y=card_size_y,height=height) {
     box_x=card_size_x+(wall_thickness)*2;
     box_y=card_size_y+(wall_thickness)*2;
     box_z=height+wall_thickness;
