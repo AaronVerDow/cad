@@ -2,7 +2,7 @@ use <vescher.scad>;
 use <joints.scad>;
 in=25.4;
 total_h=1900;
-
+zero=0.01;
 
 wood=in/2;
 caster=2.4*in*2;
@@ -45,10 +45,6 @@ rail_x=0.68*in;
 rail_wall=in/8;
 rail_inset=in;
 
-
-translate([-240,30,bench_h+wood])
-import("The_Wedge.stl");
-
 echo(bench=bench_h);
 hand_x=110;
 hand_y=35;
@@ -60,6 +56,15 @@ hand_holes=0;
 u=1.75*in;
 u_hole_gap=0.625*in;
 u_hole=in/16*3;
+
+bit=in/4;
+
+width_pins=3;
+pintail_gap=bit/8;
+pintail_hole=bit*1.1;
+pintail_ear=bit;
+pad=0.1;
+
 
 module hand() {
     hull()
@@ -147,6 +152,10 @@ module side() {
         rotate([0,0,-90])
         negative_slot(caster_clearance,wood+pad,pintail_ear);
 
+        // brace hole
+        dirror_x(depth)
+        translate([caster_clearance+wood/2,base/2])
+        circle(d=pintail_hole);
     }
 }
 
@@ -215,80 +224,101 @@ module bottom() {
 }
 
 
-color("red")
-wood()
-bottom();
+module assembled() {
+    text("(zoom out)", size=3,valign="center",halign="center");
 
-color("lime")
-dirror_y(depth)
-translate([caster_clearance,depth])
-rotate([90,0,00])
-wood()
-base_front();
+    translate([-240,30,bench_h+wood])
+    import("The_Wedge.stl");
+
+    color("red")
+    wood()
+    bottom();
+
+    color("lime")
+    dirror_y(depth)
+    translate([caster_clearance,depth])
+    rotate([90,0,00])
+    wood()
+    base_front();
 
 
-color("lime")
-dirror_x(width)
-rotate([90,0,90])
-wood()
-side();
+    color("lime")
+    dirror_x(width)
+    rotate([90,0,90])
+    wood()
+    side();
 
-dirror_y(depth)
-color("blue")
-translate([0,depth-caster_clearance])
-rotate([90,0,00])
-wood()
-x_brace(); 
+    dirror_y(depth)
+    color("blue")
+    translate([0,depth-caster_clearance])
+    rotate([90,0,00])
+    wood()
+    x_brace(); 
 
-color("magenta")
-dirror_x(width)
-translate([caster_clearance,0])
-rotate([90,0,90])
-wood()
-y_brace();
+    color("magenta")
+    dirror_x(width)
+    translate([caster_clearance,0])
+    rotate([90,0,90])
+    wood()
+    y_brace();
 
-color("blue")
-translate([0,depth,total_h-top_back])
-rotate([90,0,0])
-wood()
-top_back();
+    color("blue")
+    translate([0,depth,total_h-top_back])
+    rotate([90,0,0])
+    wood()
+    top_back();
 
-color("red")
-translate([0,0,shelves[2]])
-wood()
-top();
+    color("red")
+    translate([0,0,shelves[2]])
+    wood()
+    top();
 
-// https://www.asus.com/Displays-Desktops/Monitors/All-series/VT168H/techspec/
-monitor=[377.8,44,235.9];
+    // https://www.asus.com/Displays-Desktops/Monitors/All-series/VT168H/techspec/
+    monitor=[377.8,44,235.9];
 
-monitor_h=total_h-top_back+100;
-echo(monitor=monitor_h);
-color("gray")
-translate([width/2,depth-monitor[1]/2-wood,monitor_h])
-cube(monitor,center=true);
+    monitor_h=total_h-top_back+100;
+    echo(monitor=monitor_h);
+    color("gray")
+    translate([width/2,depth-monitor[1]/2-wood,monitor_h])
+    cube(monitor,center=true);
 
-translate([0,depth-bench_gap,bench_h-lip+wood])
-rotate([90,0])
-wood()
-lip();
+    translate([0,depth-bench_gap,bench_h-lip+wood])
+    rotate([90,0])
+    wood()
+    lip();
 
-translate([0,wood,bench_h-lip+wood])
-rotate([90,0])
-wood()
-lip();
+    translate([0,wood,bench_h-lip+wood])
+    rotate([90,0])
+    wood()
+    lip();
 
-translate([0,wood,total_h-lip])
-rotate([90,0])
-wood()
-lip();
+    translate([0,wood,total_h-lip])
+    rotate([90,0])
+    wood()
+    lip();
 
-bit=in/4;
+    color("red")
+    translate([0,0,shelves[0]])
+    wood()
+    base();
 
-width_pins=3;
-pintail_gap=bit/8;
-pintail_hole=bit*1.1;
-pintail_ear=bit;
-pad=0.1;
+    color("red")
+    translate([0,0,bench_h])
+    wood()
+    bench();
+
+    *dirror_x(width)
+    dirror_y(depth)
+    translate([caster_offset,caster_offset,base-wood])
+    caster();
+
+    dirror_x(width)
+    dirror_y(depth)
+    translate([wood,rail_inset,base])
+    color("dimgray")
+    linear_extrude(height=rack)
+    rail();
+}
 
 module lip() {
     difference() {
@@ -319,7 +349,6 @@ module top() {
 }
 
 
-zero=0.01;
 
 
 module caster() {
@@ -349,12 +378,6 @@ module walled_vescher(box,wall=side_wall) {
 }
 
 
-dirror_x(width)
-dirror_y(depth)
-translate([wood,rail_inset,base])
-color("dimgray")
-linear_extrude(height=rack)
-rail();
 module rail() {
     intersection() {
         difference() {
@@ -370,22 +393,6 @@ module rail() {
     }
 
 }
-
-
-color("red")
-translate([0,0,shelves[0]])
-wood()
-base();
-
-color("red")
-translate([0,0,bench_h])
-wood()
-bench();
-
-*dirror_x(width)
-dirror_y(depth)
-translate([caster_offset,caster_offset,base-wood])
-caster();
 
 module bench() {
     difference() {
@@ -452,6 +459,7 @@ module shelf() {
 caster_pins=2;
 base_side_pins=1;
 
+//!base();
 module base() {
     difference() {
         shelf();
@@ -466,6 +474,12 @@ module base() {
         dirror_x(width)
         translate([0,caster_clearance])
         negative_pins(depth-caster_clearance*2,wood,base_side_pins,pintail_gap,0,pintail_ear);
+
+        // side hole
+        dirror_x(width)
+        dirror_y(depth)
+        translate([wood/2,caster_clearance/2])
+        circle(d=pintail_hole);
     }
 }
 
