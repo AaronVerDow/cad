@@ -31,8 +31,6 @@ frame_width=1.25*in; //guess
 frame_height=4*in; //guess
 frame_gauge=in/8;  // website
 
-box_under=frame_height/2;
-
 // https://mechanicalelements.com/trailer-axle-position/
 // weight in lbs
 
@@ -67,6 +65,13 @@ kayak_x=31*in;
 kayak_y=10*ft;
 kayak_z=12*in;
 //translate([-kayak_x/2,-kayak_y/2]) #cube([kayak_x,kayak_y,kayak_z]);
+
+spike_x=8*in;
+spike_y=side_wood*1.2;
+spike_z=frame_height;
+spike_square=base_wood*2;
+spike_round=2*in;
+spike_tip=spike_x/2;
 
 
 module kayaks() {
@@ -186,21 +191,16 @@ module base() {
     translate([-base_x/2,-base_y/2])
     difference() {
         square([base_x,base_y]);
-
-        dirror_y(base_y)
-        translate([base_x,-pad])
-        rotate([0,0,90])
-        negative_pins(base_x,side_wood+pad+base_pin_extra,end_pins,pintail_gap,0,pintail_ear);
-
         dirror_x(base_x)
-        negative_pins(base_y,side_wood+pad+base_pin_extra,side_pins,pintail_gap,0,pintail_ear);
+        translate([base_x/2-frame_x/2-fender_x,base_y/2-fender_y/2-box_center+axle])
+        square([fender_x,fender_y]);
     }
 }
 
 side_pin_extra=0.5*in;
-side_h=box_h+base_wood+box_under;
+side_h=box_h;
 side_x=box_y+side_pin_extra*2;
-box_edge=box_h+box_under+base_wood;
+box_edge=box_h;
 
 pattern_wall=3*in;
 
@@ -232,7 +232,7 @@ module side() {
             translate([box_y/2,0])
             pattern();
             difference() {
-                translate([pattern_wall,pattern_wall+box_under+base_wood])
+                translate([pattern_wall,pattern_wall])
                 square([box_y-pattern_wall*2,box_h-pattern_wall*2]);
                 strap_holes(box_y,pattern_wall);
             }
@@ -263,7 +263,7 @@ module strap(z=0) {
 
 module strap_preview(z=0) {
     color("yellow")
-    translate([0,box_center,z-box_under]) {
+    translate([0,box_center,z+base_wood]) {
         difference() { 
             cube([box_x+strap_thick*2,box_y+strap_thick*2,strap],center=true);
             cube([box_x,box_y,strap+pad*2],center=true);
@@ -301,7 +301,7 @@ module end() {
             translate([box_x/2,0])
             pattern();
             difference() {
-                translate([pattern_wall,pattern_wall+box_under+base_wood])
+                translate([pattern_wall,pattern_wall])
                 square([box_x-pattern_wall*2,box_h-pattern_wall*2]);
                 strap_holes(end_x,pattern_wall);
             }
@@ -315,20 +315,41 @@ module box() {
     strap_preview(top_strap);
     color("sienna")
     dirror_x()
-    translate([-box_x/2,box_center,-box_under])
+    translate([-box_x/2,box_center,base_wood])
     rotate([90,0,90])
     translate([-side_x/2,0])
     linear_extrude(height=side_wood)
     side();
 
     color("chocolate")
-    translate([0,box_center+box_y/2,-box_under])
+    translate([0,box_center+box_y/2,base_wood])
     dirror_y(-box_y)
     rotate([90,0])
     translate([-end_x/2,0])
     linear_extrude(height=side_wood)
     end();
 } 
+
+spike_hole=in/2;
+
+module spike() {
+    extra=5*in;
+    difference() {
+        offset(spike_round)
+        offset(-spike_round)
+        hull() {
+            translate([-spike_x/2,-extra])
+            square([spike_x,spike_square+extra]);
+            translate([-spike_tip/2,0])
+            square([spike_tip,spike_z]);
+        }
+        translate([-spike_x,-extra*2])
+        square([spike_x*2,extra*2]);
+        translate([0,spike_z/2])
+        circle(d=spike_hole);
+    }
+}
+//spike();
 
 pattern_hole=2*in;
 pattern_gap=4.5*in;
@@ -376,3 +397,8 @@ frame();
 box();
 
 base();
+
+// RENDER stl
+module nothing() {
+    echo("nope");
+}
