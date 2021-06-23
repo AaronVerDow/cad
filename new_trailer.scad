@@ -31,6 +31,7 @@ frame_width=1.25*in; //guess
 frame_height=4*in; //guess
 frame_gauge=in/8;  // website
 
+
 // https://mechanicalelements.com/trailer-axle-position/
 // weight in lbs
 
@@ -72,6 +73,8 @@ spike_z=frame_height;
 spike_square=base_wood*2;
 spike_round=2*in;
 spike_tip=spike_x/2;
+
+end_spike_gap=box_x/2;
 
 
 module kayaks() {
@@ -184,6 +187,17 @@ base_pin_extra=2.5*in;
 base_x=box_x+base_pin_extra*2;
 base_y=box_y+base_pin_extra*2;
 
+//top=frame_x-frame_width*3;
+//top=box_h;
+top=base_y/3;
+top_cutout=box_x-(base_x-box_x);
+
+top_spike=100;
+top_spike_h=2*in;
+
+top_spike_side_gap=base_y/8;
+top_spike_end_gap=base_x/2;
+
 module base() {
     color("tan")
     translate([0,box_center])
@@ -197,7 +211,7 @@ module base() {
     }
 }
 
-side_pin_extra=0.5*in;
+side_pin_extra=1*in;
 side_h=box_h;
 side_x=box_y+side_pin_extra*2;
 box_edge=box_h;
@@ -216,9 +230,30 @@ module strap_holes(x,wall=0) {
         strap_hole();
 }
 
+side_spike_back=(box_y/2-box_center+axle-fender_y/2)/2;
+
+side_spikes=[side_spike_back, box_y-side_spike_back, box_y/2+200];
+
+
+module side_top_spikes(x=0) {
+    translate([side_x/2+x,0])
+    dirror_x()
+    translate([top_spike_side_gap/2,box_h])
+    top_spike();
+}
+
 module side() {
     difference() {
-        square([side_x,box_edge]);
+        union() {
+            square([side_x,box_edge]);
+            for(x=side_spikes)
+            translate([x,0])
+            spike();
+            side_top_spikes();
+            side_top_spikes(base_y/3);
+            side_top_spikes(-base_y/3);
+            
+        }
         dirror_x(side_x)
         negative_pins(box_edge,side_wood+pad+side_pin_extra,box_pins,pintail_gap,0,pintail_ear);
 
@@ -281,11 +316,24 @@ module strap_preview(z=0) {
     }
 }
 
+module top_spike() {
+    translate([-top_spike/2,0])
+    square([top_spike,top_spike_h]);
+}
 
 
 module end() {
     difference() {
-        square([end_x,box_edge]);
+        union() {
+            square([end_x,box_edge]);
+            translate([end_x/2,0])
+            dirror_x()
+            translate([end_spike_gap/2,0])
+            spike();
+            translate([end_x/2-top_spike_end_gap/2,box_h])
+            dirror_x(top_spike_end_gap)
+            top_spike();
+        }
         dirror_x(end_x)
         negative_tails(box_edge,side_wood+pad+side_pin_extra,box_pins,pintail_gap,0,pintail_ear);
         
@@ -334,6 +382,7 @@ spike_hole=in/2;
 
 module spike() {
     extra=5*in;
+    mirror([0,1])
     difference() {
         offset(spike_round)
         offset(-spike_round)
@@ -397,6 +446,80 @@ frame();
 box();
 
 base();
+
+module top_spike_slot() {
+    square([top_spike,side_wood],center=true);
+}
+
+
+module top_3d(pos=1,stack=0) {
+    translate([-base_x/2,box_center-base_y/2+base_y-base_y/3*pos,box_h+base_wood+side_wood*stack])
+    linear_extrude(height=side_wood)
+    top();
+}
+
+module fully_covered() {
+    color("blue")
+    top_3d(3);
+    color("lime")
+    top_3d(2);
+    color("red")
+    top_3d();
+}
+
+module stacked() {
+    color("red")
+    top_3d(1,0);
+    color("lime")
+    top_3d(1,1);
+    color("blue")
+    top_3d(1,2);
+}
+*stacked();
+*fully_covered();
+
+
+
+module top_spike_slots() {
+        translate([base_x/2,0])
+        dirror_x()
+        dirror_y(top)
+        translate([top_spike_end_gap/2,base_pin_extra+side_wood/2])
+        top_spike_slot();
+
+        translate([0,top/2])
+        dirror_x(base_x)
+        dirror_y()
+        translate([base_pin_extra+side_wood/2,top_spike_side_gap/2])
+        rotate([0,0,90])
+        top_spike_slot();
+}
+
+top_3d();
+module top(cut=1) {
+    difference() {
+        square([base_x,top]);
+
+        if(cut)
+        translate([base_x/2,0])
+        circle(d=top_cutout);
+
+        top_spike_slots();
+        intersection() {
+            difference() {
+                offset(-pattern_wall)
+                square([base_x,top]);
+                offset(pattern_wall)
+                top_spike_slots();
+
+                if(cut)
+                translate([base_x/2,0])
+                circle(d=top_cutout+pattern_wall*2);
+            }
+            pattern();
+        }
+    }
+}
 
 // RENDER stl
 module nothing() {
