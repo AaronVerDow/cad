@@ -1,11 +1,14 @@
 in=25.4;
 ft=12*in;
-frame_x=40*in;
-frame_y=42*in;
-frame_bow=20*in;
-frame_beam=40*in;  // top beam
+frame_x=1015;
+frame_y=923;
+frame_beam=866;  // top beam
+point=1761; //back of trailer to point
+frame_bow=point-frame_beam;
 bow_angle=atan(frame_bow/(frame_x/2));
 bow_beam=(frame_x/2)/cos(bow_angle);
+
+tip_beam=1489;
 
 use <joints.scad>;
 
@@ -13,34 +16,40 @@ $fn=90;
 
 function segment_radius(height, chord) = (height/2)+(chord*chord)/(8*height);
 
-fender_x=7.5*in; // website
-fender_h=4*in; // height from top surface of frame
-fender_y=18*in; // lenght of fender across top surface of frame
+fender_x=185; 
+fender_h=108; // height from top surface of frame
+fender_y=500; // lenght of fender across top surface of frame
 fender_d=segment_radius(fender_h,fender_y)*2;
 
+axle=frame_beam/2; // confirmed with measurements
 
 box_x=frame_x+1.5*in;
-box_y=80*in;
-box_h=24*in;
+box_y=1650;
+echo(box_y=box_y);
+box_h=400;
+
 base_wood=0.75*in;
 side_wood=0.5*in;
 
-axle=frame_beam/2;
 
-frame_width=1.25*in; //guess
-frame_height=4*in; //guess
-frame_gauge=in/8;  // website
+cross_frame_width=40;
+side_frame_width=36;
+tip_frame_width=43;
+frame_width=side_frame_width;
+frame_height=86;
+frame_gauge=3;
 
 
 // https://mechanicalelements.com/trailer-axle-position/
 // weight in lbs
 
-total_weight=450;
+total_weight=600;
 target_tongue_load=0.15;
 
-wheel=21*in; //random amazon product review
-wheel_w=4.8*in;  // probably wrong
-wheel_h=6.5*in;  // def wrong
+wheel=510;
+wheel_w=120;
+frame_surface=490; // distance from ground to surface of frame bed
+wheel_h=frame_surface-frame_height/2-wheel/2;
 
 FA=(1-target_tongue_load)*total_weight;
 L6=11*ft;
@@ -54,10 +63,10 @@ box_center=L6+axle-L5;
 
 pad=0.1;
 
-tongue_width=4*in;
-color("silver")
-translate([-tongue_width/2,box_center,-tongue_width])
-cube([tongue_width,L4,tongue_width]);
+tongue_width=50;
+tongue_height=77;
+tongue_depth=2430;
+
 
 
 bike_gap=10*in;
@@ -76,6 +85,7 @@ spike_tip=spike_x/2;
 
 end_spike_gap=box_x/2;
 
+axle_w=37;
 
 module kayaks() {
     dirror_x()
@@ -108,15 +118,6 @@ module bikes() {
     }
 }
 
-
-module frame_profile() {
-    difference() {
-        square([frame_width,frame_height],center=true);
-        translate([-frame_gauge,0])
-        square([frame_width,frame_height-frame_gauge*2],center=true);
-    }
-}
-
 module dirror_y(y=0) {
     children();
     translate([0,y])
@@ -131,19 +132,77 @@ module dirror_x(x=0) {
     children();
 }
 
-module frame_rail(l) {
+module frame_profile(width=side_frame_width) {
+    difference() {
+        square([width,frame_height],center=true);
+        translate([-frame_gauge,0])
+        square([width,frame_height-frame_gauge*2],center=true);
+    }
+}
+
+module frame_rail(l,width=side_frame_width) {
     color("silver")
     rotate([90,0,-90])
     translate([0,0,-l/2])
     linear_extrude(height=l)
-    frame_profile();
+    frame_profile(width);
 }
+
+module screws() {
+    outer_side_holes=669;
+    inner_side_holes=498;
+    side_holes_from_edge=19;
+    side_holes_from_back=97;
+    frame_hole=10;
+
+    beam_holes=812;
+    beam_holes_from_back=21.5;
+    dirror_y(frame_beam)
+    dirror_x()
+    translate([beam_holes/2,beam_holes_from_back])
+    circle(d=frame_hole);
+
+    tip_bolt=1519;
+    tip_bolt_d=35;
+    translate([0,tip_bolt])
+    circle(d=tip_bolt_d);
+
+    translate([0,outer_side_holes/2+side_holes_from_back,0]) {
+        dirror_x()
+        dirror_y()
+        translate([frame_x/2-side_holes_from_edge,inner_side_holes/2,0])
+        circle(d=frame_hole);
+
+        dirror_x()
+        dirror_y()
+        translate([frame_x/2-side_holes_from_edge,outer_side_holes/2,0])
+        circle(d=frame_hole);
+    }
+
+    center_holes_from_back=25;
+    center_holes=76;
+
+    dirror_y(frame_beam)
+    translate([0,center_holes_from_back]) {
+        circle(d=frame_hole);
+        dirror_x()
+        translate([center_holes/2,0])
+        circle(d=frame_hole);
+    }
+
+    
+}
+
 
 module frame() {
 
+    color("blue")
+    translate([0,0,frame_height/2])
+    screws();
+
     dirror_y(frame_beam)
-    translate([0,frame_width/2])
-    frame_rail(frame_x);
+    translate([0,cross_frame_width/2])
+    frame_rail(frame_x,cross_frame_width);
 
     dirror_x()
     translate([frame_x/2-frame_width/2,frame_y/2])
@@ -152,7 +211,7 @@ module frame() {
 
     dirror_x()
     translate([frame_x/2,frame_y])
-    rotate([0,0,bow_angle])
+    rotate([0,0,90-bow_angle])
     translate([-frame_width/2,bow_beam/2])
     rotate([0,0,90])
     frame_rail(bow_beam);
@@ -165,6 +224,10 @@ module frame() {
     }
 
     color("silver")
+    translate([0,axle,-wheel_h])
+    cube([frame_x+fender_x,axle_w,axle_w],center=true);
+
+    color("silver")
     dirror_x()
     translate([frame_x/2+fender_x/2,axle,fender_h+frame_height/2-fender_d/2])
     rotate([0,90])
@@ -174,6 +237,13 @@ module frame() {
         translate([fender_h+frame_height/2,0])
         cube([fender_d,fender_d,fender_x+pad*2],center=true);
     }
+    
+    color("silver")
+    translate([-tongue_width/2,tip_beam,-tongue_height/2])
+    cube([tongue_width,tongue_depth,tongue_height]);
+
+    translate([0,tip_frame_width/2+tip_beam,0])
+    frame_rail(300,tip_frame_width);
 }
 
 pintail_gap=in/8;
@@ -186,7 +256,11 @@ box_pins=3;
 base_x=48*in;
 base_pin_extra=(48*in-box_x)/2;
 base_y=box_y+base_pin_extra*2;
-echo(base_pin_extra/in);
+
+echo(base_y=base_y);
+
+overhang=base_y/2-box_center;
+echo(overhang=overhang);
 
 
 //top=frame_x-frame_width*3;
@@ -210,6 +284,8 @@ module base() {
         dirror_x(base_x)
         translate([base_x/2-frame_x/2-fender_x,base_y/2-fender_y/2-box_center+axle])
         square([fender_x,fender_y]);
+        translate([base_x/2,base_y/2-box_center])
+        screws();
     }
 }
 
