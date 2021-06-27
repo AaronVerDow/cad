@@ -19,7 +19,7 @@ fender_y=18*in; // lenght of fender across top surface of frame
 fender_d=segment_radius(fender_h,fender_y)*2;
 
 
-box_x=frame_x+3*in;
+box_x=frame_x+1.5*in;
 box_y=80*in;
 box_h=24*in;
 base_wood=0.75*in;
@@ -35,7 +35,7 @@ frame_gauge=in/8;  // website
 // https://mechanicalelements.com/trailer-axle-position/
 // weight in lbs
 
-total_weight=500;
+total_weight=450;
 target_tongue_load=0.15;
 
 wheel=21*in; //random amazon product review
@@ -181,11 +181,13 @@ pintail_ear=in/4;
 end_pins=4;
 side_pins=6;
 box_pins=3;
-base_pin_extra=2.5*in;
 
 
-base_x=box_x+base_pin_extra*2;
+base_x=48*in;
+base_pin_extra=(48*in-box_x)/2;
 base_y=box_y+base_pin_extra*2;
+echo(base_pin_extra/in);
+
 
 //top=frame_x-frame_width*3;
 //top=box_h;
@@ -436,10 +438,10 @@ module plywood_stack() {
     cube([plywood_x,plywood_y,plywood_z]);
 }
 
-//plywood_stack();
 
 translate([0,0,-frame_height/2])
 frame();
+*plywood_stack();
 //bikes();
 //kayaks();
 
@@ -495,7 +497,7 @@ module top_spike_slots() {
         top_spike_slot();
 }
 
-top_3d();
+*top_3d();
 module top(cut=1) {
     difference() {
         square([base_x,top]);
