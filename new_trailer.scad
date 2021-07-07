@@ -431,7 +431,7 @@ module base() {
     }
 }
 
-!mdx_cutsheet();
+*mdx_cutsheet();
 cutgap=in;
 module mdx_cutsheet() {
     translate([0,-base_y/2])
@@ -794,7 +794,7 @@ translate([0,0,plywood_h])
 *plywood_stack();
 *bikes();
 *kayaks();
-*box();
+box();
 
 base();
 translate([0,box_center-base_y/2,base_wood])
@@ -805,6 +805,13 @@ translate([0,box_center-base_y/2,0])
 place_tie_downs()
 rotate([0,0,90])
 mending_plate();
+
+!side_cutsheet();
+module side_cutsheet() {
+    side();
+    translate([0,-box_h*1.5,0])
+    end();
+}
 
 module place_tie_downs() {
     dirror_y(base_y)
