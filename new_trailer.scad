@@ -26,7 +26,7 @@ axle=frame_beam/2; // confirmed with measurements
 box_x=frame_x+1.5*in;
 box_y=1650;
 echo(box_y=box_y);
-box_h=400;
+box_h=450;
 
 base_wood=0.75*in;
 side_wood=0.5*in;
@@ -76,11 +76,13 @@ kayak_z=12*in;
 //translate([-kayak_x/2,-kayak_y/2]) #cube([kayak_x,kayak_y,kayak_z]);
 
 spike_x=4*in;
+spike_gap=in/8;
+spike_slot_x=spike_x+spike_gap*2;
 spike_y=in*0.75;
 spike_z=frame_height+base_wood;
-spike_square=base_wood*2;
+spike_square=base_wood;
 spike_round=spike_x*0.2;
-spike_tip=spike_x/2;
+spike_tip=spike_x*0.6;
 
 end_spike_gap=box_x/2;
 
@@ -115,7 +117,7 @@ top_spike_h=2*in;
 top_spike_side_gap=base_y/8;
 top_spike_end_gap=base_x/2;
 
-max_wood=0.75*in;
+max_wood=0.78*in;
 
 side_pin_extra=in/2;
 side_h=box_h;
@@ -529,6 +531,7 @@ module side_top_spikes(x=0) {
     top_spike();
 }
 
+//!side();
 module side(top_spikes=0) {
 
     module fender() {
@@ -557,13 +560,15 @@ module side(top_spikes=0) {
         dirror_x(side_x)
         strap(top_strap);
 
+        side_wall=pattern_wall+side_pin_extra+side_wood;
         intersection() {
-            translate([box_y/2,0])
+            translate([side_x/2,box_h/2])
             pattern();
             difference() {
-                translate([pattern_wall,pattern_wall])
-                square([box_y-pattern_wall*2,box_h-pattern_wall*2]);
-                strap_holes(box_y,pattern_wall);
+                translate([side_wall,pattern_wall])
+                square([side_x-side_wall*2,box_h-pattern_wall*2]);
+
+                strap_holes(side_x,pattern_wall);
                 offset(pattern_wall)
                 fender();
             }
@@ -573,7 +578,7 @@ module side(top_spikes=0) {
 
 
         //translate([base_pin_extra/2,0])
-        strap_holes(box_y);
+        strap_holes(side_x);
 
     }
 }
@@ -612,19 +617,23 @@ module top_spike() {
     square([top_spike,top_spike_h]);
 }
 
+//!end();
 module end(top_spikes=0) {
     difference() {
         union() {
             square([end_x,box_edge]);
+
             translate([end_x/2,0])
             dirror_x()
             translate([end_spike_gap/2,0])
             spike();
+
             if(top_spikes)
             translate([end_x/2-top_spike_end_gap/2,box_h])
             dirror_x(top_spike_end_gap)
             top_spike();
         }
+
         dirror_x(end_x)
         negative_tails(box_edge,side_wood+pad+side_pin_extra,box_pins,pintail_gap,0,pintail_ear);
         
@@ -636,12 +645,13 @@ module end(top_spikes=0) {
     
         strap_holes(end_x);
 
+        side_wall=pattern_wall+side_pin_extra+side_wood;
         intersection() {
-            translate([box_x/2,0])
+            translate([end_x/2,box_h/2])
             pattern();
             difference() {
-                translate([pattern_wall,pattern_wall])
-                square([box_x-pattern_wall*2,box_h-pattern_wall*2]);
+                translate([side_wall,pattern_wall])
+                square([end_x-side_wall*2,box_h-pattern_wall*2]);
                 strap_holes(end_x,pattern_wall);
             }
         }
@@ -806,10 +816,16 @@ place_tie_downs()
 rotate([0,0,90])
 mending_plate();
 
-!side_cutsheet();
+//!side_cutsheet();
 module side_cutsheet() {
+    dirror_y()
+    translate([0,80])
     side();
-    translate([0,-box_h*1.5,0])
+
+    translate([0,-plywood_y/4])
+    #square([plywood_y,plywood_x]);
+
+    *translate([0,-box_h*1.5,0])
     end();
 }
 
@@ -880,9 +896,9 @@ module top_spike_slots() {
 module spike_slot() {
     dirror_x()
     dirror_y()
-    translate([spike_x/2,-max_wood/2])
+    translate([spike_slot_x/2,-max_wood/2])
     rotate([0,0,90])
-    negative_slot(spike_x,max_wood,pintail_ear);
+    negative_slot(spike_slot_x,max_wood,pintail_ear);
 }
 
 *top_3d();
