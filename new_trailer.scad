@@ -7,12 +7,11 @@ point=1761; //back of trailer to point
 frame_bow=point-frame_beam;
 bow_angle=atan(frame_bow/(frame_x/2));
 bow_beam=(frame_x/2)/cos(bow_angle);
+$fn=90;
 
 tip_beam=1489;
 
 use <joints.scad>;
-
-$fn=90;
 
 function segment_radius(height, chord) = (height/2)+(chord*chord)/(8*height);
 
@@ -99,7 +98,7 @@ axle_w=37;
 tie_plate_x=100;
 tie_plate_y=50;
 
-pintail_gap=in/8;
+pintail_gap=in/16;
 pintail_ear=in/4;
 end_pins=4;
 //side_pins=6;
@@ -110,6 +109,7 @@ base_pin_extra=(48*in-box_x)/2;
 base_y=box_y+base_pin_extra*2;
 
 echo(base_y=base_y);
+echo(base_x=base_x);
 
 overhang=base_y/2-box_center;
 echo(overhang=overhang);
@@ -139,6 +139,9 @@ side_spike_axle_offset=335;
 side_spike_axle=side_x/2-box_center+axle;
 
 side_spikes=[side_spike_axle+side_spike_axle_offset, side_spike_axle-side_spike_axle_offset, side_x/6*5];
+
+side_spike_from_end=axle-side_spike_axle_offset;
+echo(side_spike_from_end=side_spike_from_end);
 
 end_x=box_x+side_pin_extra*2;
 
@@ -237,7 +240,7 @@ module screws() {
     inner_side_holes=498;
     side_holes_from_edge=19;
     side_holes_from_back=97;
-    frame_hole=10;
+    frame_hole=11;
 
     beam_holes=812;
     beam_holes_from_back=21.5;
@@ -441,13 +444,16 @@ module base() {
     }
 }
 
-*mdx_cutsheet();
+!mdx_cutsheet();
 cutgap=in;
 module mdx_cutsheet() {
     translate([0,-base_y/2])
     cutable_base();
     gap=skirt_h+base_wood+in;
     //translate([0,gap,-end_skirt])
+}
+
+module skirt_cutsheet() {
 
     translate([base_x/2-side_skirt-cutgap,gap*2,0])
     mirror([1,0])
