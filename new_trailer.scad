@@ -130,6 +130,7 @@ max_wood=0.78*in;
 side_pin_extra=in/2;
 side_h=box_h;
 side_x=box_y+side_pin_extra*2;
+echo(side_x=side_x);
 box_edge=box_h;
 
 pattern_wall=2*in;
@@ -154,7 +155,7 @@ bottom_strap=box_edge/7*2;
 spike_hole=in/2;
 
 pattern_hole=2*in;
-pattern_gap=4.5*in;
+pattern_gap=4.2*in;
 pattern_fn=8;
 
 lock_x=2.5*in;
@@ -444,7 +445,7 @@ module base() {
     }
 }
 
-!mdx_cutsheet();
+*mdx_cutsheet();
 cutgap=in;
 module mdx_cutsheet() {
     translate([0,-base_y/2])
@@ -832,16 +833,16 @@ place_tie_downs()
 rotate([0,0,90])
 mending_plate();
 
-//!side_cutsheet();
+!side_cutsheet();
 module side_cutsheet() {
-    dirror_y()
+    //dirror_y()
     translate([0,80])
     side();
 
     translate([0,-plywood_y/4])
-    #square([plywood_y,plywood_x]);
+    *#square([plywood_y,plywood_x]);
 
-    *translate([0,-box_h*1.5,0])
+    translate([0,-box_h*1.5,0])
     end();
 }
 
