@@ -1,36 +1,36 @@
-router=100;
-router_h=100;
+router=69.2;
+router_h=80;
 
 // assumed to be square
-screws_y=80;
-screws_z=60;
+screws_y=30;
+screws_z=35;
 
 $fn=90;
 
 mount_wall=10;
 
-mount_bolt=8;
+mount_bolt=6.3;
 
-wall=15;
+wall=12;
 
-groove=8;
+groove=wall/2;
 
 grooves=16;
 
-lock_x=50;
+lock_x=40;
 
 
 lock_offset=0;
-lock_bolt=8;
-lock_wall=10;
+lock_bolt=mount_bolt;
+lock_wall=5;
 lock_body=lock_wall*2+lock_bolt;
 
 lock_y=router+wall*2+lock_wall*2+lock_offset*2+lock_bolt;
 
-lock_head=20;
+lock_head=15;
 
 
-gap=2;
+gap=3;
 
 gap_y=wall+lock_offset+lock_wall;
 gap_angle=45;
@@ -40,7 +40,7 @@ gap_offset=tan(gap_angle)*gap_y/2-3;
 
 pad=0.1;
 
-bit_x=100; // bit to mount surface
+bit_x=69.2; // bit to mount surface
 
 mount_head=15; // diamter of mount bolt head
 mount_head_h=5;
@@ -84,8 +84,9 @@ module place_locks() {
     children();
 }
 
+
 module body() {
-    cylinder(d=router+wall*2,h=router);
+    cylinder(d=router+wall*2,h=router_h);
 
     //translate([0,0,router_h/2]) cube([lock_x,lock_y,router_h],center=true);
 
