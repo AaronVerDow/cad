@@ -7,12 +7,11 @@ point=1761; //back of trailer to point
 frame_bow=point-frame_beam;
 bow_angle=atan(frame_bow/(frame_x/2));
 bow_beam=(frame_x/2)/cos(bow_angle);
+$fn=90;
 
 tip_beam=1489;
 
 use <joints.scad>;
-
-$fn=90;
 
 function segment_radius(height, chord) = (height/2)+(chord*chord)/(8*height);
 
@@ -26,11 +25,10 @@ axle=frame_beam/2; // confirmed with measurements
 box_x=frame_x+1.5*in;
 box_y=1650;
 echo(box_y=box_y);
-box_h=400;
+box_h=450;
 
 base_wood=0.75*in;
 side_wood=0.5*in;
-
 
 cross_frame_width=40;
 side_frame_width=36;
@@ -39,6 +37,8 @@ frame_width=side_frame_width;
 frame_height=86;
 frame_gauge=3;
 
+tie_down_gap=36;
+tie_down_bolt=0.26*in;
 
 // https://mechanicalelements.com/trailer-axle-position/
 // weight in lbs
@@ -69,6 +69,12 @@ tongue_depth=2430;
 
 
 
+module ground() {
+    translate([0,0,-frame_surface-1])
+    color("green")
+    cylinder(r=tongue_depth*1.5,h=1);
+}
+
 bike_gap=10*in;
 
 kayak_x=31*in;
@@ -76,21 +82,103 @@ kayak_y=10*ft;
 kayak_z=12*in;
 //translate([-kayak_x/2,-kayak_y/2]) #cube([kayak_x,kayak_y,kayak_z]);
 
-spike_x=8*in;
-spike_y=side_wood*1.2;
-spike_z=frame_height;
-spike_square=base_wood*2;
-spike_round=2*in;
-spike_tip=spike_x/2;
+spike_x=4*in;
+spike_gap=in/8;
+spike_slot_x=spike_x+spike_gap*2;
+spike_y=in*0.75;
+spike_z=frame_height+base_wood;
+spike_square=base_wood;
+spike_round=spike_x*0.2;
+spike_tip=spike_x*0.6;
 
 end_spike_gap=box_x/2;
 
 axle_w=37;
 
+tie_plate_x=100;
+tie_plate_y=50;
+
+pintail_gap=in/16;
+pintail_ear=in/4;
+end_pins=4;
+//side_pins=6;
+box_pins=3;
+
+base_x=48*in;
+base_pin_extra=(48*in-box_x)/2;
+base_y=box_y+base_pin_extra*2;
+
+echo(base_y=base_y);
+echo(base_x=base_x);
+
+overhang=base_y/2-box_center;
+echo(overhang=overhang);
+
+//top=frame_x-frame_width*3;
+//top=box_h;
+top=base_y/3;
+top_cutout=box_x-(base_x-box_x);
+
+top_spike=100;
+top_spike_h=2*in;
+
+top_spike_side_gap=base_y/8;
+top_spike_end_gap=base_x/2;
+
+max_wood=0.78*in;
+
+side_pin_extra=in/2;
+side_h=box_h;
+side_x=box_y+side_pin_extra*2;
+echo(side_x=side_x);
+box_edge=box_h;
+
+pattern_wall=2*in;
+
+//side_spike_back=(box_y/2-box_center+axle-fender_y/2)/2+20;
+side_spike_axle_offset=335;
+side_spike_axle=side_x/2-box_center+axle;
+
+side_spikes=[side_spike_axle+side_spike_axle_offset, side_spike_axle-side_spike_axle_offset, side_x/6*5];
+
+side_spike_from_end=axle-side_spike_axle_offset;
+echo(side_spike_from_end=side_spike_from_end);
+
+end_x=box_x+side_pin_extra*2;
+
+strap=2.2*in;
+strap_inset=side_pin_extra+0;
+strap_thick=in/16;
+top_strap=box_edge/7*4;
+bottom_strap=box_edge/7*2;
+
+spike_hole=in/2;
+
+pattern_hole=2*in;
+pattern_gap=4.2*in;
+pattern_fn=8;
+
+lock_x=2.5*in;
+lock_y=0.5*in;
+
+plywood_x=4*ft;
+plywood_y=8*ft;
+plywood_z=8*in;
+
+skirt_h=frame_height+base_wood;
+skirt_wood=in/2;
+side_skirt=box_y-frame_y-80;
+end_skirt=box_x/2-130;
+
+side_skirt_pins=3;
+end_skirt_pins=2;
+
+skirt_pin_edge=120;
+
 module kayaks() {
     dirror_x()
     translate([-box_x/2,0])
-    rotate([0,-45])
+    rotate([0,-55])
     translate([kayak_x/2,box_center])
     rotate([0,0,180])
     translate([0,-5*in,0])
@@ -153,7 +241,7 @@ module screws() {
     inner_side_holes=498;
     side_holes_from_edge=19;
     side_holes_from_back=97;
-    frame_hole=10;
+    frame_hole=11;
 
     beam_holes=812;
     beam_holes_from_back=21.5;
@@ -193,10 +281,107 @@ module screws() {
     
 }
 
+module mending_plate() {
+    x=tie_plate_x;
+    y=tie_plate_y;
+    z=2;
+    hole=5;
+    offset=9;
+    $fn=12;
+    center=tie_down_gap;
+    module hole() {
+        cylinder(d=hole,h=z+pad*2,center=true);
+    }   
+
+    translate([0,0,-z/2])
+    color("#333333")
+    difference() {
+        cube([x,y,z],center=true);
+        dirror_x()
+        dirror_y()
+        translate([x/2-offset,y/2-offset])
+        hole();
+
+        dirror_x()
+        translate([center/2,0])
+        hole();
+    }
+    
+}
+
+module tie_down_holes() {
+    dirror_y()
+    translate([0,tie_down_gap/2,0])
+    circle(d=tie_down_bolt);
+}
+
+module tie_down(angle=0) {
+    color("silver") {
+        // https://www.amazon.com/gp/product/B07T42GZTF/ref=ppx_yo_dt_b_asin_title_o01_s00?ie=UTF8&psc=1
+        $fn=16;
+        strap_d=0.78*in;
+        strap_h=0.08*in;
+        strap_y=2.16*in;
+
+        ring=0.24*in;
+
+        flat=in; //guess
+
+        difference() {
+            hull() {
+                translate([0,0,ring/2])
+                rotate([0,90])
+                cylinder(d=ring+strap_h*2,h=strap_d,center=true);
+                cube([strap_d,flat,1],center=true);
+            }
+            translate([0,0,-strap_y+pad])
+            cylinder(d=strap_y,h=strap_y);
+        }
+
+        difference() {
+            hull()
+            dirror_y()
+            translate([0,strap_d/2-strap_y/2])
+            cylinder(d=strap_d,h=strap_h);
+
+            dirror_y()
+            translate([0,strap_d/2-strap_y/2,-pad])
+            cylinder(d=tie_down_bolt,h=strap_h+pad*2);
+        }
+
+        translate([0,0,ring/2])
+        rotate([angle,0]) {
+
+            ring_w=1.5*in;
+            ring_h=1.85*in;
+            rotate([0,90,0])
+            cylinder(d=ring,h=ring_w-ring,center=true);
+
+            dirror_x()
+            translate([ring_w/2-ring/2,0,0])
+            sphere(d=ring);
+
+            dirror_x()
+            translate([ring_w/2-ring/2,0,0])
+            rotate([-90,0])
+            cylinder(d=ring,h=ring_h-ring_w/2);
+
+            
+            translate([0,ring_h-ring_w/2,0])
+            difference() {
+                rotate_extrude()
+                translate([ring_w/2-ring/2,0])
+                circle(d=ring);
+                rotate([90,0])
+                cylinder(d=ring_w*2,h=ring_w*2);
+            }
+        }
+    }
+}
 
 module frame() {
 
-    color("blue")
+    *color("blue")
     translate([0,0,frame_height/2])
     screws();
 
@@ -246,58 +431,104 @@ module frame() {
     frame_rail(300,tip_frame_width);
 }
 
-pintail_gap=in/8;
-pintail_ear=in/4;
-end_pins=4;
-side_pins=6;
-box_pins=3;
-
-
-base_x=48*in;
-base_pin_extra=(48*in-box_x)/2;
-base_y=box_y+base_pin_extra*2;
-
-echo(base_y=base_y);
-
-overhang=base_y/2-box_center;
-echo(overhang=overhang);
-
-
-//top=frame_x-frame_width*3;
-//top=box_h;
-top=base_y/3;
-top_cutout=box_x-(base_x-box_x);
-
-top_spike=100;
-top_spike_h=2*in;
-
-top_spike_side_gap=base_y/8;
-top_spike_end_gap=base_x/2;
-
 module base() {
     color("tan")
     translate([0,box_center])
     linear_extrude(height=base_wood)
-    translate([-base_x/2,-base_y/2])
     difference() {
-        square([base_x,base_y]);
+        cutable_base();
+
+        translate([-base_x/2,-base_y/2])
         dirror_x(base_x)
         translate([base_x/2-frame_x/2-fender_x,base_y/2-fender_y/2-box_center+axle])
         square([fender_x,fender_y]);
-        translate([base_x/2,base_y/2-box_center])
-        screws();
     }
 }
 
-side_pin_extra=1*in;
-side_h=box_h;
-side_x=box_y+side_pin_extra*2;
-box_edge=box_h;
+*mdx_cutsheet();
+cutgap=in;
+module mdx_cutsheet() {
+    translate([0,-base_y/2])
+    cutable_base();
+    gap=skirt_h+base_wood+in;
+    //translate([0,gap,-end_skirt])
+}
 
-pattern_wall=3*in;
+module skirt_cutsheet() {
+
+    translate([base_x/2-side_skirt-cutgap,gap*2,0])
+    mirror([1,0])
+    end_skirt();
+
+    translate([base_x/2-side_skirt,gap*2,0])
+    side_skirt();
+
+    translate([base_x/2-side_skirt-cutgap,gap,0])
+    mirror([1,0])
+    end_skirt();
+
+    translate([base_x/2-side_skirt,gap,0])
+    side_skirt();
+}
+
+module cutable_base() {
+    module end_spike_slot(y) {
+        dirror_x(base_x)
+        translate([base_x/2-end_spike_gap/2,y])
+        spike_slot();
+    }
+    translate([-base_x/2,-base_y/2])
+    difference() {
+        square([base_x,base_y]);
+
+
+        translate([base_x/2,base_y/2-box_center])
+        screws();
+
+        dirror_y(base_y)
+        end_spike_slot(base_y/2-box_y/2+side_wood/2);
+
+        end_spike_slot(base_y/2-box_center+frame_beam+max_wood/2);
+
+        //end_spike_slot(base_y/2-box_center+axle+730);
+        //end_spike_slot(base_y/2-box_center+axle+1040);
+
+        edge_gap=fender_x/4*3;
+
+        dirror_x(base_x)
+        translate([base_x/2-frame_x/2-fender_x+edge_gap,base_y/2-fender_y/2-box_center+axle])
+        square([fender_x-edge_gap,fender_y]);
+        
+        dirror_x(base_x)
+        for(y=side_spikes)
+        translate([base_x/2-box_x/2+side_wood/2,base_y/2-box_y/2+y-side_wood])
+        rotate([0,0,90])
+        spike_slot();
+
+        dirror_x(base_x)
+        translate([base_x/2+box_x/2-side_wood/2-max_wood/2,base_y/2+box_y/2-side_wood/2-max_wood/2])
+        rotate([0,0,180])
+        dirror_x(skirt_wood)
+        //negative_tails(side_skirt,skirt_wood,side_skirt_pins,pintail_gap,0,pintail_ear);
+        dirror_y(side_skirt)
+        negative_tails(skirt_pin_edge,skirt_wood,1,pintail_gap,0,pintail_ear);
+
+    
+        dirror_x(base_x)
+        translate([base_x/2+box_x/2-side_wood/2-max_wood/2,base_y/2+box_y/2-side_wood/2-max_wood/2-skirt_wood])
+        rotate([0,0,90])
+        dirror_x(skirt_wood)
+        dirror_y(end_skirt)
+        negative_tails(skirt_pin_edge,skirt_wood,1,pintail_gap,0,pintail_ear);
+
+        translate([base_x/2,0])
+        place_tie_downs()
+        tie_down_holes();
+    }
+}
 
 module strap_holes(x,wall=0) {
-        dirror_x(x)
+        *dirror_x(x)
         translate([x/3,bottom_strap,0])
         offset(wall)
         strap_hole();
@@ -308,11 +539,6 @@ module strap_holes(x,wall=0) {
         strap_hole();
 }
 
-side_spike_back=(box_y/2-box_center+axle-fender_y/2)/2;
-
-side_spikes=[side_spike_back, box_y-side_spike_back, box_y/2+200];
-
-
 module side_top_spikes(x=0) {
     translate([side_x/2+x,0])
     dirror_x()
@@ -320,50 +546,57 @@ module side_top_spikes(x=0) {
     top_spike();
 }
 
-module side() {
+//!side();
+module side(top_spikes=0) {
+
+    module fender() {
+        translate([side_x/2-box_center+axle,fender_h-fender_d/2-base_wood])
+        circle(d=fender_d);
+    }
     difference() {
         union() {
             square([side_x,box_edge]);
             for(x=side_spikes)
             translate([x,0])
             spike();
-            side_top_spikes();
-            side_top_spikes(base_y/3);
-            side_top_spikes(-base_y/3);
+            if(top_spikes) {
+                side_top_spikes();
+                side_top_spikes(base_y/3);
+                side_top_spikes(-base_y/3);
+            }
             
         }
         dirror_x(side_x)
         negative_pins(box_edge,side_wood+pad+side_pin_extra,box_pins,pintail_gap,0,pintail_ear);
 
         dirror_x(side_x)
-        strap(bottom_strap);
+        *strap(bottom_strap);
 
         dirror_x(side_x)
         strap(top_strap);
 
+        side_wall=pattern_wall+side_pin_extra+side_wood;
         intersection() {
-            translate([box_y/2,0])
+            translate([side_x/2,box_h/2])
             pattern();
             difference() {
-                translate([pattern_wall,pattern_wall])
-                square([box_y-pattern_wall*2,box_h-pattern_wall*2]);
-                strap_holes(box_y,pattern_wall);
+                translate([side_wall,pattern_wall])
+                square([side_x-side_wall*2,box_h-pattern_wall*2]);
+
+                strap_holes(side_x,pattern_wall);
+                offset(pattern_wall)
+                fender();
             }
         }
 
+        fender();
+
+
         //translate([base_pin_extra/2,0])
-        strap_holes(box_y);
+        strap_holes(side_x);
 
     }
 }
-
-end_x=box_x+side_pin_extra*2;
-
-strap=2.2*in;
-strap_inset=side_pin_extra+0;
-strap_thick=in/16;
-top_strap=box_edge/7*6;
-bottom_strap=box_edge/7*2;
 
 module strap_hole() {
     square([strap,strap],center=true);
@@ -399,44 +632,69 @@ module top_spike() {
     square([top_spike,top_spike_h]);
 }
 
-
-module end() {
+//!end();
+module end(top_spikes=0) {
     difference() {
         union() {
             square([end_x,box_edge]);
+
             translate([end_x/2,0])
             dirror_x()
             translate([end_spike_gap/2,0])
             spike();
+
+            if(top_spikes)
             translate([end_x/2-top_spike_end_gap/2,box_h])
             dirror_x(top_spike_end_gap)
             top_spike();
         }
+
         dirror_x(end_x)
         negative_tails(box_edge,side_wood+pad+side_pin_extra,box_pins,pintail_gap,0,pintail_ear);
         
         dirror_x(end_x)
-        strap(bottom_strap);
+        *strap(bottom_strap);
 
         dirror_x(end_x)
         strap(top_strap);
     
         strap_holes(end_x);
 
+        side_wall=pattern_wall+side_pin_extra+side_wood;
         intersection() {
-            translate([box_x/2,0])
+            translate([end_x/2,box_h/2])
             pattern();
             difference() {
-                translate([pattern_wall,pattern_wall])
-                square([box_x-pattern_wall*2,box_h-pattern_wall*2]);
+                translate([side_wall,pattern_wall])
+                square([end_x-side_wall*2,box_h-pattern_wall*2]);
                 strap_holes(end_x,pattern_wall);
             }
         }
-
     }
 }
 
 module box() {
+    *strap_preview(bottom_strap);
+    strap_preview(top_strap);
+
+    color("sienna")
+    dirror_x()
+    translate([-box_x/2,box_center,base_wood])
+    rotate([90,0,90])
+    translate([-side_x/2,0])
+    linear_extrude(height=side_wood)
+    side();
+
+    color("chocolate")
+    translate([0,box_center+box_y/2,base_wood])
+    dirror_y(-box_y)
+    rotate([90,0])
+    translate([-end_x/2,0])
+    linear_extrude(height=side_wood)
+    end();
+} 
+
+module double_box() {
     strap_preview(bottom_strap);
     strap_preview(top_strap);
     color("sienna")
@@ -456,8 +714,6 @@ module box() {
     end();
 } 
 
-spike_hole=in/2;
-
 module spike() {
     extra=5*in;
     mirror([0,1])
@@ -472,15 +728,10 @@ module spike() {
         }
         translate([-spike_x,-extra*2])
         square([spike_x*2,extra*2]);
-        translate([0,spike_z/2])
+        translate([0,spike_z/2+base_wood/2])
         circle(d=spike_hole);
     }
 }
-//spike();
-
-pattern_hole=2*in;
-pattern_gap=4.5*in;
-pattern_fn=8;
 
 module pattern() {
     pattern_max=box_x+box_y;
@@ -499,31 +750,119 @@ module pattern() {
     }
 }
 
-lock_x=2.5*in;
-lock_y=0.5*in;
 module lock() {
     square([lock_x,lock_y],center=true);
 }
-
-plywood_x=4*ft;
-plywood_y=8*ft;
-plywood_z=8*in;
 
 module plywood_stack() {
     translate([-plywood_x/2,box_center-plywood_y/2])
     cube([plywood_x,plywood_y,plywood_z]);
 }
 
+module side_skirt() {
+    difference() {
+        square([side_skirt,skirt_h]);
+        translate([0,base_wood])
+        negative_pins(skirt_h-base_wood,skirt_wood,1,pintail_gap,0,pintail_ear);
+
+        mirror([0,1])
+        rotate([0,0,-90])
+        translate([-pad,0])
+        dirror_y(side_skirt)
+        negative_pins(skirt_pin_edge,base_wood+pad,1,pintail_gap,0,pintail_ear);
+
+        translate([skirt_pin_edge-pad,-pad])
+        square([side_skirt-skirt_pin_edge*2+pad*2,base_wood+pad]);
+    }
+}
+
+module end_skirt() {
+    difference() {
+        square([end_skirt,skirt_h]);
+        translate([0,base_wood])
+        negative_tails(skirt_h-base_wood,skirt_wood,1,pintail_gap,0,pintail_ear);
+
+        mirror([0,1])
+        rotate([0,0,-90])
+        translate([-pad,0])
+        dirror_y(end_skirt)
+        negative_pins(skirt_pin_edge,base_wood+pad,1,pintail_gap,0,pintail_ear);
+
+        translate([skirt_pin_edge-pad,-pad])
+        square([end_skirt-skirt_pin_edge*2+pad*2,base_wood+pad]);
+    }
+}
+
+module skirts() {
+    color("saddlebrown")
+    dirror_x()
+    translate([max_wood/2+skirt_wood/2-box_x/2,box_center+box_y/2-side_wood/2-max_wood/2,base_wood])
+    rotate([-90,0,-90])
+    linear_extrude(height=skirt_wood)
+    side_skirt();
+
+    color("saddlebrown")
+    dirror_x()
+    translate([-box_x/2+skirt_wood/2+max_wood/2,box_center+box_y/2-side_wood/2-skirt_wood-max_wood/2,base_wood])
+    rotate([-90,0,0])
+    linear_extrude(height=skirt_wood)
+    end_skirt();
+}
+
 
 translate([0,0,-frame_height/2])
 frame();
-*plywood_stack();
-//bikes();
-//kayaks();
 
+plywood_h=fender_h+100;
+
+translate([0,0,plywood_h])
+*plywood_stack();
+*bikes();
+*kayaks();
 box();
+*ramp();
+*ground();
 
 base();
+translate([0,box_center-base_y/2,base_wood])
+place_tie_downs()
+tie_down();
+
+translate([0,box_center-base_y/2,0])
+place_tie_downs()
+rotate([0,0,90])
+mending_plate();
+
+!side_cutsheet();
+module side_cutsheet() {
+    //dirror_y()
+    translate([0,80])
+    side();
+
+    translate([0,-plywood_y/4])
+    *#square([plywood_y,plywood_x]);
+
+    translate([0,-box_h*1.5,0])
+    end();
+}
+
+module place_tie_downs() {
+    dirror_y(base_y)
+    dirror_x()
+    translate([base_x/2-tie_plate_y/2,tie_plate_x/2+base_pin_extra+side_wood])
+    children();
+
+    dirror_x()
+    translate([base_x/2-tie_plate_y/2,base_y/2+100])
+    children();
+
+    dirror_y(base_y)
+    dirror_x()
+    translate([base_x/2-tie_plate_x/2-base_pin_extra-side_wood,tie_plate_y/2])
+    rotate([0,0,90])
+    children();
+
+}
 
 module top_spike_slot() {
     square([top_spike,side_wood],center=true);
@@ -556,8 +895,6 @@ module stacked() {
 *stacked();
 *fully_covered();
 
-
-
 module top_spike_slots() {
         translate([base_x/2,0])
         dirror_x()
@@ -571,6 +908,14 @@ module top_spike_slots() {
         translate([base_pin_extra+side_wood/2,top_spike_side_gap/2])
         rotate([0,0,90])
         top_spike_slot();
+}
+
+module spike_slot() {
+    dirror_x()
+    dirror_y()
+    translate([spike_slot_x/2,-max_wood/2])
+    rotate([0,0,90])
+    negative_slot(spike_slot_x,max_wood,pintail_ear);
 }
 
 *top_3d();
@@ -602,4 +947,209 @@ module top(cut=1) {
 // RENDER stl
 module nothing() {
     echo("nope");
+}
+
+skirts();
+
+
+module ramp() {
+
+    in=25.4;
+    ft=12*in;
+
+    width=6*in;
+    length=6*ft;
+
+    gate=frame_surface+base_wood;
+
+    ramp_angle=asin(gate/length);
+
+    base_wood=0.75*in;
+    side_wood=base_wood;
+
+
+
+    module dirror_x(x=0) {
+        children();
+        translate([x,0])
+        mirror([1,0])
+        children();
+        
+    }
+
+    hole=1.5*in;
+
+
+    bottom_extra=1.5*in;
+    top_extra=0.5*in;
+    side=5*in;
+
+
+    side_angle=asin((side-bottom_extra-top_extra)/length);
+    side_length=cos(side_angle)*length;
+
+    display_angle=0;
+    //display_angle=ramp_angle;
+    //display_angle=-side_angle;
+
+    flat=bottom_extra/tan(ramp_angle);
+
+    translate([0,-overhang,base_wood])
+    rotate([ramp_angle,0])
+    translate([0,-length])
+    assembled();
+
+    // this isn't right but it's close enough
+    thickest=(side-bottom_extra)/cos(ramp_angle);
+
+    ground_wall=0*in;
+    top_wall=0*in;
+
+    joint=length-top_wall-ground_wall;
+
+    module base_positive() {
+        translate([side_wood,0])
+        square([width,length]);
+        translate([0,ground_wall])
+        square([width+side_wood*2,joint]);
+    }
+
+
+    pins=10;
+    pintail_gap=in/16;
+    bit=in/4;
+    pintail_ear=bit;
+
+    hole_x=side/2-10;
+    hole_y=310;
+
+
+    module base() {
+        difference() {
+            base_positive();
+            dirror_x(width+side_wood*2)
+            translate([0,ground_wall])
+            negative_pins(joint,side_wood,pins,pintail_gap,0,pintail_ear);
+        }
+    }
+
+    module assembled() {
+        color("lime")
+        rotate([display_angle,0])
+        translate([0,0,-base_wood])
+        linear_extrude(height=base_wood)
+        translate([-width/2-side_wood,0])
+        base();
+
+        rotate([display_angle,0])
+        dirror_x()
+        translate([width/2,0])
+        rotate([0,90])
+        linear_extrude(height=side_wood)
+        side();
+    }
+
+
+    //side();
+
+    tooth=0*in;
+
+    thin=(side-bottom_extra)/cos(ramp_angle);
+    module side() {
+        difference() {
+            hull() {
+                rotate([0,0,side_angle])
+                translate([-top_extra,0])
+                square([side,side_length]);
+
+
+                translate([0,length])
+                rotate([0,0,-ramp_angle])
+                translate([-thin,0])
+                square([thin,flat]);
+                
+            }
+
+            x=side*2;
+
+            // gate
+            translate([0,length])
+            rotate([0,0,-ramp_angle])
+            difference() {
+                square([x,side_length]);
+                translate([0,flat/2])
+                square([x,tooth]);
+            }
+
+            // ground slice
+            rotate([0,0,side_angle-ramp_angle])
+            square([x,side_length]);
+
+            translate([0,ground_wall])
+            negative_tails(joint,side_wood,pins,pintail_gap,0,pintail_ear);
+
+            pivot=(side-top_extra)/sin(ramp_angle);
+            rotate([0,0,side_angle-ramp_angle])
+            translate([0,pivot])
+            rotate([0,0,90+ramp_angle/2-side_angle])
+            translate([0,40])
+            circle(d=hole);
+        }
+    }
+
+
+    module bleh_side() {
+
+        cut=cos(ramp_angle)*below;
+        flat=cut/sin(ramp_angle);
+
+        //flat=5*in;
+
+        extra=cos(ramp_angle)*flat;
+
+
+        above=1.5*in;
+        below=2*in;
+        side=above+base_wood+below;
+
+        dirror_x()
+        translate([-width/2,0])
+        rotate([display_angle,0])
+        rotate([0,-90])
+        translate([-below-base_wood,0])
+        linear_extrude(height=side_wood)
+        side();
+
+        module side() {
+            difference() {
+                square([side,length+extra]);
+                translate([below+base_wood,0])
+                rotate([0,0,ramp_angle])
+                translate([-side,0])
+                square([side,length]);
+
+                translate([below,length])
+                rotate([0,0,ramp_angle])
+                translate([-side,0])
+                square([side,length]);
+            }
+        }
+    }
+
+    module triangle() {
+        lip=3*in;
+        spine_angle=45;
+        spine=tan(spine_angle)/(width/2);
+        side_below=(width/2)/cos(spine_angle);
+        side=side_below+lip;
+
+
+        dirror_x()
+        translate([width/2,0])
+        rotate([ramp_angle,0,0])
+        rotate([0,-spine_angle,0])
+        translate([-side_below,0])
+        linear_extrude(height=base_wood)
+        square([side,length]);
+    }
 }
