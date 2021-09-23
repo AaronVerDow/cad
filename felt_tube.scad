@@ -1,6 +1,6 @@
-tube=30;
-height=tube;
-screw=3;
+tube=23;
+height=15;
+screw=3.4;
 taper=1;
 
 slit=0.5;
