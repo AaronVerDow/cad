@@ -2,17 +2,17 @@ in=25.4;
 pad=0.1;
 zero=0.001;
 
-roof_lip_corner=30;
-roof_lip_height=12;
-roof_lip_width=19;
+roof_lip_corner=40;
+roof_lip_height=15.5;
+roof_lip_width=17;
 
-wink_x=28*in;
-wink_y=80;
-wink_z=90;
+wink_x=705;
+wink_y=40;
+wink_z=65;
 
 wall=3;
 
-roof_opening=28.5*in;
+roof_opening=720;
 
 roof_straight=50;
 
@@ -26,17 +26,18 @@ base_z=wall;
 
 pivot_x=0;
 pivot_y=0;
-pivot_z=wink_z/2;
+pivot_z=wink_z/2+5;
 
 pivot_wall=wall;
 
-bolt=7;
-bolt_wall=12;
 
-bolt_head=bolt+bolt_wall*1.5;
+bolt_head=35;
+
+bolt=7;
+bolt_wall=(bolt_head-bolt)/2;
 
 bolt_head_h=base_x+pad;
-bolt_head2=bolt_head*7;
+bolt_head2=bolt_head*4;
 
 $fn=90;
 
