@@ -31,7 +31,7 @@ ramp_angle=10;
 pivot_y=37;
 pivot_z=wink_z/2+1;
 
-base_y_offset=roof_lip_width+pivot_y+10;
+base_y_offset=roof_lip_width+pivot_y-20;
 base_y=roof_straight+base_y_offset;
 
 
@@ -42,7 +42,7 @@ bolt=7;
 bolt_wall=(bolt_head-bolt)/2;
 
 bolt_head_h=base_x+pad+pivot_x;
-bolt_head2=bolt_head*2;
+bolt_head2=bolt_head*2.5;
 
 $fn=90;
 
@@ -51,7 +51,7 @@ module stay_in_circle() {
         hull() {
             translate([roof_lip_corner,0,wall])
             cylinder(r=roof_lip_corner+roof_lip_width,h=zero);
-            translate([roof_lip_corner,pivot_y,-pivot_z-bolt_head/2])
+            translate([roof_lip_corner,pivot_y*1.5,-pivot_z-bolt_head/2])
             cylinder(r=roof_lip_corner+roof_lip_width,h=zero);
         }
         translate([roof_lip_corner,-roof_lip_corner,-60])
