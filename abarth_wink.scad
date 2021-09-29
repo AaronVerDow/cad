@@ -13,6 +13,7 @@ wink_z=65;
 
 wall=3;
 top_wall=1.5;
+top_edge=0.2;
 
 roof_opening=720;
 
@@ -48,7 +49,7 @@ $fn=90;
 module stay_in_circle() {
     hull() {
         hull() {
-            translate([roof_lip_corner,0,0])
+            translate([roof_lip_corner,0,wall])
             cylinder(r=roof_lip_corner+roof_lip_width,h=zero);
             translate([roof_lip_corner,pivot_y,-pivot_z-bolt_head/2])
             cylinder(r=roof_lip_corner+roof_lip_width,h=zero);
@@ -149,7 +150,7 @@ bolt_head=35;
 	translate([0,0,roof_lip_height+wall*1.5+top_wall])
 	cube([roof_lip_corner*4,roof_lip_corner*4,wall],center=true);
 	//translate([0,0,roof_lip_height+wall*1.5+top_wall])
-	translate([0,-roof_straight,wall+roof_lip_height])
+	translate([0,-roof_straight,wall+roof_lip_height+top_edge])
 	rotate([ramp_angle,0])
 	translate([0,0,wall/2])
 	cube([roof_lip_corner*4,roof_lip_corner*4,wall],center=true);
