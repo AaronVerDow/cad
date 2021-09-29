@@ -5,17 +5,18 @@ zero=0.001;
 roof_lip_corner=40;
 roof_lip_height=15;
 roof_lip_width=10;
+roof_lip_r=4;
 
 wink_x=705;
 wink_y=40;
 wink_z=65;
 
 wall=3;
-top_wall=1;
+top_wall=1.5;
 
 roof_opening=720;
 
-roof_straight=30;
+roof_straight=20;
 
 //translate([r,0])
 
@@ -24,6 +25,7 @@ pivot_x=(roof_opening-wink_x)/2-pivot_wall;
 base_x=wall+roof_lip_width+pivot_x;
 base_z=wall;
 
+ramp_angle=10;
 
 pivot_y=37;
 pivot_z=wink_z/2+1;
@@ -56,7 +58,6 @@ module stay_in_circle() {
     }
 }
 
-roof_lip_r=2;
 
 module roof_negative() {
         minkowski() {
@@ -74,7 +75,7 @@ module roof_profile() {
 	}
 }
 
-!roof_profile();
+//!roof_profile();
 
 module extrude_roof() {
 	r=roof_lip_corner+roof_lip_width;
@@ -145,4 +146,11 @@ bolt_head=35;
 	cylinder(d=bolt,h=pivot_wall+pad*2);
     //translate([-roof_lip_width-wall,-roof_straight-pad])
     //#cube([roof_lip_width+pad,roof_straight+roof_lip_corner,roof_lip_height]);
+	translate([0,0,roof_lip_height+wall*1.5+top_wall])
+	cube([roof_lip_corner*4,roof_lip_corner*4,wall],center=true);
+	//translate([0,0,roof_lip_height+wall*1.5+top_wall])
+	translate([0,-roof_straight,wall+roof_lip_height])
+	rotate([ramp_angle,0])
+	translate([0,0,wall/2])
+	cube([roof_lip_corner*4,roof_lip_corner*4,wall],center=true);
 }
