@@ -155,8 +155,8 @@ bottom_strap=box_edge/7*2;
 spike_hole=in/2;
 
 pattern_hole=2*in;
-pattern_gap=4.2*in;
-pattern_fn=8;
+pattern_gap=4.25*in;
+pattern_fn=45;
 
 lock_x=2.5*in;
 lock_y=0.5*in;
@@ -632,6 +632,38 @@ module top_spike() {
     square([top_spike,top_spike_h]);
 }
 
+stand_spine=5*in;
+stand_float=3*in; // how high off ground
+stand_pivot=frame_surface*0.7; // how long the thing goes down for pivot 
+
+stand_pivot_x=box_x/2+fender_x-base_x/2+stand_float;
+
+stand_angle=10;
+
+//!stand();
+module stand() {
+    rotate([0,0,stand_angle])
+    difference() {
+        union() {
+            translate([end_x/2-box_x/2,0])
+            square([box_x+fender_x+stand_float,stand_spine]);
+            translate([end_x/2+base_x/2,-stand_pivot])
+            square([stand_pivot_x,stand_pivot]);
+
+            translate([end_x/2,0])
+            dirror_x()
+            translate([end_spike_gap/2,0])
+            spike();
+        }
+    }
+ 
+}
+
+module stands() {
+    place_end()
+    stand();
+}
+
 //!end();
 module end(top_spikes=0) {
     difference() {
@@ -673,6 +705,16 @@ module end(top_spikes=0) {
     }
 }
 
+module place_end() {
+    color("chocolate")
+    translate([0,box_center+box_y/2,base_wood])
+    dirror_y(-box_y)
+    rotate([90,0])
+    translate([-end_x/2,0])
+    linear_extrude(height=side_wood)
+    children();
+}
+
 module box() {
     *strap_preview(bottom_strap);
     strap_preview(top_strap);
@@ -685,12 +727,7 @@ module box() {
     linear_extrude(height=side_wood)
     side();
 
-    color("chocolate")
-    translate([0,box_center+box_y/2,base_wood])
-    dirror_y(-box_y)
-    rotate([90,0])
-    translate([-end_x/2,0])
-    linear_extrude(height=side_wood)
+    place_end()
     end();
 } 
 
@@ -819,9 +856,10 @@ translate([0,0,plywood_h])
 *plywood_stack();
 *bikes();
 *kayaks();
-box();
+*box();
 *ramp();
 *ground();
+stands();
 
 base();
 translate([0,box_center-base_y/2,base_wood])
@@ -833,17 +871,25 @@ place_tie_downs()
 rotate([0,0,90])
 mending_plate();
 
-!side_cutsheet();
+//!side_cutsheet();
 module side_cutsheet() {
     //dirror_y()
-    translate([0,80])
-    side();
+    *translate([0,80])
+    difference() {
+        offset(1)
+        side();
+        side();
+    }
 
     translate([0,-plywood_y/4])
     *#square([plywood_y,plywood_x]);
 
     translate([0,-box_h*1.5,0])
-    end();
+    difference() {
+        //offset(14)
+        end();
+        //end();
+    }
 }
 
 module place_tie_downs() {
