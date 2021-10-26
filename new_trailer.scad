@@ -640,6 +640,75 @@ stand_pivot_x=box_x/2+fender_x-base_x/2+stand_float;
 
 stand_angle=10;
 
+
+plywood_spike_x=100;
+plywood_spike_tip=50;
+
+zero=0.001;
+
+module plywood_spike_line(x) {
+	translate([x,plywood_shelf/2])
+	square([plywood_spike_x,zero]);	
+}
+
+module plywood_spike_tip(x) {
+	translate([x,plywood_shelf+plywood_z])
+	square([plywood_spike_tip,zero]);	
+}
+
+//!plywood_end();
+module plywood_end() {
+	translate([end_x/2-plywood_x/2,0])
+	dirror_x(plywood_x) {
+		hull() {
+			square([plywood_x,plywood_shelf]);
+			plywood_spike_line(plywood_x);
+		}
+		hull() {
+			plywood_spike_line(plywood_x);
+			plywood_spike_tip(plywood_x);
+		}
+	}
+
+    translate([end_x/2,0])
+    dirror_x()
+    translate([end_spike_gap/2,0])
+    spike();
+ 
+}
+
+module plywood_side() {
+	translate([box_center-plywood_y/2,0]){
+		hull() {
+			square([plywood_y,plywood_shelf]);
+			plywood_spike_line(plywood_y);
+		}
+		hull() {
+			plywood_spike_line(plywood_y);
+			plywood_spike_tip(plywood_y);
+		}
+	}
+    // translate([-box_x/2,box_center,base_wood])
+    // rotate([90,0,90])
+    // translate([-side_x/2,0])
+	translate([0,0])
+            for(x=side_spikes)
+            translate([x,0])
+            spike();
+
+
+}
+
+module plywood() {
+	color("blue")
+    triple_end()
+    plywood_end();
+
+	color("lime")
+	place_side()
+	plywood_side();
+}
+
 //!stand();
 module stand() {
     rotate([0,0,stand_angle])
@@ -705,6 +774,19 @@ module end(top_spikes=0) {
     }
 }
 
+module place_side() {
+    //color("chocolate")
+    //translate([0,box_center+box_y/2,base_wood])
+    //dirror_y(-box_y)
+	dirror_x()
+	translate([box_x/2-side_wood,0,base_wood])
+    rotate([90,0,90])
+    //translate([-end_x/2,0])
+    linear_extrude(height=side_wood)
+    children();
+}
+
+
 module place_end() {
     color("chocolate")
     translate([0,box_center+box_y/2,base_wood])
@@ -713,6 +795,23 @@ module place_end() {
     translate([-end_x/2,0])
     linear_extrude(height=side_wood)
     children();
+}
+
+module triple_end() {
+	// same as place end but with middle included
+
+	// fix this mess later
+	place_end()
+	children();
+
+	//translate([0,box_center+box_y/2,base_wood])
+	translate([0,frame_beam+side_wood/2+max_wood/2,base_wood])
+	rotate([90,0])
+	translate([-end_x/2,0])
+	linear_extrude(height=side_wood)
+	children();
+        //end_spike_slot(base_y/2-box_center+frame_beam+max_wood/2);
+
 }
 
 module box() {
@@ -850,16 +949,17 @@ module skirts() {
 translate([0,0,-frame_height/2])
 frame();
 
-plywood_h=fender_h+100;
+plywood_shelf=fender_h+10;
 
-translate([0,0,plywood_h])
-*plywood_stack();
+#translate([0,0,plywood_shelf+base_wood])
+plywood_stack();
 *bikes();
 *kayaks();
 *box();
 *ramp();
 *ground();
-stands();
+*stands();
+plywood();
 
 base();
 translate([0,box_center-base_y/2,base_wood])
