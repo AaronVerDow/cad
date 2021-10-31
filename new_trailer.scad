@@ -157,6 +157,8 @@ spike_hole=in/2;
 pattern_hole=2*in;
 pattern_gap=4.2*in;
 pattern_fn=200;
+//pattern_gap=4.25*in;
+//pattern_fn=45;
 
 lock_x=2.5*in;
 lock_y=0.5*in;
@@ -634,6 +636,107 @@ module top_spike() {
     square([top_spike,top_spike_h]);
 }
 
+stand_spine=5*in;
+stand_float=3*in; // how high off ground
+stand_pivot=frame_surface*0.7; // how long the thing goes down for pivot 
+
+stand_pivot_x=box_x/2+fender_x-base_x/2+stand_float;
+
+stand_angle=10;
+
+
+plywood_spike_x=100;
+plywood_spike_tip=50;
+
+zero=0.001;
+
+module plywood_spike_line(x) {
+	translate([x,plywood_shelf/2])
+	square([plywood_spike_x,zero]);	
+}
+
+module plywood_spike_tip(x) {
+	translate([x,plywood_shelf+plywood_z])
+	square([plywood_spike_tip,zero]);	
+}
+
+//!plywood_end();
+module plywood_end() {
+	translate([end_x/2-plywood_x/2,0])
+	dirror_x(plywood_x) {
+		hull() {
+			square([plywood_x,plywood_shelf]);
+			plywood_spike_line(plywood_x);
+		}
+		hull() {
+			plywood_spike_line(plywood_x);
+			plywood_spike_tip(plywood_x);
+		}
+	}
+
+    translate([end_x/2,0])
+    dirror_x()
+    translate([end_spike_gap/2,0])
+    spike();
+ 
+}
+
+module plywood_side() {
+	translate([box_center-plywood_y/2,0]){
+		hull() {
+			square([plywood_y,plywood_shelf]);
+			plywood_spike_line(plywood_y);
+		}
+		hull() {
+			plywood_spike_line(plywood_y);
+			plywood_spike_tip(plywood_y);
+		}
+	}
+    // translate([-box_x/2,box_center,base_wood])
+    // rotate([90,0,90])
+    // translate([-side_x/2,0])
+	translate([0,0])
+            for(x=side_spikes)
+            translate([x,0])
+            spike();
+
+
+}
+
+module plywood() {
+	color("blue")
+    triple_end()
+    plywood_end();
+
+	color("lime")
+	place_side()
+	plywood_side();
+}
+
+//!stand();
+module stand() {
+    rotate([0,0,stand_angle])
+    difference() {
+        union() {
+            translate([end_x/2-box_x/2,0])
+            square([box_x+fender_x+stand_float,stand_spine]);
+            translate([end_x/2+base_x/2,-stand_pivot])
+            square([stand_pivot_x,stand_pivot]);
+
+            translate([end_x/2,0])
+            dirror_x()
+            translate([end_spike_gap/2,0])
+            spike();
+        }
+    }
+ 
+}
+
+module stands() {
+    place_end()
+    stand();
+}
+
 //!end();
 module end(top_spikes=0) {
     difference() {
@@ -675,6 +778,46 @@ module end(top_spikes=0) {
     }
 }
 
+module place_side() {
+    //color("chocolate")
+    //translate([0,box_center+box_y/2,base_wood])
+    //dirror_y(-box_y)
+	dirror_x()
+	translate([box_x/2-side_wood,0,base_wood])
+    rotate([90,0,90])
+    //translate([-end_x/2,0])
+    linear_extrude(height=side_wood)
+    children();
+}
+
+
+module place_end() {
+    color("chocolate")
+    translate([0,box_center+box_y/2,base_wood])
+    dirror_y(-box_y)
+    rotate([90,0])
+    translate([-end_x/2,0])
+    linear_extrude(height=side_wood)
+    children();
+}
+
+module triple_end() {
+	// same as place end but with middle included
+
+	// fix this mess later
+	place_end()
+	children();
+
+	//translate([0,box_center+box_y/2,base_wood])
+	translate([0,frame_beam+side_wood/2+max_wood/2,base_wood])
+	rotate([90,0])
+	translate([-end_x/2,0])
+	linear_extrude(height=side_wood)
+	children();
+        //end_spike_slot(base_y/2-box_center+frame_beam+max_wood/2);
+
+}
+
 module box() {
     *strap_preview(bottom_strap);
     strap_preview(top_strap);
@@ -687,12 +830,7 @@ module box() {
     linear_extrude(height=side_wood)
     side();
 
-    color("chocolate")
-    translate([0,box_center+box_y/2,base_wood])
-    dirror_y(-box_y)
-    rotate([90,0])
-    translate([-end_x/2,0])
-    linear_extrude(height=side_wood)
+    place_end()
     end();
 } 
 
@@ -840,15 +978,17 @@ module skirts() {
 translate([0,0,-frame_height/2])
 frame();
 
-plywood_h=fender_h+100;
+plywood_shelf=fender_h+10;
 
-translate([0,0,plywood_h])
-*plywood_stack();
+#translate([0,0,plywood_shelf+base_wood])
+plywood_stack();
 *bikes();
 *kayaks();
-box();
+*box();
 *ramp();
 *ground();
+*stands();
+plywood();
 
 base();
 translate([0,box_center-base_y/2,base_wood])
@@ -860,17 +1000,25 @@ place_tie_downs()
 rotate([0,0,90])
 mending_plate();
 
-*side_cutsheet();
+//!side_cutsheet();
 module side_cutsheet() {
     //dirror_y()
-    translate([0,80])
-    side();
+    *translate([0,80])
+    difference() {
+        offset(1)
+        side();
+        side();
+    }
 
     translate([0,-plywood_y/4])
     *#square([plywood_y,plywood_x]);
 
     translate([0,-box_h*1.5,0])
-    end();
+    difference() {
+        //offset(14)
+        end();
+        //end();
+    }
 }
 
 module place_tie_downs() {

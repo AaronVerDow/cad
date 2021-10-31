@@ -1,18 +1,21 @@
-tank_x=500;
-tank_y=300;
-tank_lip=10;
+tank_x=600;
+tank_y=240;
+tank_lip=6;
 
-light_x=200;
-light_y=80;
+light_x=418;
+light_y=109;
+hole_x=380;
+hole_y=light_y;
+
 light_lip=tank_lip;
 
-inlet=25;
-inlet_x=100;
-inlet_y=60;
+inlet=15;
+inlet_x=55-inlet/2;
+inlet_y=55-inlet;
 
-outlet=25;
-outlet_x=100;
-outlet_y=50;
+outlet=15;
+outlet_x=40-outlet/2;
+outlet_y=65-outlet;
 
 io_lip=0;
 
@@ -20,7 +23,7 @@ acrylic=25.4/4;
 
 pad=0.1;
 
-screw_top=5;
+screw_top=0;
 screw_bottom=3.5;
 
 screw_offset=20;
@@ -60,14 +63,18 @@ module negative(top=0, padding=0) {
 		circle(d=inlet+io_lip*2*top);
 	}
 
-	ll=light_lip*2*top-light_lip*2;
+	if(top){ 
+		translate([tank_x/2,tank_y/2])
+		square([
+			light_x,
+			light_y
+		],center=true);
+	} else {
+		translate([tank_x/2,tank_y/2])
+		square([hole_x,hole_y],center=true);
+	}
 
-	translate([tank_x/2,tank_y/2])
-	square([
-		light_x+ll,
-		light_y+ll
-	],center=true);
-
+	if(screw_top)
 	dirror_x(tank_x)
 	dirror_y(tank_y)
 	translate([screw_offset,screw_offset])
