@@ -130,10 +130,10 @@ max_wood=0.78*in;
 side_pin_extra=in/2;
 side_h=box_h;
 side_x=box_y+side_pin_extra*2;
-echo(side_x=side_x);
 box_edge=box_h;
 
 pattern_wall=2*in;
+
 
 //side_spike_back=(box_y/2-box_center+axle-fender_y/2)/2+20;
 side_spike_axle_offset=335;
@@ -161,9 +161,11 @@ pattern_fn=45;
 lock_x=2.5*in;
 lock_y=0.5*in;
 
-plywood_x=4*ft;
+plywood_x=4*ft+in;
 plywood_y=8*ft;
 plywood_z=8*in;
+
+plywood_side_overlap=spike_slot_x;
 
 skirt_h=frame_height+base_wood;
 skirt_wood=in/2;
@@ -471,6 +473,7 @@ module skirt_cutsheet() {
     side_skirt();
 }
 
+//!cutable_base();
 module cutable_base() {
     module end_spike_slot(y) {
         dirror_x(base_x)
@@ -546,14 +549,15 @@ module side_top_spikes(x=0) {
     top_spike();
 }
 
+module fender() {
+	translate([side_x/2-box_center+axle,fender_h-fender_d/2-base_wood])
+	circle(d=fender_d);
+}
+
 //!side();
 module side(top_spikes=0) {
 
-    module fender() {
-        translate([side_x/2-box_center+axle,fender_h-fender_d/2-base_wood])
-        circle(d=fender_d);
-    }
-    difference() {
+   difference() {
         union() {
             square([side_x,box_edge]);
             for(x=side_spikes)
@@ -657,17 +661,31 @@ module plywood_spike_tip(x) {
 }
 
 //!plywood_end();
+// RENDER svg
 module plywood_end() {
-	translate([end_x/2-plywood_x/2,0])
-	dirror_x(plywood_x) {
-		hull() {
-			square([plywood_x,plywood_shelf]);
-			plywood_spike_line(plywood_x);
+	module slot() {
+		dirror_x()
+		translate([-max_wood/2,-pad])
+		negative_slot(plywood_shelf/2+pad,max_wood,pintail_ear);
+	}
+	difference() {
+		translate([end_x/2-plywood_x/2,0])
+		dirror_x(plywood_x) {
+			hull() {
+				translate([0,plywood_shelf-spike_tip])
+				square([plywood_x,spike_tip]);
+				translate([plywood_x/2-base_x/2,0])
+				square([base_x,plywood_shelf]);
+				plywood_spike_line(plywood_x);
+			}
+			hull() {
+				plywood_spike_line(plywood_x);
+				plywood_spike_tip(plywood_x);
+			}
 		}
-		hull() {
-			plywood_spike_line(plywood_x);
-			plywood_spike_tip(plywood_x);
-		}
+		dirror_x(end_x)
+		translate([end_x/2-box_x/2+side_wood/2,0])
+		slot();
 	}
 
     translate([end_x/2,0])
@@ -677,21 +695,90 @@ module plywood_end() {
  
 }
 
-module plywood_side() {
-	translate([box_center-plywood_y/2,0]){
-		hull() {
-			square([plywood_y,plywood_shelf]);
-			plywood_spike_line(plywood_y);
-		}
-		hull() {
-			plywood_spike_line(plywood_y);
-			plywood_spike_tip(plywood_y);
-		}
+module place_side() {
+
+	dirror_x()
+	translate([box_x/2-side_wood,0,base_wood])
+    rotate([90,0,90])
+    //translate([-end_x/2,0])
+    linear_extrude(height=side_wood)
+    children();
+}
+
+//!plywood_side_front();
+// RENDER svg
+module plywood_side_front() {
+	difference() {
+		plywood_side();
+		translate([axle+side_spike_axle_offset-plywood_side_overlap/2,plywood_shelf*2])
+		rotate([0,0,180])
+		square([4000,1000]);
 	}
-    // translate([-box_x/2,box_center,base_wood])
-    // rotate([90,0,90])
-    // translate([-side_x/2,0])
-	translate([0,0])
+}
+
+//!plywood_side_back();
+// RENDER svg
+module plywood_side_back() {
+	difference() {
+		plywood_side();
+		translate([axle+side_spike_axle_offset+plywood_side_overlap/2,-plywood_shelf])
+		square([4000,1000]);
+	}
+}
+
+
+module plywood_side_front() {
+	difference() {
+		plywood_side();
+		translate([axle+side_spike_axle_offset-plywood_side_overlap/2,plywood_shelf*2])
+		rotate([0,0,180])
+		square([4000,1000]);
+	}
+}
+
+
+
+
+//!plywood_side();
+// RENDER svg
+module plywood_side() {
+	module slot(x=0) {
+		translate([x,0])
+		dirror_x()
+		translate([max_wood/2,plywood_shelf+pad])
+		rotate([0,0,180])
+		negative_slot(plywood_shelf/2+pad,max_wood,pintail_ear);
+	}
+	difference() {
+		translate([box_center-plywood_y/2,0]){
+			hull() {
+				translate([0,plywood_shelf-spike_tip])
+				square([plywood_y,spike_tip]);
+				translate([plywood_y/2-base_y/2,0])
+				square([base_y,plywood_shelf]);
+				plywood_spike_line(plywood_y);
+			}
+			hull() {
+				plywood_spike_line(plywood_y);
+				plywood_spike_tip(plywood_y);
+			}
+		}
+        //dirror_y(base_y)
+        //end_spike_slot(base_y/2-box_y/2+side_wood/2);
+        //end_spike_slot(base_y/2-box_center+frame_beam+max_wood/2);
+		slot(box_center-box_y/2+side_wood/2);
+		slot(box_center+box_y/2-side_wood/2);
+		slot(frame_beam+max_wood/2);
+
+		//fender();
+
+		//translate([side_x/2-box_center+axle,fender_h-fender_d/2-base_wood])
+		translate([axle,fender_h-fender_d/2-base_wood])
+		circle(d=fender_d);
+	}
+	// holy fuck I need a better system for this
+	// look at placment within base
+	translate([-overhang+(base_y/2-box_y/2-side_wood),0])
             for(x=side_spikes)
             translate([x,0])
             spike();
@@ -706,7 +793,11 @@ module plywood() {
 
 	color("lime")
 	place_side()
-	plywood_side();
+	plywood_side_front();
+
+	color("red")
+	place_side()
+	plywood_side_back();
 }
 
 //!stand();
@@ -774,17 +865,6 @@ module end(top_spikes=0) {
     }
 }
 
-module place_side() {
-    //color("chocolate")
-    //translate([0,box_center+box_y/2,base_wood])
-    //dirror_y(-box_y)
-	dirror_x()
-	translate([box_x/2-side_wood,0,base_wood])
-    rotate([90,0,90])
-    //translate([-end_x/2,0])
-    linear_extrude(height=side_wood)
-    children();
-}
 
 
 module place_end() {
@@ -949,9 +1029,9 @@ module skirts() {
 translate([0,0,-frame_height/2])
 frame();
 
-plywood_shelf=fender_h+10;
+plywood_shelf=200;
 
-#translate([0,0,plywood_shelf+base_wood])
+*#translate([0,0,plywood_shelf+base_wood])
 plywood_stack();
 *bikes();
 *kayaks();
