@@ -7,7 +7,7 @@ point=1761; //back of trailer to point
 frame_bow=point-frame_beam;
 bow_angle=atan(frame_bow/(frame_x/2));
 bow_beam=(frame_x/2)/cos(bow_angle);
-$fn=90;
+$fn=200;
 
 tip_beam=1489;
 
@@ -155,8 +155,10 @@ bottom_strap=box_edge/7*2;
 spike_hole=in/2;
 
 pattern_hole=2*in;
-pattern_gap=4.25*in;
-pattern_fn=45;
+pattern_gap=4.2*in;
+pattern_fn=200;
+//pattern_gap=4.25*in;
+//pattern_fn=45;
 
 lock_x=2.5*in;
 lock_y=0.5*in;
@@ -456,7 +458,9 @@ module mdx_cutsheet() {
     //translate([0,gap,-end_skirt])
 }
 
+!skirt_cutsheet();
 module skirt_cutsheet() {
+    gap=skirt_h+base_wood+in;
 
     translate([base_x/2-side_skirt-cutgap,gap*2,0])
     mirror([1,0])
@@ -975,6 +979,28 @@ module plywood_stack() {
     cube([plywood_x,plywood_y,plywood_z]);
 }
 
+
+module side_light() {
+    bolt=0.26*in;
+    head=20;
+
+    wire_hole=15;
+    wires=[23,-11];
+
+    difference() {
+        circle(d=head);
+        circle(d=bolt);
+    }
+
+
+    dirror_x()
+    translate(wires)
+    circle(d=wire_hole);
+
+
+}
+
+
 module side_skirt() {
     difference() {
         square([side_skirt,skirt_h]);
@@ -989,6 +1015,9 @@ module side_skirt() {
 
         translate([skirt_pin_edge-pad,-pad])
         square([side_skirt-skirt_pin_edge*2+pad*2,base_wood+pad]);
+
+        translate([side_skirt*0.7,skirt_h/2+base_wood/2])
+        side_light();
     }
 }
 
