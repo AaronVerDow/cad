@@ -458,7 +458,7 @@ module mdx_cutsheet() {
     //translate([0,gap,-end_skirt])
 }
 
-!skirt_cutsheet();
+//!skirt_cutsheet();
 module skirt_cutsheet() {
     gap=skirt_h+base_wood+in;
 
@@ -664,32 +664,72 @@ module plywood_spike_tip(x) {
 	square([plywood_spike_tip,zero]);	
 }
 
+module plywood_end_positive() {
+    translate([end_x/2-plywood_x/2,0])
+    dirror_x(plywood_x) {
+        hull() {
+            translate([0,plywood_shelf-spike_tip])
+            square([plywood_x,spike_tip]);
+            translate([plywood_x/2-base_x/2,0])
+            square([base_x,plywood_shelf]);
+            plywood_spike_line(plywood_x);
+        }
+        hull() {
+            plywood_spike_line(plywood_x);
+            plywood_spike_tip(plywood_x);
+        }
+    }
+
+}
+
+plywood_wall=50;
+
 //!plywood_end();
 // RENDER svg
 module plywood_end() {
+    module plywood_end_positive() {
+        translate([end_x/2-plywood_x/2,0])
+        dirror_x(plywood_x) {
+            hull() {
+                translate([0,plywood_shelf-spike_tip])
+                square([plywood_x,spike_tip]);
+                translate([plywood_x/2-base_x/2,0])
+                square([base_x,plywood_shelf]);
+                plywood_spike_line(plywood_x);
+            }
+            hull() {
+                plywood_spike_line(plywood_x);
+                plywood_spike_tip(plywood_x);
+            }
+        }
+
+    }
 	module slot() {
 		dirror_x()
 		translate([-max_wood/2,-pad])
 		negative_slot(plywood_shelf/2+pad,max_wood,pintail_ear);
 	}
-	difference() {
-		translate([end_x/2-plywood_x/2,0])
-		dirror_x(plywood_x) {
-			hull() {
-				translate([0,plywood_shelf-spike_tip])
-				square([plywood_x,spike_tip]);
-				translate([plywood_x/2-base_x/2,0])
-				square([base_x,plywood_shelf]);
-				plywood_spike_line(plywood_x);
-			}
-			hull() {
-				plywood_spike_line(plywood_x);
-				plywood_spike_tip(plywood_x);
-			}
-		}
+    module slots() {
 		dirror_x(end_x)
 		translate([end_x/2-box_x/2+side_wood/2,0])
 		slot();
+    }
+	difference() {
+        plywood_end_positive();
+        slots();
+
+
+        intersection() {
+            difference() {
+                offset(-plywood_wall)
+                plywood_end_positive();
+                offset(plywood_wall)
+                slots();
+            }
+
+            translate([end_x/2,plywood_shelf/2])
+            pattern();
+        }
 	}
 
     translate([end_x/2,0])
@@ -753,7 +793,15 @@ module plywood_side() {
 		rotate([0,0,180])
 		negative_slot(plywood_shelf/2+pad,max_wood,pintail_ear);
 	}
-	difference() {
+    module negative() {
+		slot(box_center-box_y/2+side_wood/2);
+		slot(box_center+box_y/2-side_wood/2);
+		slot(frame_beam+max_wood/2);
+
+		translate([axle,fender_h-fender_d/2-base_wood])
+		circle(d=fender_d);
+    }
+    module positive() {
 		translate([box_center-plywood_y/2,0]){
 			hull() {
 				translate([0,plywood_shelf-spike_tip])
@@ -767,25 +815,28 @@ module plywood_side() {
 				plywood_spike_tip(plywood_y);
 			}
 		}
-        //dirror_y(base_y)
-        //end_spike_slot(base_y/2-box_y/2+side_wood/2);
-        //end_spike_slot(base_y/2-box_center+frame_beam+max_wood/2);
-		slot(box_center-box_y/2+side_wood/2);
-		slot(box_center+box_y/2-side_wood/2);
-		slot(frame_beam+max_wood/2);
 
-		//fender();
-
-		//translate([side_x/2-box_center+axle,fender_h-fender_d/2-base_wood])
-		translate([axle,fender_h-fender_d/2-base_wood])
-		circle(d=fender_d);
+    }
+	difference() {
+        positive();
+        negative();
+        intersection() {
+            difference() {
+                offset(-plywood_wall)
+                positive();
+                offset(plywood_wall)
+                negative();
+            }
+            translate([axle,plywood_shelf/2])
+            pattern();
+        }
 	}
-	// holy fuck I need a better system for this
+	// I need a better system for this
 	// look at placment within base
 	translate([-overhang+(base_y/2-box_y/2-side_wood),0])
-            for(x=side_spikes)
-            translate([x,0])
-            spike();
+    for(x=side_spikes)
+    translate([x,0])
+    spike();
 
 
 }
@@ -1058,7 +1109,7 @@ module skirts() {
 translate([0,0,-frame_height/2])
 frame();
 
-plywood_shelf=200;
+plywood_shelf=220;
 
 *#translate([0,0,plywood_shelf+base_wood])
 plywood_stack();
