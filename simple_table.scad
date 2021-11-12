@@ -14,7 +14,7 @@ leg_end=150; // space for leg at end of table
 
 leg_middle=400; // space for leg at middle of table
 
-leg_x=75;
+leg_x=80;
 //leg_y=top_y-leg_end*2;
 //leg_y=top_y*0.55;
 leg_y=1100*0.55;
@@ -163,9 +163,34 @@ module leg_preview() {
     color("red")
     translate([0,0,1])
     leg_pockets();
+
+    color("lime")
+    leg_anchor();
+}
+
+module leg_anchor() {
+    dirror_x(leg_y)
+    dirror_y(leg_z)
+    translate([-20,-20])
+    circle(d=10);
 }
 
 //!leg_face();
+
+!leg_preview();
+
+// RENDER svg
+module anchored_leg() {
+    leg();
+    leg_anchor();
+}
+
+// RENDER svg
+module anchored_leg_pockets() {
+    leg_pockets();
+    leg_anchor();
+}
+
 
 // RENDER svg
 module leg() {
@@ -186,10 +211,16 @@ module leg() {
         rotate([0,0,-90])
         dirror_y(top_wood)
         negative_slot(top_wood,spine+pad,pintail_ear);
+
+        r=20;
+        offset(r)
+        offset(-r)
+        translate([leg_y/2,leg_z])
+        square([light_x,light_y*2],center=true);
     }
 }
 
-base_offset=wood;
+base_offset=30;
 
 module leg_assembly() {
     color("tan")
@@ -212,10 +243,13 @@ module leg_assembly() {
 
     translate([0,0,base_offset])
     wood()
-    base();
+    base(leveler_hole);
 
+    translate([0,0,stabalizer_offset])
     wood()
-    base_flat();
+    base(leveler_bolt);
+
+    //wood() base_flat();
 
 }
 
@@ -233,14 +267,18 @@ module leg_pockets() {
     translate([-pad-bit,0])
     negative_tails(leg_z-spine,wood+pad+bit,leg_pins,gap,0,pintail_ear);
 
-    translate([wood,wood+base_offset]) rotate([0,0,-90]) dirror_x(wood) {
-        negative_pins(base_y,wood,base_pins,gap,0,pintail_ear);
+    module base_pockets(z) {
+        translate([wood,wood+z]) rotate([0,0,-90]) dirror_x(wood) {
+            negative_pins(base_y,wood,base_pins,gap,0,pintail_ear);
 
-        dirror_y(base_y)
-        translate([0,bit*4-gap])
-        rotate([0,0,-90])
-        negative_slot(wood,bit*4,pintail_ear);
+            dirror_y(base_y)
+            translate([0,bit*4-gap])
+            rotate([0,0,-90])
+            negative_slot(wood,bit*4,pintail_ear);
+        }
     }
+    base_pockets(base_offset);
+    base_pockets(stabalizer_offset);
 }
 
 //!leg_face();
@@ -267,29 +305,40 @@ module leg_face() {
 }
 
 leveler_gap=leg_y-leg_x;
-leveler_hole=3/8*in;
-leveler_large_hole=1*in;
+leveler_hole=10;
+leveler_bolt=8;
 base_y=leg_y-wood*2;
+
+leveler_stablizer=50;  // how long to grip the bolt
+
+stabalizer_offset=base_offset+leveler_stablizer-wood;
 
 base_pins=3;
 //!base();
+
+light_x=100; 
+light_y=skirt;
+
 // RENDER svg
-module base() {
+module base_bottom() {
+    base(leveler_hole);
+}
+
+// RENDER svg
+module base_top() {
+    base(leveler_bolt);
+}
+
+
+module base(hole=0) {
     difference() {
         square([leg_x-hide*2,base_y],center=true); 
         dirror_y()
         translate([0,leveler_gap/2])
-        circle(d=leveler_hole);
+        circle(d=hole);
 
         dirror_x()
         translate([-pad-leg_x/2,-base_y/2])
         negative_tails(base_y,wood+pad,base_pins,gap,0,pintail_ear);
-    }
-}
-
-module base_flat() {
-    difference() {
-        square([leg_x-wood*2,leg_y-wood*2],center=true); 
-        //dirror_y() translate([0,leveler_gap/2]) circle(d=leveler_large_hole);
     }
 }
