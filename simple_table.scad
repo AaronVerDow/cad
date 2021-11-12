@@ -16,8 +16,12 @@ leg_middle=400; // space for leg at middle of table
 
 leg_x=75;
 //leg_y=top_y-leg_end*2;
-leg_y=top_y*0.55;
+//leg_y=top_y*0.55;
+leg_y=1100*0.55;
 leg_z=top-top_wood;
+
+echo(leg_y=leg_y);
+echo(leg_z=leg_z);
 
 leg_gap=top_x-leg_end*2-leg_x*2;
 
@@ -163,6 +167,7 @@ module leg_preview() {
 
 //!leg_face();
 
+// RENDER svg
 module leg() {
     foot=leg_x;
     chord=top-top_wood-skirt-foot*2;
@@ -222,7 +227,6 @@ leg_assembly();
 leg_pins=4;
 gap=in/8;
 
-//!leg_face();
 
 module leg_pockets() {
     dirror_x(leg_y)
@@ -239,6 +243,8 @@ module leg_pockets() {
     }
 }
 
+//!leg_face();
+// RENDER svg
 module leg_face() {
     x=(top_x-leg_gap-leg_x-skirt_offset*2-top_wood*2)/2;
 
@@ -267,6 +273,7 @@ base_y=leg_y-wood*2;
 
 base_pins=3;
 //!base();
+// RENDER svg
 module base() {
     difference() {
         square([leg_x-hide*2,base_y],center=true); 
