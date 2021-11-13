@@ -1,27 +1,30 @@
 door_x=655;
 door_y=2010;
 
-stile=100;
+stile=101.5;
 
 top_rail=stile;
 intermediate_rail=stile;
 lock_rail=stile;
-bottom_rail=stile*2;
 mullion=0; // center stile
 
 lock=door_y*0.4;
 
 rail=door_x-stile*2;
 
+echo(rail=rail);
+
 in=25.4;
 pad=0.1;
 
 wood=in/2;
 
-cat_x=130;
-cat_y=200;
+cat_x=150;
+cat_y=350;
+bottom_rail=cat_y;
 
 cat_wall=stile;
+$fn=400;
 
 module cat() {
     translate([door_x/2,0]) {
@@ -80,12 +83,17 @@ module top_rail() {
     square([rail,top_rail]);
 }
 
+// RENDER svg
 module bottom_rail() {
     difference() {
         union() {
             square([rail,bottom_rail]);
-            translate([rail/2,cat_y-cat_x/2])
-            circle(d=cat_x+cat_wall*2);
+            hull() {
+                translate([rail/2,cat_y-cat_x/2])
+                circle(d=cat_x+cat_wall*2);
+                translate([rail/2,0])
+                circle(d=cat_x+cat_wall*2);
+            }
         }
         translate([-stile,0])
         cat();
