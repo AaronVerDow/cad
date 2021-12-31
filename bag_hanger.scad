@@ -1,35 +1,27 @@
 function segment_radius(height, chord) = (height/2)+(chord*chord)/(8*height);
 
-arc_height=40;
-arc_chord=100;
-
-depth=40;
-
-arc_radius=segment_radius(arc_height, arc_chord);
-arc_od=arc_radius*2;
-
-opp=arc_chord/2;
-adj=arc_radius-arc_height;
-arc_angle=atan(opp/adj)*2;
-wall=3;
-
-zero=0.01;
-
-//cylinder(d=arc_od, h=depth);
-
+// 17" Fjallraven laptop bag
+height=30;
+width=80;
+depth=80;
+cutout=height/2;
 lip_x=5;
-lip_y=lip_x/2;
-
-cutout=arc_height/3*2;
-
+lip_y=lip_x;
+wall=3;
 screw=4.5;
 
-screw_y=cutout+(arc_height-cutout)/2;
-
-big_fn=200;
-med_fn=50;
-mink_fn=12;
 pad=0.1;
+zero=0.01;
+big_fn=300;
+med_fn=50;
+mink_fn=18;
+
+screw_y=cutout+(height-cutout)/2;
+radius=segment_radius(height, width);
+diameter=radius*2;
+outer_radius=radius+lip_y;
+outer_diameter=outer_radius*2;
+slice=atan(width/2/(diameter/2-height))*2; // angle of pie slice
 
 module dirror_x() {
 	children();
@@ -37,75 +29,95 @@ module dirror_x() {
 	children();
 }
 
-module profile(thick=wall) {
+module screw(wall,x=0,y=0) {
+    translate([x,y,-wall/2-pad])
+    cylinder(d=screw,h=wall+pad*2, $fn=med_fn);
+}
+
+module profile(wall=wall,depth=depth,lip_x=lip_x,lip_y=lip_y) {
 	hull() {
 		dirror_x()
 		translate([depth/2-lip_x,0])
-		circle(d=thick);
+		circle(d=wall);
 	}
 	dirror_x()
 	hull() {
 		translate([depth/2-lip_x,0])
-		circle(d=thick);
+		circle(d=wall);
 		translate([depth/2,lip_y])
-		circle(d=thick);
+		circle(d=wall);
 	}
 }
 
-
-module arc_body(thick=wall) {
-	translate([arc_chord/2,0,depth/2])
-	rotate([0,0,-180+(180-arc_angle)/2])
-	translate([arc_radius,0])
-	rotate_extrude(angle=arc_angle, $fn=big_fn)
+module extruded_profile(wall=wall, slice=360) {
+	translate([0,0,depth/2])
+	rotate_extrude(angle=slice, $fn=big_fn)
 	rotate([0,0,90])
-	translate([0,arc_od/2])
-	profile(thick);
+	translate([0,radius])
+	profile(wall);
+}
+
+module arc(wall=wall,slice=slice) {
+    intersection() {
+        translate([width/2,0,0])
+        rotate([0,0,-180+(180-slice)/2])
+        translate([radius,0])
+        extruded_profile(wall, slice);
+        // boxes to clip ends
+        union() {
+            translate([-pad-width/2-wall/2,-pad-wall/2,-pad-wall/2])
+            cube([width+wall+pad*2,height+lip_y+pad*2+wall,depth+pad*2+wall]);
+            translate([-pad-width/2-wall/2-lip_y,-pad-wall/2,-pad-wall/2])
+            cube([width+wall+pad*2+lip_y*2,height+lip_y+pad*2+wall,depth/2+pad*2+wall]);
+        }
+    }
 
 	intersection() {
-		back(thick);
-		back_space(thick);
+        // back
+        translate([0,0,-wall/2])
+        difference() {
+            translate([0,height-radius])
+            cylinder(d=diameter+lip_y*2,h=wall, $fn=big_fn);
+
+            cutout_od=segment_radius(cutout,width+lip_y*2)*2;
+            translate([0,cutout-cutout_od/2,-pad])
+            cylinder(d=cutout_od,h=wall+pad*2, $fn=big_fn);
+        }
+
+        // pie slice
+        translate([0,height-radius,-wall/2-pad])
+        rotate([0,0,(180-slice)/2])
+        rotate_extrude(angle=slice, $fn=big_fn)
+        square([radius+lip_y, wall+pad*2]);
 	}
 } 
 
-module back_space(thick) {
-	translate([0,arc_height-arc_od/2,-thick/2-pad])
-	rotate([0,0,(180-arc_angle)/2])
-	rotate_extrude(angle=arc_angle, $fn=big_fn)
-	square([arc_od/2+lip_y, thick+pad*2]);
-}
-
-module back(thick) {
-	translate([0,0,-thick/2])
+module simple_arc(wall=wall) {
 	difference() {
-		translate([0,arc_height-arc_od/2])
-		cylinder(d=arc_od+lip_y*2,h=thick, $fn=big_fn);
-
-		cutout_od=segment_radius(cutout,arc_chord+lip_y*2)*2;
-		translate([0,cutout-cutout_od/2,-pad])
-		cylinder(d=cutout_od,h=thick+pad*2, $fn=big_fn);
+		arc(wall);
+		translate([0,screw_y,-wall/2-pad])
+		cylinder(d=screw,h=wall+pad*2, $fn=med_fn);
 	}
 }
 
-
-module simple(thick=wall) {
-	difference() {
-		arc_body(thick);
-		translate([0,screw_y,-thick/2-pad])
-		cylinder(d=screw,h=thick+pad*2, $fn=med_fn);
-	}
-}
-
-// RENDER stl
-module assembled(thick=wall) {
+// this takes hours
+module fancy_arc(wall=wall) {
 	difference() {
 		minkowski() {
-			arc_body(zero);
-			sphere(d=thick-zero*2, $fn=mink_fn);
+			arc(zero);
+			sphere(d=wall-zero, $fn=mink_fn);
 		}
-		translate([0,screw_y,-thick/2-pad])
-		cylinder(d=screw,h=thick+pad*2, $fn=med_fn);
+        screw(wall,y=screw_y);
 	}
 }
 
-simple();
+module post(wall=wall) {
+    extruded_profile();
+    difference() {
+        cylinder(d=diameter+lip_y*2, h=wall, center=true);
+        screw(wall);
+    }
+}
+
+//post();
+//simple_arc();
