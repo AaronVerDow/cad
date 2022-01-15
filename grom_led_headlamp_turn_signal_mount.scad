@@ -1,7 +1,7 @@
-d1=10;
-d2=10;
+d1=12;
+d2=12;
 d3=8;
-d4=15;
+d4=16;
 
 
 // looking at right hand side of bike
@@ -13,9 +13,9 @@ d4=15;
 // (d4 is sligt bump by screw)
 
 // measuring to outside edges
-d1_d2=40-d1/2-d2/2;
-d2_d3=35-d2/2-d3/2;
-d3_d1=25-d3/2-d1/2;
+d1_d2=39-d1/2-d2/2;
+d2_d3=32-d2/2-d3/2;
+d3_d1=23-d3/2-d1/2;
 
 // d4 is assumed to be tangent to d1 and d3
 
