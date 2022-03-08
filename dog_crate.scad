@@ -174,7 +174,7 @@ module place_door() {
 etching=in/8;
 line=bit;
 door_plank=(door_x+line)/7;
-window_trim=10;
+window_trim=wood;
 
 module door_etching() {
 	difference() {
@@ -184,13 +184,11 @@ module door_etching() {
 		translate([door_x/2,door_y-door_x/2])
 		circle(d=door_window+window_trim*2);
 	}
-}
-
-module nope() {
 	translate([door_x/2,door_y-door_x/2])
 	difference() {
 		circle(d=door_window+window_trim*2);
-		circle(d=door_window+window_trim*2-line*2);
+		if(0)
+		circle(d=door_window+window_trim*2);
 	}
 
 }
@@ -274,7 +272,7 @@ module assembled() {
 
     }
 
-    color("cyan")
+    //color("cyan")
     translate([0,wood])
     rotate([90,0])
     place_door()
