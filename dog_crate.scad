@@ -10,7 +10,7 @@ pan_z=30;
 
 pan_gap=10;
 
-window=500;
+window=750;
 
 top_lip=40;
 
@@ -20,7 +20,7 @@ box_y=pan_y+wood*2+pan_gap*2;
 box_z=window+top_lip;
 
 steps=5;
-step_ratio=1.5;
+step_ratio=1.25;
 
 step_z=box_z/(steps*2-1)*2;
 step_x=step_z*step_ratio;
@@ -52,7 +52,7 @@ module wood(height=wood) {
 
 x_pins=4;
 y_pins=3;
-z_pins=3;
+z_pins=4;
 bit=in/4;
 pintail_ear=bit;
 pintail_holes=bit;
@@ -130,6 +130,21 @@ brick_y=box_z/brick_z_lines;
 brick_x=brick_y*2.5;
 
 module front_etching() {
+    back_etching();
+}
+
+module end_etching() {
+	mirror([0,1,0])
+    rotate([0,0,-90])
+    back_etching();
+}
+
+module steps_etching() {
+    back_etching();
+}
+
+
+module back_etching() {
 	for(z=[brick_y:brick_y:box_z-1])
 	translate([-pad,-line/2+z])
 	square([box_x+pad*2,line]);
@@ -158,7 +173,7 @@ module front() {
     }
 }
 
-door_y=box_z*0.7;
+door_y=box_z*0.6;
 door_x=door_y*0.7;
 door_lip=wood*2;
 door_gap=in/8;
@@ -215,61 +230,69 @@ module door_profile() {
 
 
 module assembled() {
-    color("lime")
+    color("cyan")
     wood()
     floor();
 
-    color("lime")
+    color("cyan")
     translate([0,0,window])
     wood()
     roof();
 
-    color("red")
     dirror_x(box_x)
     translate([wood,0])
     rotate([0,-90,0])
-    wood()
-    end();
+    difference() {
+        wood()
+        end();
+        translate([0,0,wood-etching])
+        wood()
+        end_etching();
+    }
 
-    color("magenta")
     translate([0,box_y])
     rotate([90,0])
-    wood()
-    back();
+    difference() {
+        wood()
+        back();
+        translate([0,0,etching-wood])
+        wood()
+        back_etching();
+    }
 
-    //color("blue")
     translate([0,wood])
     rotate([90,0])
 	difference() {
-    wood()
-    front();
-	translate([0,0,wood-etching])
-	wood()
-	front_etching();
+        wood()
+        front();
+        translate([0,0,wood-etching])
+        wood()
+        front_etching();
 	}
 
     translate([box_x+step_display_gap,box_y-step_y]) {
-        color("blue")
-        dirror_y(step_y)
-        translate([0,wood])
-        rotate([90,0])
-        wood()
-        steps();
-        
-        color("lime")
-        place_steps()
-        translate([0,-step_overhang_y,-wood])
-        wood()
-        step_surface();
+            dirror_y(step_y)
+            translate([0,wood])
+            rotate([90,0])
+            difference() {
+                wood()
+                steps();
+                translate([0,0,wood-etching])
+                wood()
+                steps_etching();
+            }
+            
+            color("cyan")
+            place_steps()
+            translate([0,-step_overhang_y,-wood])
+            wood()
+            step_surface();
 
-        color("red")
-        place_steps()
-        translate([step_x-wood,0,-wood])
-	rotate([0,90,0])
-        wood()
-        step_face();
-
-
+            place_steps()
+            translate([step_x-wood,0,-wood])
+            rotate([0,90,0])
+            wood()
+            step_face();
     }
 
     //color("cyan")
