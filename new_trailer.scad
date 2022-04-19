@@ -181,8 +181,8 @@ skirt_pin_edge=120;
 
 module kayaks() {
     dirror_x()
-    translate([-box_x/2,0])
-    rotate([0,-55])
+    translate([-200,0,-30])
+    rotate([0,-65])
     translate([kayak_x/2,box_center])
     rotate([0,0,180])
     translate([0,-5*in,0])
@@ -1117,7 +1117,7 @@ module skirts() {
     end_skirt();
 }
 
-kayak_max=500;
+kayak_max=base_x/2;
 kayak_lift=80;
 kayak_lip=440;
 kayak_lip_h=180;
@@ -1129,8 +1129,8 @@ kayak_wood=17;
 
 kayak_lip_tip=kayak_wood;
 
-kayak_spine_center=600;
-kayak_spine_min=500;
+kayak_spine_center=900;
+kayak_spine_min=kayak_spine_center-100;
 kayak_spine_x=box_y+200;
 
 kayak_spine_radius=segment_radius(kayak_spine_center-kayak_spine_min,kayak_spine_x);
