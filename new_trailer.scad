@@ -188,6 +188,18 @@ module kayaks() {
     translate([0,-5*in,0])
     scale([56,39,28])
     import("KAYAK_BUENO.stl");
+
+
+	translate([end_x/2,0])
+	place_end()
+	kayak_stand();
+
+	translate([0,box_y/2,base_wood])
+	rotate([0,0,90])
+	translate([0,kayak_wood/2])
+	rotate([90,0])
+	linear_extrude(height=kayak_wood)
+	kayak_spine();
 }
 
 module bike() {
@@ -1105,6 +1117,79 @@ module skirts() {
     end_skirt();
 }
 
+kayak_max=500;
+kayak_lift=80;
+kayak_lip=440;
+kayak_lip_h=180;
+kayak_lip_w=kayak_max-kayak_lip;
+kayak_stand=100;
+kayak_stand_h=300;
+
+kayak_wood=17;
+
+kayak_lip_tip=kayak_wood;
+
+kayak_spine_center=600;
+kayak_spine_min=500;
+kayak_spine_x=box_y+200;
+
+kayak_spine_radius=segment_radius(kayak_spine_center-kayak_spine_min,kayak_spine_x);
+
+kayak_hole=2.5*in;
+
+kayak_hole_offset=kayak_hole;
+kayak_holes=150;
+
+module kayak_spine() {
+	difference() {
+		kayak_spine_body();
+		kayak_spine_holes();	
+	}
+}
+
+module kayak_spine_holes() {
+	translate([0,kayak_spine_center-kayak_spine_radius])
+	for(z=[0:360/kayak_holes:359])
+	rotate([0,0,z])
+	translate([0,kayak_spine_radius-kayak_hole_offset])
+	circle(d=kayak_hole);
+
+	translate([0,kayak_spine_center-kayak_spine_radius])
+	for(z=[360/kayak_holes/2:360/kayak_holes:359])
+	rotate([0,0,z])
+	translate([0,kayak_spine_radius-kayak_hole_offset*3])
+	circle(d=kayak_hole);
+}
+
+module kayak_spine_body() {
+	intersection() {
+		translate([-kayak_spine_x/2,0])
+		square([kayak_spine_x,kayak_spine_center]);
+		translate([0,kayak_spine_center-kayak_spine_radius])
+		circle(r=kayak_spine_radius);
+	}
+}
+
+module kayak_stand() {
+	dirror_x()
+	kayak_half_stand();
+}
+
+module kayak_half_stand() {
+	square([kayak_max,kayak_lift]);
+
+	translate([kayak_lip,0])
+	hull() {
+		square([kayak_lip_w,kayak_lift]);
+		square([kayak_lip_tip,kayak_lip_h]);
+	}
+
+	hull() {
+		square([kayak_wood*1.5,kayak_stand_h]);
+		square([kayak_stand,kayak_lift]);
+	}
+}
+
 
 translate([0,0,-frame_height/2])
 frame();
@@ -1114,12 +1199,12 @@ plywood_shelf=220;
 *#translate([0,0,plywood_shelf+base_wood])
 plywood_stack();
 *bikes();
-*kayaks();
+kayaks();
 *box();
 *ramp();
 *ground();
 *stands();
-plywood();
+*plywood();
 
 base();
 translate([0,box_center-base_y/2,base_wood])
