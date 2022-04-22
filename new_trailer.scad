@@ -9,10 +9,14 @@ bow_angle=atan(frame_bow/(frame_x/2));
 bow_beam=(frame_x/2)/cos(bow_angle);
 $fn=200;
 
+pi=3.141592653589793238462643383279502884197169399375105820974944592307816406286208998;
+
 tip_beam=1489;
 
 use <joints.scad>;
 
+function pie_angle(arc,radius) = (arc*180)/(pi*radius);
+function chord(radius,angle) = 2*radius*sin(angle/2);
 function segment_radius(height, chord) = (height/2)+(chord*chord)/(8*height);
 
 fender_x=185; 
@@ -194,7 +198,7 @@ module kayaks() {
 	place_end()
 	kayak_stand();
 
-	translate([0,box_y/2,base_wood])
+	translate([0,box_center,base_wood])
 	rotate([0,0,90])
 	translate([0,kayak_wood/2])
 	rotate([90,0])
@@ -1118,6 +1122,7 @@ module skirts() {
 }
 
 kayak_max=base_x/2;
+kayak_arc=kayak_max;
 kayak_lift=80;
 kayak_lip=440;
 kayak_lip_h=180;
@@ -1131,14 +1136,18 @@ kayak_lip_tip=kayak_wood;
 
 kayak_spine_center=900;
 kayak_spine_min=kayak_spine_center-100;
-kayak_spine_x=box_y+200;
+kayak_spine_x=base_y;
 
-kayak_spine_radius=segment_radius(kayak_spine_center-kayak_spine_min,kayak_spine_x);
 
 kayak_hole=2.5*in;
 
-kayak_hole_offset=kayak_hole;
-kayak_holes=150;
+kayak_holes=9;
+kayak_hole_x_gap=kayak_hole*3;
+
+kayak_spine_radius=segment_radius(kayak_spine_center-kayak_spine_min,kayak_spine_x);
+
+kayak_spine_angle=35;
+kayak_hole_wall=80;
 
 module kayak_spine() {
 	difference() {
@@ -1148,6 +1157,37 @@ module kayak_spine() {
 }
 
 module kayak_spine_holes() {
+	kayak_spine_hole(-kayak_hole/2-kayak_hole_wall);
+	kayak_spine_hole(-kayak_hole-kayak_hole_wall*3);
+
+	radius_offset=-kayak_hole*0.75-kayak_hole_wall*2;
+	hole_offset=0;
+
+	gap=kayak_spine_angle/(kayak_holes-1);
+	end=kayak_spine_angle/2-gap/2;
+	start=end*-1;
+
+	translate([0,kayak_spine_center-kayak_spine_radius])
+	for(z=[start:gap:end])
+	rotate([0,0,z])
+	translate([0,kayak_spine_radius+radius_offset])
+	circle(d=kayak_hole+hole_offset);
+}
+
+
+module kayak_spine_hole(radius_offset=0,hole_offset=0,extra_holes=0) {
+	end=kayak_spine_angle/2;
+	start=end*-1;
+	gap=kayak_spine_angle/(kayak_holes-1+extra_holes);
+
+	translate([0,kayak_spine_center-kayak_spine_radius])
+	for(z=[start:gap:end])
+	rotate([0,0,z])
+	translate([0,kayak_spine_radius+radius_offset])
+	circle(d=kayak_hole+hole_offset);
+}
+
+module old_kayak_spine_holes() {
 	translate([0,kayak_spine_center-kayak_spine_radius])
 	for(z=[0:360/kayak_holes:359])
 	rotate([0,0,z])
@@ -1162,12 +1202,16 @@ module kayak_spine_holes() {
 }
 
 module kayak_spine_body() {
-	intersection() {
-		translate([-kayak_spine_x/2,0])
-		square([kayak_spine_x,kayak_spine_center]);
-		translate([0,kayak_spine_center-kayak_spine_radius])
-		circle(r=kayak_spine_radius);
-	}
+		hull() {
+			translate([-kayak_spine_x/2,0])
+			square([kayak_spine_x,zero]);
+
+			kayak_spine_hole(-kayak_hole_wall-kayak_hole/2,kayak_hole_wall*2,100);
+			kayak_spine_hole(-kayak_hole-kayak_hole_wall*3,kayak_hole_wall*2);
+
+		}
+		//translate([0,kayak_spine_center-kayak_spine_radius])
+		//circle(r=kayak_spine_radius);
 }
 
 module kayak_stand() {
