@@ -3,6 +3,9 @@ d2=12;
 d3=8;
 d4=16;
 
+height=6;
+bolt=9.5;
+
 
 // looking at right hand side of bike
 //
@@ -14,10 +17,14 @@ d4=16;
 
 // measuring to outside edges
 d1_d2=39-d1/2-d2/2;
-d2_d3=32-d2/2-d3/2;
+d2_d3=30.5-d2/2-d3/2;
 d3_d1=23-d3/2-d1/2;
 
 // d4 is assumed to be tangent to d1 and d3
+
+shaft=10;
+base=16.3;
+nut=19;
 
 
 function law_of_cosines(a,b,c) = acos(((a*a)+(b*b)-(c*c))/(2*a*b));
@@ -46,24 +53,34 @@ module node4() {
     circle(d=d4);
 }
 $fn=200;
-difference() {
-    union() {
-        hull() {
-            node1();
-            node2();
-        }
-        hull() {
-            node2();
-            node3();
-        }
 
-        hull() {
-            //x=d1/2-sin(d4_angle)*(d1/2);
-            // just guessing this for now
-            node1(2);
-            node2();
-            node3(2);
-        }
-    }   
-    node4();
+module profile() {
+    difference() {
+        union() {
+            hull() {
+                node1();
+                node2();
+            }
+            hull() {
+                node2();
+                node3();
+            }
+
+            hull() {
+                //x=d1/2-sin(d4_angle)*(d1/2);
+                // just guessing this for now
+                node1(2);
+                node2();
+                node3(2);
+            }
+        }   
+        node4();
+    }
+}
+
+linear_extrude(height=height)
+difference() {
+    offset(0.1)
+    profile();
+    node1(d1-bolt);
 }

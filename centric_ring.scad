@@ -1,18 +1,29 @@
 // 2.29x0.380
 // 2.280 0.430 front
-hub=58.1;
-hub_h=11.5;
+//hub_h=11.5; // too tall?
+hub_h=11.3; 
 
-rim=73.2;
+
+// hub=58.1; // old printer.  Too tight
+// hub=58.3; // too tight
+// hub=58.6; // good fit 
+hub=58.5; // ran until 6/2022
+
+// rim=73.2; // old printer. Too loose
+// rim=73.7; // too tight
+// rim=73.4; // works, hard to remove
+//rim=73.3; // ran until 6/2022
+rim=73.37;
 
 pad=0.1;
 padd=pad*2;
-$fn=400;
+$fn=800;
 
 inner_edge=1;
 outer_edge=1;
 
-flange=2.7;
+// flange=2.7; // too big?
+flange=2.5;
 
 difference() {
     // outside
