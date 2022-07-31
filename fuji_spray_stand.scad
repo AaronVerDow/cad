@@ -6,19 +6,31 @@ cup_tube=23;
 cup_wall=3;
 cup_wall_base=3;
 
+cone_max=150;
+cone_min=1;
+cone_h=110;
+
 angle_h=cup_h+cup_wall_base;
 pad=0.1;
 $fn=190;
 
 top_h=14;
 
-to_wall=100;
+to_wall=cone_max/2;
 
 beam=15;
 
 total_h=top_h+angle_h;
 
-wall_fillet=20;
+wall_fillet=30;
+
+back_screw=3.5;
+back_screw_l=30;
+
+side_screw=4;
+side_screw_head=10;
+side_screw_grip=cup_wall;
+side_screw_h=to_wall/2;
 
 
 module dirror_y() {
@@ -37,8 +49,14 @@ module holder_positive() {
     translate([-to_wall,-beam/2,0])
     cube([to_wall,beam,total_h]);
 
-    translate([-to_wall,-wall_fillet-beam/2])
-    cube([wall_fillet+cup_wall,wall_fillet*2+beam,total_h]);
+	difference() {
+		translate([-to_wall,-wall_fillet-beam/2])
+		cube([wall_fillet+cup_wall,wall_fillet*2+beam,total_h]);
+
+		dirror_y()
+		translate([cup_wall+wall_fillet-to_wall,beam/2+wall_fillet,-pad])
+		cylinder(r=wall_fillet,h=total_h+pad*2);
+	}
 }
 
 module gun() {
@@ -68,16 +86,33 @@ module gun() {
         translate([0,0,-pad])
         cylinder(d=cup_min,h=angle_h);
 
-        dirror_y()
-        translate([cup_wall+wall_fillet-to_wall,beam/2+wall_fillet,-pad])
-        cylinder(r=wall_fillet,h=total_h+pad*2);
+
+	translate([-to_wall-pad,0,total_h/6*5])
+	rotate([0,90])
+	cylinder(d=back_screw,h=back_screw_l+pad);
+
+	translate([-to_wall-pad,0,total_h/6])
+	rotate([0,90])
+	cylinder(d=back_screw,h=back_screw_l+pad);
+
+	side_screws(total_h/2);
     }
 }
 
+module side_screws(z) {
+	dirror_y()
+	translate([-to_wall,beam/2+wall_fillet-side_screw_head/2,z])
+	rotate([0,90,0])
+	side_screw();	
+}
 
-cone_max=150;
-cone_min=1;
-cone_h=110;
+module side_screw() {
+	translate([0,0,-pad])
+	cylinder(d=side_screw,h=side_screw_h);
+	translate([0,0,side_screw_grip])
+	cylinder(d=side_screw_head,h=side_screw_h);
+}
+
 
 strainer_h=15;
 strainer_start=50;
@@ -89,15 +124,20 @@ module cone(extra=0) {
 
 module strainer_positive() {
     intersection() {
-        cone(cup_wall);
+        cone(cup_wall*2);
         cylinder(d=cone_max,h=strainer_h);
     }
 
     translate([-to_wall,-beam/2,0])
     cube([to_wall,beam,strainer_h]);
 
+	difference() {
     translate([-to_wall,-wall_fillet-beam/2])
     cube([wall_fillet+cup_wall,wall_fillet*2+beam,strainer_h]);
+        dirror_y()
+        translate([cup_wall+wall_fillet-to_wall,beam/2+wall_fillet,-pad])
+        cylinder(r=wall_fillet,h=total_h+pad*2);
+	}
 
 }
 
@@ -106,9 +146,13 @@ module strainer() {
     difference() {
         strainer_positive();
         cone();
-        dirror_y()
-        translate([cup_wall+wall_fillet-to_wall,beam/2+wall_fillet,-pad])
-        cylinder(r=wall_fillet,h=total_h+pad*2);
+
+
+	translate([-to_wall-pad,0,strainer_h/2])
+	rotate([0,90])
+	cylinder(d=back_screw,h=back_screw_l+pad);
+
+	side_screws(strainer_h/2);
     }
 }
 
@@ -118,7 +162,7 @@ module all() {
     strainer();
     gun();
 
-    translate([0,0,50])
+    translate([lid_to_wall-to_wall,100,50])
     lid();
 }
 
@@ -130,12 +174,14 @@ lid_inner=lid_outer-cup_wall*2;
 
 lid_total_h=lid_h+15;
 
-lid_beam_h=lid_total_h;
+lid_beam_h=strainer_h;
 
 lid_beam_rake=90;
 
-lid_rake=90;
+lid_rake=105;
 lid_rake_h=20;
+
+lid_to_wall=55;
 
 module lid_positive() {
     cylinder(d=lid_outer,h=lid_total_h);
@@ -145,14 +191,25 @@ module lid_positive() {
         translate([-lid_outer/2,0,lid_beam_rake+lid_total_h-lid_h])
         rotate([90,0])
         cylinder(r=lid_beam_rake,h=lid_outer,center=true);
+
+        dirror_y()
+        translate([cup_wall+wall_fillet-lid_to_wall,beam/2+wall_fillet,-pad])
+        cylinder(r=wall_fillet,h=total_h+pad*2);
+
+	translate([-lid_to_wall-pad,0,strainer_h/2])
+	rotate([0,90])
+	cylinder(d=back_screw,h=back_screw_l+pad);
+
+	translate([to_wall-lid_to_wall,0])
+	side_screws(strainer_h/2);
     }
 }
 
 module lid_beam() {
-    translate([-to_wall,-beam/2,0])
-    cube([to_wall,beam,lid_beam_h]);
+    translate([-lid_to_wall,-beam/2,0])
+    cube([lid_to_wall,beam,lid_beam_h]);
 
-    translate([-to_wall,-wall_fillet-beam/2])
+    translate([-lid_to_wall,-wall_fillet-beam/2])
     cube([wall_fillet+cup_wall,wall_fillet*2+beam,lid_beam_h]);
 }
 
@@ -164,13 +221,10 @@ module lid() {
         translate([0,0,-pad])
         cylinder(d=lid_inner,h=lid_total_h+pad*2);
 
-        dirror_y()
-        translate([cup_wall+wall_fillet-to_wall,beam/2+wall_fillet,-pad])
-        cylinder(r=wall_fillet,h=total_h+pad*2);
-
         translate([lid_outer/2,0,lid_rake_h-lid_rake])
         rotate([90,0])
-        cylinder(r=lid_rake,h=lid_outer,center=true);
+        *cylinder(r=lid_rake,h=lid_outer,center=true);
+
     }
 }
 
