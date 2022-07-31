@@ -1,10 +1,10 @@
-cup_max=73;
-cup_min=30;
+cup_max=79;
+cup_min=30.5;
 cup_h=20;
-cup_tube=23;
+cup_tube=21;
 
 cup_wall=3;
-cup_wall_base=3;
+cup_wall_base=2.1;
 
 cone_max=150;
 cone_min=1;
@@ -14,7 +14,7 @@ angle_h=cup_h+cup_wall_base;
 pad=0.1;
 $fn=190;
 
-top_h=14;
+top_h=30;
 
 to_wall=cone_max/2;
 
@@ -22,7 +22,7 @@ beam=15;
 
 total_h=top_h+angle_h;
 
-wall_fillet=30;
+wall_fillet=40;
 
 back_screw=3.5;
 back_screw_l=30;
@@ -32,6 +32,7 @@ side_screw_head=10;
 side_screw_grip=cup_wall;
 side_screw_h=to_wall/2;
 
+slice=cup_max+cup_wall-30;
 
 module dirror_y() {
     children();
@@ -59,6 +60,7 @@ module holder_positive() {
 	}
 }
 
+// RENDER stl
 module gun() {
     difference() {
         holder_positive();
@@ -77,7 +79,6 @@ module gun() {
             cylinder(d1=cup_min,d2=cup_max,h=cup_h);
         }
 
-        slice=cup_max+cup_wall-30;
         translate([cup_max/2+cup_wall,0,angle_h+slice])
         rotate([90,0])
         cylinder(d=slice*2,h=cup_max+cup_wall*2,center=true);
@@ -95,7 +96,8 @@ module gun() {
 	rotate([0,90])
 	cylinder(d=back_screw,h=back_screw_l+pad);
 
-	side_screws(total_h/2);
+	side_screws(total_h/6*5);
+	side_screws(total_h/6);
     }
 }
 
@@ -142,6 +144,7 @@ module strainer_positive() {
 }
 
 
+// RENDER stl
 module strainer() {
     difference() {
         strainer_positive();
@@ -167,9 +170,9 @@ module all() {
 }
 
 
-lid_h=20;
+lid_h=16;
 
-lid_outer=65;
+lid_outer=66.5;
 lid_inner=lid_outer-cup_wall*2;
 
 lid_total_h=lid_h+15;
@@ -181,7 +184,7 @@ lid_beam_rake=90;
 lid_rake=105;
 lid_rake_h=20;
 
-lid_to_wall=55;
+lid_to_wall=50;
 
 module lid_positive() {
     cylinder(d=lid_outer,h=lid_total_h);
@@ -214,6 +217,7 @@ module lid_beam() {
 }
 
 
+// RENDER stl
 module lid() {
     difference() {
         lid_positive();
