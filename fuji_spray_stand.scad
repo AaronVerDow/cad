@@ -9,6 +9,7 @@ cup_wall_base=2.1;
 cone_max=150;
 cone_min=1;
 cone_h=110;
+cone_angle=atan((cone_max/2)/cone_h);
 
 angle_h=cup_h+cup_wall_base;
 pad=0.1;
@@ -81,7 +82,7 @@ module gun() {
 
         translate([cup_max/2+cup_wall,0,angle_h+slice])
         rotate([90,0])
-        cylinder(d=slice*2,h=cup_max+cup_wall*2,center=true);
+        *cylinder(d=slice*2,h=cup_max+cup_wall*2,center=true);
 
 
         translate([0,0,-pad])
@@ -116,29 +117,34 @@ module side_screw() {
 }
 
 
-strainer_h=15;
-strainer_start=50;
+strainer_h=total_h;
+strainer_start=cone_h-strainer_h;
+strainer_tap=15;
+strainer_lock=10;
+strainer_lock_h=1;
 
 module cone(extra=0) {
-    translate([0,0,-strainer_start])
-    cylinder(d1=cone_min+extra,d2=cone_max+extra,h=cone_h);
+	padding=30;
+	radius=tan(cone_angle)*cone_h+padding;
+
+    translate([0,0,-strainer_start-strainer_lock_h*2])
+    cylinder(d1=cone_min+extra,d2=radius*2,h=cone_h+padding);
 }
 
 module strainer_positive() {
     intersection() {
         cone(cup_wall*2);
-        cylinder(d=cone_max,h=strainer_h);
+        cylinder(d=cone_max*2,h=strainer_h-strainer_lock_h);
     }
-
     translate([-to_wall,-beam/2,0])
     cube([to_wall,beam,strainer_h]);
 
 	difference() {
-    translate([-to_wall,-wall_fillet-beam/2])
-    cube([wall_fillet+cup_wall,wall_fillet*2+beam,strainer_h]);
-        dirror_y()
-        translate([cup_wall+wall_fillet-to_wall,beam/2+wall_fillet,-pad])
-        cylinder(r=wall_fillet,h=total_h+pad*2);
+		translate([-to_wall,-wall_fillet-beam/2])
+		cube([wall_fillet+cup_wall,wall_fillet*2+beam,strainer_h]);
+		dirror_y()
+		translate([cup_wall+wall_fillet-to_wall,beam/2+wall_fillet,-pad*2])
+		cylinder(r=wall_fillet,h=total_h+pad*4);
 	}
 
 }
@@ -157,6 +163,16 @@ module strainer() {
 
 	side_screws(strainer_h/2);
     }
+	difference() {
+		intersection() {
+			translate([0,0,strainer_h-strainer_lock_h])
+			cylinder(d=cone_max*2,h=strainer_lock_h);
+		}
+		translate([0,0,strainer_h-strainer_lock_h-pad])
+		scale([1,(cone_max+cup_wall*2-strainer_lock*2)/(cone_max+cup_wall/2)])
+		cylinder(d=cone_max+cup_wall*2,h=strainer_lock_h+pad*2);
+		
+	}
 }
 
 
