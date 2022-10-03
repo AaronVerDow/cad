@@ -6,9 +6,9 @@ cup_tube=21;
 cup_wall=3;
 cup_wall_base=2.1;
 
-cone_max=150;
+cone_max=165;
 cone_min=1;
-cone_h=110;
+cone_h=115;
 cone_angle=atan((cone_max/2)/cone_h);
 
 angle_h=cup_h+cup_wall_base;
@@ -17,13 +17,13 @@ $fn=190;
 
 top_h=30;
 
-to_wall=cone_max/2;
+to_wall=cone_max/2+cup_wall+10;
 
 beam=15;
 
 total_h=top_h+angle_h;
 
-wall_fillet=40;
+wall_fillet=20;
 
 back_screw=3.5;
 back_screw_l=30;
@@ -106,7 +106,7 @@ module side_screws(z) {
 	dirror_y()
 	translate([-to_wall,beam/2+wall_fillet-side_screw_head/2,z])
 	rotate([0,90,0])
-	side_screw();	
+	*side_screw();	
 }
 
 module side_screw() {
@@ -118,17 +118,17 @@ module side_screw() {
 
 
 strainer_h=total_h;
-strainer_start=cone_h-strainer_h;
-strainer_tap=15;
-strainer_lock=10;
+strainer_start=0;
+strainer_tab=28;
+strainer_lock=[1.05,0.9];
 strainer_lock_h=1;
 
 module cone(extra=0) {
-	padding=30;
-	radius=tan(cone_angle)*cone_h+padding;
+	padding=0.1;
+	radius=tan(cone_angle)*cone_h+padding; // this is wrong.  Low pad is close enough
 
-    translate([0,0,-strainer_start-strainer_lock_h*2])
-    cylinder(d1=cone_min+extra,d2=radius*2,h=cone_h+padding);
+    translate([0,0,strainer_h-cone_h])
+    cylinder(d1=cone_min+extra,d2=radius*2+extra,h=cone_h+padding);
 }
 
 module strainer_positive() {
@@ -152,14 +152,22 @@ module strainer_positive() {
 
 // RENDER stl
 module strainer() {
+	*translate([0,0,strainer_h]) #circle(d=cone_max); // debug cone math 
     difference() {
         strainer_positive();
         cone();
 
 
-	translate([-to_wall-pad,0,strainer_h/2])
+	translate([-to_wall-pad,0,strainer_h/6])
 	rotate([0,90])
 	cylinder(d=back_screw,h=back_screw_l+pad);
+
+	difference() {
+		translate([-to_wall-pad,0,strainer_h/6*5])
+		rotate([0,90])
+		cylinder(d=back_screw,h=back_screw_l+pad);
+		cone(cup_wall*2);
+	}
 
 	side_screws(strainer_h/2);
     }
@@ -167,10 +175,19 @@ module strainer() {
 		intersection() {
 			translate([0,0,strainer_h-strainer_lock_h])
 			cylinder(d=cone_max*2,h=strainer_lock_h);
+			cone(cup_wall*2);
 		}
-		translate([0,0,strainer_h-strainer_lock_h-pad])
-		scale([1,(cone_max+cup_wall*2-strainer_lock*2)/(cone_max+cup_wall/2)])
-		cylinder(d=cone_max+cup_wall*2,h=strainer_lock_h+pad*2);
+		intersection() {
+			translate([0,0,strainer_h-strainer_lock_h-pad])
+			scale(strainer_lock)
+			cylinder(d=cone_max,h=strainer_lock_h+pad*2);
+			cone();
+		}
+		intersection() {
+			translate([-strainer_tab/2,-cone_max])
+			cube([strainer_tab,cone_max*2,strainer_h+pad*2]);
+			cone();
+		}
 		
 	}
 }
@@ -193,7 +210,7 @@ lid_inner=lid_outer-cup_wall*2;
 
 lid_total_h=lid_h+15;
 
-lid_beam_h=strainer_h;
+lid_beam_h=15;
 
 lid_beam_rake=90;
 
@@ -202,11 +219,18 @@ lid_rake_h=20;
 
 lid_to_wall=50;
 
+module lid_cone(extra=0,padding=0) {
+	translate([0,0,-padding])
+	cylinder(d1=beam+extra,d2=lid_outer+extra,h=lid_total_h+padding*2);
+}
+
 module lid_positive() {
-    cylinder(d=lid_outer,h=lid_total_h);
+    //cylinder(d=lid_outer,h=lid_total_h);
+	lid_cone();
 
     difference() {
         lid_beam();
+
         translate([-lid_outer/2,0,lid_beam_rake+lid_total_h-lid_h])
         rotate([90,0])
         cylinder(r=lid_beam_rake,h=lid_outer,center=true);
@@ -215,9 +239,9 @@ module lid_positive() {
         translate([cup_wall+wall_fillet-lid_to_wall,beam/2+wall_fillet,-pad])
         cylinder(r=wall_fillet,h=total_h+pad*2);
 
-	translate([-lid_to_wall-pad,0,strainer_h/2])
+	translate([-lid_to_wall-pad,0,lid_beam_h/2])
 	rotate([0,90])
-	cylinder(d=back_screw,h=back_screw_l+pad);
+	#cylinder(d=back_screw,h=back_screw_l+pad);
 
 	translate([to_wall-lid_to_wall,0])
 	side_screws(strainer_h/2);
@@ -238,8 +262,8 @@ module lid() {
     difference() {
         lid_positive();
 
-        translate([0,0,-pad])
-        cylinder(d=lid_inner,h=lid_total_h+pad*2);
+        //translate([0,0,-pad]) cylinder(d=lid_inner,h=lid_total_h+pad*2);
+	lid_cone(-cup_wall*2,pad);
 
         translate([lid_outer/2,0,lid_rake_h-lid_rake])
         rotate([90,0])
@@ -249,3 +273,4 @@ module lid() {
 }
 
 all();
+
