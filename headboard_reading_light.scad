@@ -84,6 +84,24 @@ module place_socket(z=0) {
 	children();
 }
 
+module outer_base() {
+	module sph() {
+		translate([-tube/2,0,height])
+		sphere(d=tube);
+	}
+
+	cylinder(d=tube,h=zero);
+
+	hull() {
+		sph();
+		translate([-tube/2,0,0])
+		cylinder(d=tube,h=zero);
+	}
+
+}
+
+outer_base();
+
 place_socket()
 difference() {
 	cylinder(d=tube,h=tube_h);
