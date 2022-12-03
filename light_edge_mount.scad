@@ -12,7 +12,7 @@ tape=48;  // roll of gaffers tape
 flat_width=flange+pad*2;
 flat_height=tape+slope;
 
-wall=5; // how thick light holding part is
+wall=3; // how thick light holding part is
 
 total_height=flat_height*2+wall;
 
@@ -22,8 +22,8 @@ base=1.5; // how thick base is
 base_tip=0.5;  // how thick end of base is
 
 
-screw=4.5;
-screw_head=10;
+screw=4.8;
+screw_head=8.5; // drywall screw
 
 screw_head_h=(screw_head-screw)/2;
 
