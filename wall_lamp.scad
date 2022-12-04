@@ -17,7 +17,7 @@ shade_height=120;
 shade_wall=1;
 shade_base=3;
 
-shade_under=30;
+shade_under=10;
 
 shade_total=shade_height+shade_under;
 
