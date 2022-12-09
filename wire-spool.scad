@@ -1,4 +1,6 @@
 include <gridfinity-rebuilt-utility.scad>
+use <gridfinity-rebuilt-baseplate.scad>
+
 
 // ===== INFORMATION ===== //
 /*
@@ -76,7 +78,7 @@ zero=0.01;
 spool_top=spool*1.6;
 spool_top_z=spool*1.5;
 
-spool_z=5;
+spool_z=8;
 
 hole=40;
 
@@ -97,11 +99,44 @@ viewr=3;
 
 my_fn=90;
 
+/* [Fit to Drawer] */
+// minimum length of baseplate along x (leave zero to ignore, will automatically fill area if gridx is zero)
+distancex = 0;
+// minimum length of baseplate along y (leave zero to ignore, will automatically fill area if gridy is zero)
+distancey = 0;
+
+/* [Styles] */
+
+// baseplate styles
+style_plate = 0; // [0: thin, 1:weighted, 2:skeletonized]
+
+// enable magnet hole
+enable_magnet = false;
+
+// ===== IMPLEMENTATION ===== //
+
+
+
+ditch_x=viewx;
+ditch_z=11;
+wire_slot=wire*1.5;
+
 module wire(x,z=0) {
 	translate([x,gridy/2*length+length/2,spool_z+z])
 	rotate([90,0])
 	cylinder(d=wire,h=gridy/2*length+length);
+
+	translate([x,0,spool_z+z])
+	hull() {
+		rotate([90,0])
+		cylinder(d=wire_slot,h=gridy*length);
+		
+		translate([-ditch_x/2,-gridy*length,ditch_z])
+		cube([ditch_x,gridy*length,zero]);
+	}
 }
+
+scoop_scale=0.20;
 
 module spool(x=0) {
 	translate([x,0,spool_z])
@@ -121,11 +156,21 @@ module spool(x=0) {
 	square([viewx,viewz]);
 	//wire(x,low_wire);
 	wire(x,high_wire);
+
+	translate([x,0,spool_z+spool/2])
+	rotate([90,0,90])
+	rotate_extrude($fn=my_fn)
+	translate([spool/2,0])
+	scale([scoop_scale,1])
+	circle(d=viewx);
+
 }
 
 module positive() {
 	gridfinityInit(gridx, gridy, height(gridz), 0, length);
 	gridfinityBase(gridx, gridy, length, 0, 0, 1);
+	translate([0,0,gridz*7])
+	gridfinityBaseplate(gridx, gridy, length, distancex, distancey, style_plate, enable_magnet, style_hole);
 }
 difference() {
 	positive();
