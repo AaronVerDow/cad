@@ -82,6 +82,7 @@ spool_z=8;
 
 hole=40;
 
+
 module dirror_x() {
 	children();
 	mirror([1,0])
@@ -118,13 +119,31 @@ enable_magnet = false;
 
 
 ditch_x=viewx;
-ditch_z=11;
+ditch_z=viewx;
 wire_slot=wire*1.5;
+
+bend_y=wire*1.2; // not exact
 
 module wire(x,z=0) {
 	translate([x,gridy/2*length+length/2,spool_z+z])
 	rotate([90,0])
 	cylinder(d=wire,h=gridy/2*length+length);
+
+    hull() {
+        translate([x,gridy/2*length,spool_z+z])
+        rotate([90,0])
+        cylinder(d=wire,h=bend_y);
+        //dirror_x() translate([viewx/2-bend_y/2,-viewx/2]) #cylinder(d=wire,h=bend_y);
+
+        translate([x-viewx/2,gridy/2*length,spool_z+spool/2-viewz/2])
+        rotate([90,0])
+        linear_extrude(height=bend_y)
+        offset(viewr)
+        offset(-viewr)
+        square([viewx,viewz]);
+
+
+    }
 
 	translate([x,0,spool_z+z])
 	hull() {
@@ -134,6 +153,8 @@ module wire(x,z=0) {
 		translate([-ditch_x/2,-gridy*length,ditch_z])
 		cube([ditch_x,gridy*length,zero]);
 	}
+
+
 }
 
 scoop_scale=0.20;
@@ -154,6 +175,7 @@ module spool(x=0) {
 	offset(viewr)
 	offset(-viewr)
 	square([viewx,viewz]);
+
 	//wire(x,low_wire);
 	wire(x,high_wire);
 
