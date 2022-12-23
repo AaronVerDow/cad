@@ -1,6 +1,6 @@
 center_screw=3.5; // guess
 corner_screw=2.5; // guess
-thru_gap=4;
+thru_gap=3.5;
 
 zero=0.0001;
 
@@ -29,11 +29,14 @@ board_corner=(board_x-corner_x)/2;
 
 wall=0.5;
 base=wall;
-side=wall;
+side=wall; // outer skirt 
+min_side=side; // under skirt
 
 $fn=90;
 
 total_z=base+thru_gap+board_z;
+
+screw_chamfer=0.5;
 
 pad=0.1;
 
@@ -76,30 +79,29 @@ module place_corner() {
     children();
 }
 
-module outer_body() {
-    hull() {
-        translate([0,0,bottom_chamfer])
-        linear_extrude(height=total_z-top_chamfer-bottom_chamfer)
-        board(board_gap+side);
-
-        linear_extrude(height=zero)
-        board(board_gap+side-bottom_chamfer/2);
-
-        translate([0,0,total_z-zero])
-        linear_extrude(height=zero)
-        board(board_gap+side-top_chamfer/2);
-    }
-}
-
 module body() {
     difference() {
-        outer_body();
+        hull() {
+            translate([0,0,bottom_chamfer])
+            linear_extrude(height=total_z-top_chamfer-bottom_chamfer)
+            board(board_gap+side);
+
+            linear_extrude(height=zero)
+            board(board_gap+side-bottom_chamfer/2);
+
+            translate([0,0,total_z-zero])
+            linear_extrude(height=zero)
+            board(board_gap+side-top_chamfer/2);
+        }
+
 
         translate([0,0,base])
         linear_extrude(height=total_z)
         board(board_gap);
     }
+}
 
+module stands() {
     place_center()
     translate([0,0,base])
     cylinder(d2=center_tip,d1=center_base,h=thru_gap);
@@ -109,13 +111,83 @@ module body() {
     cylinder(d2=corner_tip,d1=corner_base,h=thru_gap);
 }
 
-difference() {
-    body();
-    place_center()
-    translate([0,0,-pad])
-    cylinder(d=center_screw,h=total_z+pad*2);
+module case() {
+    difference() {
+        union() {
+            children();
+            stands();
+        }
+        place_center()
+        translate([0,0,-pad]) {
+            cylinder(d=center_screw,h=total_z+pad*2);
+            cylinder(d1=center_screw+screw_chamfer*2+pad*2,d2=center_screw,h=screw_chamfer+pad);
+        }
 
-    place_corner()
-    translate([0,0,-pad])
-    cylinder(d=corner_screw,h=total_z+pad*2);
+        place_corner()
+        translate([0,0,-pad]) {
+            cylinder(d=corner_screw,h=total_z+pad*2);
+            cylinder(d1=corner_screw+screw_chamfer*2+pad*2,d2=corner_screw,h=screw_chamfer+pad);
+        }
+    }
+}
+
+module min_body() {
+    difference() {
+         hull() {
+            translate([0,0,bottom_chamfer])
+            linear_extrude(height=base+thru_gap-bottom_chamfer)
+            board();
+
+            linear_extrude(height=zero)
+            board(-bottom_chamfer/2);
+        }
+        translate([0,0,base])
+        linear_extrude(height=total_z)
+        board(-min_side);
+    }
+}
+
+module no_skirt_body() {
+    // must override this
+    bottom_chamfer=base/4;
+     hull() {
+        translate([0,0,bottom_chamfer])
+        linear_extrude(height=base-bottom_chamfer)
+        board();
+
+        linear_extrude(height=zero)
+        board(-bottom_chamfer/2);
+    }
+}
+
+// RENDER stl
+module no_skirt() {
+    intersection() {
+        case()
+        no_skirt_body();
+        
+        translate([0,0,-pad])
+        linear_extrude(height=total_z)
+        board();
+    }
+}
+
+no_skirt();
+
+// RENDER stl
+module under_skirt() {
+    intersection() {
+        case()
+        min_body();
+        
+        translate([0,0,-pad])
+        linear_extrude(height=total_z)
+        board();
+    }
+}
+
+// RENDER stl
+module side_skirt() {
+    case()
+    body();
 }
