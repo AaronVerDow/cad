@@ -78,7 +78,7 @@ zero=0.01;
 spool_top=spool*1.6;
 spool_top_z=spool*1.5;
 
-spool_z=8;
+spool_z=6.8;
 
 hole=40;
 
