@@ -16,16 +16,23 @@ board_gap=0.5;
 
 // https://www.amazon.com/ElectroCookie-Solderable-Breadboard-Electronics-Gold-Plated/dp/B07ZV8FWM4?th=1
 
-board_x=38.1; // manufacturers specs
-board_y=50.8; // manufacturers specs
 board_z=1.6; // vernier
 
-corner_x=31.8; // manufacturers specs
-corner_y=44.5; // manufacturers specs
+// mini
+// board_x=38.1; // manufacturers specs
+// board_y=50.8; // manufacturers specs
+// corner_x=31.8; // manufacturers specs
+// corner_y=44.5; // manufacturers specs
+// center_y=40.6; // manufacturers specs
 
-center_y=40.6; // manufacturers specs
+// half
+board_y=88.9; // manufacturers specs
+board_x=52.1; // manufacturers specs
+corner_y=78.7; // manufacturers specs
+corner_x=35.6; // manufacturers specs
+center_y=73.7; // manufacturers specs
 
-board_corner=(board_x-corner_x)/2;
+board_corner=(board_y-corner_y)/2;
 
 wall=0.5;
 base=wall;
@@ -172,7 +179,7 @@ module no_skirt() {
     }
 }
 
-no_skirt();
+side_skirt();
 
 // RENDER stl
 module under_skirt() {
