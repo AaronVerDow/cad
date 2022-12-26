@@ -1,5 +1,5 @@
-center_screw=3.5; // guess
-corner_screw=2.5; // guess
+center_screw=3.5; // loose
+corner_screw=2; // tight
 thru_gap=3.5;
 
 zero=0.0001;
