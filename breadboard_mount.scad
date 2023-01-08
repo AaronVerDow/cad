@@ -34,7 +34,7 @@ center_y=73.7; // manufacturers specs
 
 board_corner=(board_y-corner_y)/2;
 
-wall=0.5;
+wall=1;
 base=wall;
 side=wall; // outer skirt 
 min_side=side; // under skirt
