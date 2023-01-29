@@ -1,10 +1,12 @@
 in=25.4;
 $fn=90;
+bit=in/4*1.01;
 
-inset=150;
+//inset=150;
+inset=100;
 
 total_depth=22*in;
-back_wheels=0;
+back_wheels=00;
 
 wheelbase=total_depth+back_wheels;
 
@@ -12,6 +14,9 @@ basket_height=150;
 
 shelves=3;
 
+zero=0.001;
+
+curve=800;
 bottom_lip=40; // how high is bottom shelf from base
 
 // http://www.harborfreight.com/8-inch-pneumatic-swivel-caster-42485.html
@@ -44,12 +49,11 @@ wheel_thick=1.95*in;
 
 // swivel
 // https://www.amazon.com/POWERTEC-17050-Swivel-Industrial-Caster/dp/B07B7KJ5QZ/ref=sr_1_16?keywords=Pneumatic+Caster&qid=1674938004&sr=8-16
-front_wheel_plate_x=2.87*in;
-front_wheel_plate_y=3.35*in;
+front_wheel_plate_x=back_wheel_plate_x;
+front_wheel_plate_y=back_wheel_plate_y;
 
 
 base_fillet=80;
-base_back_wall=5; // guess
 
 pattern_hole=1.5*in;
 pattern_gap=2.75*in;
@@ -69,6 +73,9 @@ shelf_angle=10;
 
 shelf_gap=(total_height-basket_height-wood-bottom_lip)/(shelves+1);
 
+face_inset=200;
+face_angle=atan(face_inset/(total_depth+back_wheels));
+
 echo(shelf_gap=(shelf_gap-wood)/in);
 
 handle_y=80;
@@ -76,9 +83,21 @@ handle=1.5*in;
 handle_d=handle*1.5;
 handle_z=-handle_d/2;
 
+side_offset=wheel_wall*2+100;
+side_offset=0;
+side_angle=atan(side_offset/total_height);
+side_height=total_height/cos(side_angle);
+
+
 
 back_angle=atan(inset/total_height);
 back_height=total_height/cos(back_angle);
+
+//front_inset=wheel_wall*2;
+front_inset=front_wheel_plate_y/2*3;
+
+base_back_wall=tan(back_angle)*wood;
+front_angle=atan(front_inset/total_height);
 
 
 walking_gap=total_width-back_wheel_plate_x+wood-wheel_wall*2;
@@ -92,12 +111,14 @@ module wheel() {
     cylinder(d=wheel,h=wheel_thick,$fn=90,center=true);
 }
 
+back_axle=back_wheel_plate_y/2+wheel_wall-back_wheels;
+
 dirror_x(total_width)
-translate([0,-back_wheels])
+translate([0,back_axle])
 wheel();
 
 dirror_x(total_width)
-translate([wheel_wall+front_wheel_plate_x/2,total_depth-wheel_wall-front_wheel_plate_y,0])
+translate([wheel_wall+front_wheel_plate_x/2-front_wheel_offset,total_depth-wheel_wall-front_wheel_plate_y,0])
 wheel();
 
 module wheel_outside() {
@@ -124,17 +145,19 @@ module wood(height=wood) {
     children();
 }
 
-zero=0.00001;
-wheel_support_r=wheel_wall;
-wheel_support=back_wheel_plate_x/2+wheel_support_r+wood;
-
-curve=800;
+module end(x_angle=0) {
+    scale([1,1/cos(x_angle)])
+    hull()
+    dirror_x(total_width)
+    rotate([0,0,side_angle])
+    square([zero,side_height]);
+}
 
 module side() {
     difference() {
         side_positive_2(); 
         intersection() {
-            translate([total_depth/2,total_height-basket_height/2-wood/4])
+            translate([total_depth/2,side_height-basket_height/2-wood/4])
             pattern();
             difference() {
                 offset(-pattern_wall)
@@ -144,10 +167,10 @@ module side() {
                 translate([inset+wood/2,0])  // math harder
                 rotate([0,0,back_angle])
                 translate([-pattern_wall,0])
-                square([pattern_wall*2,total_height]);
+                square([pattern_wall*2,side_height]);
 
                 // handle
-                translate([-handle_y,total_height+handle_z]) 
+                translate([-handle_y,side_height+handle_z]) 
                 circle(d=handle+pattern_wall*2);
                 
                 // bottom
@@ -158,16 +181,40 @@ module side() {
     }
 }
 
+module place_wheel_plate() {
+    translate([-back_wheel_plate_x/2,wheel_wall])
+    dirror_x(back_wheel_plate_x)
+    dirror_y(back_wheel_plate_y)
+    children();
+}
+
+module wheel_plates() {
+    place_wheel_plates()
+    circle(d=bit);
+}
+
+module place_wheel_plates() {
+    dirror_x(total_width)
+    translate([wood/2,-back_wheels])
+    place_wheel_plate()
+    children();
+
+    #dirror_x(total_width)
+    translate([back_wheel_plate_x/2+wheel_wall-front_wheel_offset,total_depth-front_wheel_plate_y-wheel_wall*2])
+    place_wheel_plate()
+    children();
+}
+
 module side_positive_2() {
     pad=20;
 
-    hole_z=total_height-zero-basket_height;
+    hole_z=side_height-zero-basket_height;
     y=hole_z*tan(back_angle);
 
     guess=wood;
 
-    az=total_height+handle_z-wood;
-    ay=handle_y-wheel_wall-back_wheel_plate_y/2-back_wheels;
+    az=side_height+handle_z-wood;
+    ay=handle_y-back_wheels;
     aa=atan(ay/az);
     a=sqrt((az*az)+(ay*ay));
     b=curve+handle_d/2;
@@ -183,7 +230,7 @@ module side_positive_2() {
             translate([inset-y,hole_z])
             square([total_depth-inset+pad+y,zero]);
         }
-        translate([-handle_y,total_height+handle_z])
+        translate([-handle_y,side_height+handle_z])
         rotate([0,0,90-final+aa])
         translate([-curve-handle_d/2,0])
         circle(r=curve);
@@ -191,22 +238,30 @@ module side_positive_2() {
     }
 }
 
+face_inset=0100;
 module side_positive() {
-    offset=back_wheels+back_wheel_plate_y/2+wheel_wall;
+    zero=10;
+    offset=back_wheels;
     hull() {
-        square([total_depth,total_height]);
 
-		translate([-handle_y,handle_z+total_height])
+        // top
+        translate([0,side_height-zero])
+#        square([total_depth/cos(face_angle),zero]);
+
+        // handle
+		translate([-handle_y,handle_z+side_height])
 		circle(d=handle_d);
 
-
-        translate([-offset,0])
-        square([total_depth+offset,zero]);
-
-        translate([wheel_support_r-offset,wheel_support-wheel_support_r])
-        circle(r=wheel_support_r);
+        // base
+        translate([-offset,wood])
+        square([total_depth+offset-front_inset,zero]);
     }
+    // wood base
+    translate([-offset,0])
+    square([total_depth+offset-front_inset,wood+1]);
 }
+
+side_positive();
 
 module front_pattern_wall() {
     // basket base
@@ -229,6 +284,7 @@ module front_pattern_wall() {
 
 module front() {
     module positive() {
+        end(front_angle);
         square([total_width,total_height]);
     }
     difference() {
@@ -246,26 +302,39 @@ module front() {
 }
 
 module base() {
-    difference() {
-        translate([0,-back_wheels])
-        square([total_width,total_depth+back_wheels]);
-        offset(base_fillet)
-        offset(-base_fillet)
+    module positive() {
         difference() {
-            translate([0,-base_fillet*2])
-            square([total_width,inset-base_back_wall+base_fillet*2]);
-            base_wheels();
+            translate([-front_wheel_offset,0])
+            offset(wheel_wall)
+            offset(-wheel_wall)
+            square([total_width+front_wheel_offset*2,total_depth]);
+            offset(base_fillet)
+            offset(-base_fillet)
+            difference() {
+                translate([0,-base_fillet*2])
+                square([total_width,inset-base_back_wall+base_fillet*2]);
+                base_wheels();
+            }
         }
+        base_wheels();
     }
-    base_wheels();
+    difference() {
+        positive();
+        wheel_plates();
+    }
 }
+
+front_wheel_offset=wheel_wall+1;
 
 module base_wheels() {
     dirror_x(total_width) 
     hull() {
-        translate([0,-back_wheels])
-        square([wood,total_depth+back_wheels]);
-        translate([wood/2,-back_wheels])
+        translate([-front_wheel_offset,-back_wheels])
+        offset(wheel_wall)
+        offset(-wheel_wall)
+        square([wood+front_wheel_offset,total_depth+back_wheels]);
+
+        translate([wood/2,back_axle])
         wheel_outside();
     }
 }
@@ -280,7 +349,7 @@ module basket_bottom() {
 
 module back() {
     module positive() {
-        square([total_width,back_height]);
+        end(back_angle);
     }
     difference() {
         positive();
@@ -299,9 +368,9 @@ module back() {
 module body() {
     hull() {
         translate([-pad,0,total_height])
-        cube([total_width+pad*2,total_depth+pad,zero]);
+        cube([total_width+pad*2,total_depth,zero]);
         translate([-pad,inset])
-        cube([total_width+pad*2,total_depth+pad-inset,zero]);
+        cube([total_width+pad*2,total_depth-inset-front_inset,zero]);
     }
 }
 
@@ -350,8 +419,10 @@ module place_shelves() {
 module assembled_frame() {
 
     color(secondary)
-    translate([0,wood+inset])
-    rotate([90+back_angle,0,0])
+    translate([0,inset])
+    rotate([back_angle,0])
+    translate([0,wood,0])
+    rotate([90,0,0])
     wood()
     back();
 
@@ -383,14 +454,17 @@ module assembled_frame() {
     base();
 
     color(secondary)
-    translate([0,total_depth])
-    rotate([90,0,0])
+    translate([0,total_depth-front_inset])
+    rotate([90-front_angle,0,0])
     wood()
     front();
 
     color(primary)
     dirror_x(total_width)
-    rotate([90,0,90])
+    translate([0,-back_wheels])
+    rotate([0,0,-face_angle])
+    translate([0,back_wheels])
+    rotate([90-side_angle,0,90])
     wood()
     side();
 
