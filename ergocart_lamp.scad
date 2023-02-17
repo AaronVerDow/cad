@@ -3,6 +3,9 @@ post_h=40;
 
 base=5;
 
+86x28x23
+i3
+
 slot_corner=3;
 
 cap=5;
