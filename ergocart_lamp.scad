@@ -1,19 +1,17 @@
-post=15;
+post=13.5;
 post_h=40;
 
 base=5;
 
-86x28x23
-i3
 
 slot_corner=3;
 
-cap=5;
 lip=3;
+cap=lip;
 
-slot_x=100;
-slot_y=30;
-slot_z=post_h+base;
+slot_x=85.5;
+slot_y=27.5;
+slot_z=23;
 $fn=90;
 pad=0.1;
 
