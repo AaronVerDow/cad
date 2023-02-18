@@ -1,17 +1,27 @@
-pin=2.54;
-size=pin*.60;
-height=5*34/35*35/38;  // width of tape
-end=1;
-REVERSE=1;
-scl=50;
-
-zero=0.01;
+pin=2.54; // width between pins
+size=pin*.70; // font size
+height=5*34/35*35/38;  // width of tape, adjusted to match printable area
+// this should match 6mm tape for Brother ptouch 2
+// extra will be clipped to this height
+end=0.3; // how thick end lines are
+// end lines are required for consistent scaling by taper 
+REVERSE=1; // add as arg to label to flip order
+scl=50; // how large to scale up (makes printing cleaner)
+font="Roboto Mono:Bold";
+zero=0.01;  // how thick preview is
 
 linear_extrude(height=zero)
 spaced() {
 	// add stuff here for previews
+	esp32_poe_iso();
 	wemos_d1_mini();
+	esp32_cam();
 	bme680();
+	audio_sensor();
+	ltr390();
+	pir();
+	motion_leds();
+	ftdi();
 }
 
 // RENDER svg2png
@@ -71,7 +81,7 @@ module esp32_cam() {
 	label([
 		"GND", "UOT", "UOR",  "VCC",  "GND",  "IO0", "IO16", "3v3", "---", 
 		"5v", "GND", "IO12", "IO13", "IO15", "IO14", "IO2", "IO4",
-	]);
+	], size=pin*0.5);
 }
 
 // RENDER svg2png
@@ -88,11 +98,11 @@ module spaced() {
     children(i);
 }           
 
-module label(pins, reverse=0) {
+module label(pins, reverse=0, size=size) {
 	//color("black")
 	module txt(n) {
             rotate([0,0,-90])
-            text(pins[n], valign="center", halign="left", size=size, font="UbuntuMono:Bold");
+            text(pins[n], valign="center", halign="left", size=size, font=font);
         }
 	scale(scl) {
 		intersection() {
