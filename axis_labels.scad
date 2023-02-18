@@ -101,37 +101,37 @@ module label(axis, plus=LEFT, text=UP, zero=HIDE, left=SHOW, right=SHOW, gap=gap
 
 }
 
-// RENDER svg
+// RENDER svg2png
 module x_to_left_zero() {
     label("X", zero=SHOW);
 }
 
-// RENDER svg
+// RENDER svg2png
 module y_to_left_zero() {
     label("Y", zero=SHOW);
 }
 
-// RENDER svg
+// RENDER svg2png
 module x_to_left() {
     label("X");
 }
 
-// RENDER svg
+// RENDER svg2png
 module x_to_right() {
     label("X", plus=RIGHT);
 }
 
-// RENDER svg
+// RENDER svg2png
 module y_to_left() {
     label("Y");
 }
 
-// RENDER svg
+// RENDER svg2png
 module z() {
     label("Z", text=LEFT);
 }
 
-// RENDER svg
+// RENDER svg2png
 module keyboard() {
     rotate([0,0,-90])
     label("Y", plus=LEFT, text=UP, zero=HIDE, gap=gap*0.7);
