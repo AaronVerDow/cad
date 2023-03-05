@@ -1,7 +1,19 @@
-tv_mount_x=100;
-tv_mount_y=tv_mount_x;
-
 in=25.4;
+// small bedroom tv
+// tv_mount_x=100;
+// tv_mount_y=tv_mount_x;
+// top_screw=275;
+
+// new bedroom TV
+tv_mount_x=400;
+tv_mount_y=300;
+top_screw=tv_mount_y/2+250;
+hole_gaps=1.5*in;
+slide=1*in; // how long the striaght part is
+slide_hole=40;  // how big the bottom part is
+ramp=slide_hole/8;  // increase for less steam ramp
+
+
 
 $fn=300;
 
@@ -24,11 +36,6 @@ bit=0.15*in;
 tv_screw=0.25*in;
 tv_screw_head=20;
 
-
-hole_gaps=1.5*in;
-slide=0.5*in;
-slide_hole=3/8*in;
-
 pocket=0.75*in;
 
 module tv_placement() {
@@ -47,9 +54,8 @@ module positive() {
     }
 }
 
-center_screws=8;
-top_screw=275;
-bottom_screw=0;
+center_screws=5;
+bottom_screw=-tv_mount_y/3;
 screw_gap=(top_screw-bottom_screw)/center_screws;
 
 module slide() {
@@ -58,8 +64,12 @@ module slide() {
         translate([0,-slide])
         circle(d=bit);
     }
-    translate([0,-slide])
-    circle(d=slide_hole);
+    hull() {
+        translate([0,-slide])
+        circle(d=bit);
+        translate([0,-slide-slide_hole/2-ramp])
+        circle(d=slide_hole);
+    }
 }
 
 module outside_profile() {
