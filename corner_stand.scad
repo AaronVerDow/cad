@@ -4,13 +4,15 @@ pad=0.1;
 $fn=90;
 
 couch_to_wall=430;
-couch_depth=1000;
+couch_depth=920;
 
-wall_depth=650;
+wall_depth=400;
 couch_to_window=couch_to_wall+couch_depth-wall_depth;
 
-ledge=200;
-window_width=600;
+ledge=300;
+window_width=1070;
+
+// https://www.ikea.com/us/en/p/morabo-sofa-grann-bomstad-black-metal-s09316670/
 
 wood=in/2;
 top_wood=18;
@@ -21,7 +23,7 @@ window_angle=atan((couch_depth-wall_depth)/(couch_to_window-couch_to_wall));
 lip=wood*2;
 skirt=in*3;
 
-height=500;
+height=620;
 
 leg_fillet=skirt;
 leg=skirt;
@@ -35,9 +37,9 @@ function diagonal(x) = sqrt(x*x*2);
 // mid century modern
 mcm_width=wood*3;
 mcm_tip=mcm_width;
-mcm_base=mcm_tip*3;
-mcm_tip_offset=diagonal(lip);
-mcm_base_offset=diagonal(skirt);
+mcm_base=skirt*1.5;
+mcm_tip_offset=diagonal(skirt/2);
+mcm_base_offset=diagonal(skirt*1.5);
 
 back_mcm_diag=diagonal(couch_to_wall)/2-mcm_base_offset;
 
@@ -66,11 +68,11 @@ module mcm() {
 	diag_leg()
 	mcm_leg(350);
 
-	translate([couch_depth,0])
+	*translate([couch_depth,0])
 	diag_leg(rot=90)
 	mcm_leg(back_mcm_diag);
 
-	translate([couch_depth,couch_to_wall])
+	*translate([couch_depth,couch_to_wall])
 	diag_leg(rot=180)
 	mcm_leg(back_mcm_diag);
 
@@ -80,11 +82,16 @@ module mcm() {
 	wood(mcm_width)
 	spine();
 
+	//translate([-couch_to_wall/2,couch_depth])
+	translate([couch_depth,couch_to_wall/2])
+	diag_leg(rot=45+90)
+	mcm_leg(back_mcm_diag);
+
 	translate([couch_depth-wall_depth,couch_to_wall,0])
 	rotate([0,0,window_angle])
 	translate([-ledge/2,window_width+30])
 	diag_leg(rot=-90-45)
-	mcm_leg(730);
+	mcm_leg(window_width+70);
 }
 
 module spine() {
@@ -198,7 +205,7 @@ module small_couch() {
 }
 
 module couch() {
-	scale([13.3,10,10])
+	scale([12.3,12,11.4])
 	color("gray")
 	translate([75,0])
 	rotate([0,0,-90])
@@ -223,13 +230,17 @@ module wall() {
 
 }
 
-
-module assembled() {
+module preview() {
 	color("white")
 	wall();
 
 	couch();
 
+	assembled();
+
+}
+
+module assembled() {
 	color("chocolate")
 	translate([0,0,height-top_wood])
 	wood(top_wood)
@@ -239,4 +250,4 @@ module assembled() {
 	mcm();
 }
 
-assembled();
+preview();
