@@ -1,3 +1,4 @@
+use <joints.scad>;
 in=25.4;
 zero=0.01;
 pad=0.1;
@@ -33,7 +34,9 @@ window_width=1080; // measured to middle of trim
 // https://www.ikea.com/us/en/p/morabo-sofa-grann-bomstad-black-metal-s09316670/
 
 wood=in/2;
-top_wood=wood*2;
+top_top=wood;
+top_base=wood;
+top_wood=top_top+top_base;
 
 // s=o/h c=a/h t=o/a
 //window_angle=atan((couch_depth-wall_depth)/(couch_to_window-couch_to_wall));
@@ -76,6 +79,14 @@ back_wall=2425;
 
 couch=back_wall-couch_gap-couch_to_wall;
 
+outlet_offset=outlet/2+40;
+outlet_depth=7.9*in;
+
+bracket_x=2*in;
+bracket_y=1.5*in;
+bracket_z=in/4;
+bracket_h=6*in;
+bracket_d=in/2;
 
 module dirror_y(y=0) {
 	children();
@@ -117,17 +128,30 @@ translate([couch_depth-bp_depth,-couch/2-bp_width/2,height])
 wood()
 bp();
 
+pintail_gap=1;
+pintail_ear=bit;
 
 module mcm_leg(x=0) {
-	hull() {
-		translate([mcm_tip_offset,0])
-		square([mcm_tip,zero]);
-		translate([mcm_base_offset,height-zero])
-		square([mcm_base,zero]);
+	pins=floor(x/100);
+	difference() {
+		hull() {
+			translate([mcm_tip_offset,0])
+			square([mcm_tip,zero]);
+			translate([mcm_base_offset,height-zero])
+			square([mcm_base,zero]);
+		}
+		translate([mcm_base_offset-mcm_base,height-top_wood])
+		square([x+mcm_base,top_wood]);
 	}
-	translate([mcm_base_offset,height-skirt])
-	square([x,skirt]);
-
+	difference() {
+		translate([mcm_base_offset,height-skirt])
+		difference() {
+			square([x,skirt-top_top]);
+			translate([0,skirt+pad-top_top])
+			rotate([0,0,-90])
+			negative_pins(x,wood+pad,pins,pintail_gap,0,pintail_ear);
+		}
+	}
 }
 
 module diag_leg(w=mcm_width,rot=0) {
@@ -137,10 +161,16 @@ module diag_leg(w=mcm_width,rot=0) {
 	children();
 }
 
+front_spine=275;
+
+module front_leg() {
+	mcm_leg(front_spine);
+}
+
 module mcm() {
 	// front
 	diag_leg()
-	mcm_leg(275);
+	front_leg();
 
 	*translate([couch_depth,0])
 	diag_leg(rot=90)
@@ -180,14 +210,10 @@ module wood(h=wood) {
 	children();
 }
 
-outlet_offset=outlet/2+40;
-outlet_depth=7.9*in;
-
 module place_outlet() {
 	translate([couch_depth-outlet_offset,couch_to_wall/2])
 	children();
 }
-
 
 module top() {
 
@@ -344,16 +370,27 @@ top_shelf=height+shelf_gap*2;
 
 shelf_width=back_wall-shelf_gap*1.5;
 
+shelf_wire=in/2;
+
+// https://www.amazon.com/dp/B07KC8P2KD/ref=emc_b_5_t?th=1I
+led_width=17;
+led_depth=8; // flush bubble
+
 step=250;
+
+shelves();
 
 module shelves() {
 	color("chocolate")
-	translate([-shelf_depth+couch_depth,couch_to_wall-shelf_width/2-back_wall/2,bottom_shelf-shelf_thick/2])
-	cube([shelf_depth,shelf_width,shelf_thick]);
+	translate([-shelf_depth+couch_depth,couch_to_wall+shelf_width/2-back_wall/2,bottom_shelf-shelf_thick/2])
+	rotate([0,0,-90])
+	shelf();
 
 	color("chocolate")
-	translate([-shelf_depth+couch_depth,couch_to_wall-shelf_width/2-back_wall/2,top_shelf-shelf_thick/2])
-	cube([shelf_depth,shelf_width,shelf_thick]);
+	translate([-shelf_depth+couch_depth,couch_to_wall+shelf_width/2-back_wall/2,top_shelf-shelf_thick/2])
+	rotate([0,0,-90])
+	shelf();
+
 
 	color("chocolate") {
 		*for(z=[shelf_gap/2:shelf_gap:shelf_gap*2.0])
@@ -366,18 +403,39 @@ module shelves() {
 	}
 }
 
-studs=[400,400+16*in,400+32*in];
+first_stud=700;
 
-#shelves();
+studs=[first_stud,first_stud+16*in,first_stud+32*in];
+
 
 for(y=studs)
 bracket(-y,shelf_gap);
 
-shelf_light=3/4*in;
-inner_wall=40;
+inner_wall=in+led_width;
+
+access_holes=[600,1000];
+
+access_hole_x=100;
+access_hole_y=wood;
+shelf_bracket_top=3*in;
+
+stud_offset=shelf_width/2-back_wall/2;
 
 module shelf_front() {
 	square([shelf_width,shelf_thick]);
+}
+
+module shelf_back() {
+	difference() {
+		square([shelf_width,shelf_thick]);
+		for(x=studs)
+		translate([x+stud_offset-bracket_x/2-bit,shelf_thick/2-bit-bracket_y/2])
+		square([bracket_x+bit*2,bracket_y+bit*2]);
+
+		for(x=access_holes)
+		translate([x-access_hole_x/2,shelf_thick/2-access_hole_y/2])
+		square([access_hole_x,access_hole_y]);
+	}
 }
 
 module shelf_side() {
@@ -387,14 +445,40 @@ module shelf_side() {
 module shelf_inner() {
 	difference() {
 		square([shelf_width,shelf_depth]);
-		translate([inner_wall,inner_wall+shelf_light])
-		square([shelf_width-inner_wall*2,shelf_depth-inner_wall*2-shelf_light]);
+		difference() {
+			translate([inner_wall,inner_wall])
+			square([shelf_width-inner_wall*2,shelf_depth-inner_wall*2]);
+			// cover for brackets
+			#for(y=studs)
+			translate([y+stud_offset-shelf_bracket_top/2,0])
+			square([shelf_bracket_top,shelf_depth]);
+		}
+		for(y=studs)
+		translate([y+stud_offset-bit-bracket_x/2,shelf_depth-bracket_z])
+		square([bracket_x+bit*2,bracket_z]);
+
+		dirror_y(shelf_depth+wood)
+		dirror_x(shelf_width)
+		translate([wood,wood+led_width/2])
+		#circle(d=shelf_wire);
 	}
 }
 
 module shelf_outer() {
-	translate([0,wood+shelf_light])
-	square([shelf_width,shelf_depth-wood-shelf_light]);
+	translate([wood,wood])
+	square([shelf_width-wood*2,shelf_depth-wood*2]);
+}
+
+module shelf_tracks() {
+	translate([0,wood,0])
+	square([shelf_width,led_width]);
+
+	translate([0,shelf_depth-led_width-wood,0])
+	square([shelf_width,led_width]);
+}
+
+module shelf_bracket_guide() {
+	square([bracket_h,bracket_d+wood*2]);
 }
 
 module dirror_x(x=0) {
@@ -413,6 +497,12 @@ module shelf() {
 	wood()
 	shelf_front();
 
+	color("red")
+	translate([0,shelf_depth])
+	rotate([90,0])
+	wood()
+	shelf_back();
+
 	color("blue")
 	dirror_x(shelf_width)
 	rotate([90,0,90])
@@ -429,38 +519,53 @@ module shelf() {
 		shelf_inner();
 	}
 
-	*color("magenta") {
-		wood()
-		shelf_outer();
+	color("magenta") {
+		difference() {
+			wood()
+			shelf_outer();
+			translate([0,0,led_depth-wood])
+			wood()
+			shelf_tracks();
+		}
 
-		translate([0,0,shelf_thick-wood])
-		wood()
-		shelf_outer();
+		difference() {
+			translate([0,0,shelf_thick-wood])
+			wood()
+			shelf_outer();
+			translate([0,0,shelf_thick-led_depth])
+			wood()
+			shelf_tracks();
+		}
 	}
 
 	for(x=studs)
-	translate([x,shelf_depth,shelf_thick/2])
+	translate([x+stud_offset,shelf_depth,shelf_thick/2])
 	rotate([0,0,90])
 	raw_bracket();
+
+	
+	color("blue")
+	for(x=studs)
+	translate([x+stud_offset,0])
+	dirror_x()
+	translate([bracket_d/2,shelf_depth-bracket_z-bracket_h,shelf_thick/2-bracket_d/2-wood])
+	rotate([90,0,90])
+	wood()
+	shelf_bracket_guide();
 }
 
-!shelf();
-
 module bracket(x=0,y=0) {
-	translate([couch_depth,x,height+y])
+	translate([couch_depth,x+couch_to_wall,height+y])
 	raw_bracket();
 }
 
 module raw_bracket() {
-	bracket_x=2*in;
-	bracket_y=1.5*in;
-	bracket_z=in/4;
 	color("#333333") {
 		translate([-bracket_z,-bracket_x/2,-bracket_y/2])
 		cube([bracket_z,bracket_x,bracket_y]);
 
 		rotate([0,-90])
-		cylinder(d=in/2,h=6*in);
+		cylinder(d=bracket_d,h=bracket_h);
 	}
 }
 
@@ -506,7 +611,6 @@ module wall() {
 	// other side
 	translate([-couch_depth/2,couch_to_wall-back_wall-wall,0])
 	cube([couch_depth*1.5,wall,wall_h]);
-
 }
 
 module preview() {
@@ -518,18 +622,17 @@ module preview() {
 	assembled();
 
 	cat();
-
 }
 
 desk_outlet=0;
 
 module assembled() {
-	color("chocolate")
+	color("blue")
 	translate([0,0,height-top_wood])
-	wood(top_wood)
+	wood(top_base)
 	top();
 
-	color("chocolate")
+	color("lime")
 	mcm();
 
 	if(desk_outlet)
