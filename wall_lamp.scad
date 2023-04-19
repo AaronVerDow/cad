@@ -212,3 +212,4 @@ translate([0,0,-base_height-pad])
 base();
 cylinder_shade();
 
+!base();
