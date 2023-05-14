@@ -4,6 +4,8 @@ zero=0.01;
 pad=0.1;
 $fn=90;
 
+felt=10;
+
 bit=in/4;
 
 couch_to_wall=350; // estimation
@@ -34,20 +36,23 @@ window_width=1080; // measured to middle of trim
 // https://www.ikea.com/us/en/p/morabo-sofa-grann-bomstad-black-metal-s09316670/
 
 wood=in/2;
-top_top=wood;
+wood34=3/4*in;
+top_top=18;
 top_base=wood;
 top_wood=top_top+top_base;
 
 // s=o/h c=a/h t=o/a
 //window_angle=atan((couch_depth-wall_depth)/(couch_to_window-couch_to_wall));
 
-lip=wood*2;
-skirt=in*3;
+//!assembled();
 
-height=635; // measured
+lip=wood*2;
+skirt=in*3+top_wood;
+
+height=635-felt; // measured
 
 leg_fillet=skirt;
-leg=skirt;
+leg=in*3;
 
 front_extra=200;
 
@@ -64,11 +69,11 @@ bp_outlet_offset=outlet*2;
 function diagonal(x) = sqrt(x*x*2);
 
 // mid century modern
-mcm_width=wood*3;
+mcm_width=wood34*2;
 mcm_tip=mcm_width;
-mcm_base=skirt*1.5;
-mcm_tip_offset=diagonal(skirt/2);
-mcm_base_offset=diagonal(skirt*1.5);
+mcm_base=3*in*1.5;
+mcm_tip_offset=diagonal(3*in/2);
+mcm_base_offset=diagonal(3*in*1.5);
 
 back_mcm_diag=diagonal(couch_to_wall)/2-mcm_base_offset;
 
@@ -95,6 +100,8 @@ module dirror_y(y=0) {
 	children();
 }
 
+
+// RENDER svg
 module bp() {
 	module positive() {
 		difference() {
@@ -122,6 +129,7 @@ module bp() {
 	}
 }
 
+
 //color("chocolate")
 color("gray")
 translate([couch_depth-bp_depth,-couch/2-bp_width/2,height])
@@ -131,8 +139,10 @@ bp();
 pintail_gap=1;
 pintail_ear=bit;
 
+pin=100;
+
 module mcm_leg(x=0) {
-	pins=floor(x/100);
+	pins=floor(x/pin);
 	difference() {
 		hull() {
 			translate([mcm_tip_offset,0])
@@ -161,11 +171,32 @@ module diag_leg(w=mcm_width,rot=0) {
 	children();
 }
 
-front_spine=275;
+function pins(x)=floor(x/pin);
 
+function spine(x)=x-mcm_base_offset;
+
+front_leg=268;
+
+// RENDER svg
 module front_leg() {
-	mcm_leg(front_spine);
+	mcm_leg(front_leg);
 }
+
+back_leg=610;
+
+// RENDER svg
+module back_leg() {
+	mcm_leg(back_leg);
+}
+
+window_leg=window_width-90;
+
+// RENDER svg
+module window_leg() {
+	mcm_leg(window_leg);
+}
+
+window_leg_offset=window_width+30;
 
 module mcm() {
 	// front
@@ -191,15 +222,15 @@ module mcm() {
 	//translate([-couch_to_wall/2,couch_depth])
 	translate([couch_depth,couch_to_wall/2])
 	diag_leg(rot=45+90)
-	mcm_leg(600);
+	back_leg();
 
 
 	// window leg
 	translate([couch_depth-wall_depth,couch_to_wall,0])
 	rotate([0,0,window_angle])
-	translate([-ledge/2,window_width+30])
+	translate([-ledge/2,window_leg_offset])
 	diag_leg(rot=-90-45)
-	mcm_leg(window_width-100);
+	window_leg();
 }
 
 module spine() {
@@ -215,6 +246,8 @@ module place_outlet() {
 	children();
 }
 
+
+// RENDER svg
 module top() {
 
 	module positive() {
@@ -240,8 +273,28 @@ module top() {
 		if(desk_outlet)
 		place_outlet()
 		circle(d=outlet);
+
+		translate([couch_depth-back_leg-mcm_base_offset,couch_to_wall/2+mcm_width/2])
+		rotate([0,0,-90])
+		dirror_x(mcm_width)
+		negative_tails(back_leg,mcm_width,pins(back_leg),pintail_gap,0,pintail_ear);
+
+		#rotate([0,0,-45])
+		translate([-mcm_width/2,mcm_base_offset])
+		dirror_x(mcm_width)
+		negative_tails(front_leg,mcm_width,pins(front_leg),pintail_gap,0,pintail_ear);
+
+		
+		#translate([couch_depth-wall_depth,couch_to_wall])
+		rotate([0,0,45])
+
+		translate([-ledge/2-mcm_width/2,window_leg_offset-window_leg-mcm_base_offset])
+		dirror_x(mcm_width)
+		negative_tails(window_leg,mcm_width,pins(window_leg),pintail_gap,0,pintail_ear);
 	}
 }
+
+
 
 module double_leg(x=0) {
 	leg(x);
