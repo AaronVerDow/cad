@@ -6,28 +6,31 @@ zero=0.01;
 two=2*in;
 ground=10;
 
-addition_width=13*ft;
-addition_height=20*ft;
-addition_depth=10*ft; 
+landing_height=1270;
 
-kitchen=5*ft;
+addition_width=4200+1700;
+addition_height=1270+2500;
+addition_depth=2190;
+
+kitchen=1270;
 
 house_width=kitchen+addition_width;
 house_height=addition_height;
 house_depth=10*ft;
 
-grass_width=10*ft;
-grass_depth=14*ft;
+grass_width=3900;
+grass_depth=5700;
 
-fence_gap=26*ft;
-fence_height=4*ft;
+fence_gap=8900;
+fence_height=1130;
 fence_width=1*in;
 
-gate_width=4*ft;
+gate_width=1170;
 gate_depth=fence_width;
 gate_height=7*ft;
 
-flower_depth=6*ft;
+flower_depth=1700;
+flower_gap=900;  // not used yet
 
 driveway_width=fence_gap-grass_width;
 
@@ -43,46 +46,54 @@ gate_color=("brown");
 fence_color=("silver");
 driveway_color="#BBBBBB";
 
-door_width=32*in;
-door_height=72*in;
+door_width=770;
+door_height=2160;
 door_depth=addition_width/2;
 
-door_offset=1*ft;
+door_offset=230;
 
-deck_depth=8*ft;
-deck_width=10*ft;
+deck_depth=2870;
+deck_width=4300;
 
-landing_height=4*ft;
-landing_width=kitchen;
-landing_offset=5*ft;
+landing_width=1260;
+landing_offset=1180;
 
 basement_depth=4*ft;
 basement_width=8*ft;
 basement_height=6*ft;
 
 step_width=landing_width;
-step_depth=12*in;
-steps=6;
+step_depth=280;
+steps=8;
 
 step_gap=(landing_height)/(steps-1);
 
 deck_height=step_gap*2;
 
-dstep_depth=12*in;
+dstep_depth=step_depth;
 dsteps=3;
 dstep_gap=(deck_height)/(dsteps-1);
 deck_corner=2*ft;
 
 corner_angle=45/2;
 
-landing_depth=landing_offset+deck_depth-step_depth*(steps-3);
+//landing_depth=landing_offset+deck_depth-step_depth*(steps-3);
+landing_depth=landing_offset+1460;
 
-window_width=9*ft;
-window_height=4*ft;
+window_width=2380; // inner edge of outside trim
+window_height=1135;
 window_depth=addition_depth;
-window_sill=landing_height+4*ft;
+window_sill=1040+1270; // existing_deck to sill + existing deck
+window_offset=1800;
 
 wall=8*in;
+
+ac_side=750;
+ac_height=650;
+
+ac_x_offset=950;
+ac_y_offset=320;
+
 
 module deck_profile(extra=0) {
 
@@ -126,7 +137,7 @@ module house() {
 		cube([door_depth,door_width,door_height]);
 		basement();
 
-		translate([addition_width/2-window_width/2,-pad,window_sill])
+		translate([window_offset,-pad,window_sill])
 		cube([window_width,window_depth,window_height]);
 		translate([wall,wall,landing_height])
 		cube([addition_width-wall*2,addition_depth,addition_height-landing_height-wall]);
