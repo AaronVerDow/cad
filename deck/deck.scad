@@ -52,8 +52,9 @@ door_depth=addition_width/2;
 
 door_offset=230;
 
-deck_depth=2870;
-deck_width=4300;
+step_depth=280;
+deck_depth=2300+step_depth;
+deck_width=4170;
 
 landing_width=1260;
 landing_offset=1180;
@@ -63,12 +64,13 @@ basement_width=8*ft;
 basement_height=6*ft;
 
 step_width=landing_width;
-step_depth=280;
 steps=8;
 
 step_gap=(landing_height)/(steps-1);
 
-deck_height=step_gap*2;
+deck_level=3;
+
+deck_height=step_gap*deck_level;
 
 dstep_depth=step_depth;
 dsteps=3;
@@ -78,15 +80,16 @@ deck_corner=2*ft;
 corner_angle=45/2;
 
 //landing_depth=landing_offset+deck_depth-step_depth*(steps-3);
-landing_depth=landing_offset+1460;
+//landing_depth=landing_offset+1460;
+landing_depth=landing_offset+step_depth*2;
+
+wall=8*in;
 
 window_width=2380; // inner edge of outside trim
 window_height=1135;
-window_depth=addition_depth;
+window_depth=addition_depth-wall*4;
 window_sill=1040+1270; // existing_deck to sill + existing deck
 window_offset=1800;
-
-wall=8*in;
 
 ac_side=750;
 ac_height=650;
@@ -94,6 +97,9 @@ ac_height=650;
 ac_x_offset=950;
 ac_y_offset=320;
 
+color("#333333")
+translate([addition_width-ac_side-ac_x_offset,-ac_y_offset-ac_side])
+cube([ac_side,ac_side,ac_height]);
 
 module deck_profile(extra=0) {
 
@@ -105,12 +111,12 @@ module deck_profile(extra=0) {
 	d_a=extra;
 	d_o=tan(corner_angle)*d_a;
 
-	translate([0,-deck_depth])
+	translate([-landing_width,-deck_depth])
 	hull() {
 		translate([0,-extra])
-		square([deck_width-deck_corner+d_o,deck_depth+extra]);
+		square([deck_width+landing_width-deck_corner+d_o,deck_depth+extra]);
 		translate([0,deck_corner-d_o,0])
-		square([deck_width+extra,deck_depth-deck_corner+d_o]);
+		square([deck_width+landing_width+extra,deck_depth-deck_corner+d_o]);
 	}
 }
 
@@ -119,15 +125,18 @@ translate([0,0,deck_height-two])
 linear_extrude(height=two)
 difference() {
 	deck_profile(); 
-	landing(step_depth*(steps-4));
+	landing(step_depth*(steps-deck_level-2));
 }
 
 color(deck_color)
-translate([0,0,dstep_gap-two])
+for(n=[0:1:deck_level-1])
+translate([0,0,deck_height-step_gap*n-two])
 linear_extrude(height=two)
 difference() {
-	deck_profile(dstep_depth); 
-	deck_profile(); 
+	deck_profile(dstep_depth*n); 
+	deck_profile(dstep_depth*(n-1)); 
+	mirror([0,1])
+	square([addition_width,ac_side+ac_y_offset+step_depth/2]);
 }
 
 module house() {
@@ -140,7 +149,7 @@ module house() {
 		translate([window_offset,-pad,window_sill])
 		cube([window_width,window_depth,window_height]);
 		translate([wall,wall,landing_height])
-		cube([addition_width-wall*2,addition_depth,addition_height-landing_height-wall]);
+		cube([addition_width-wall*2,addition_depth-wall*2,addition_height-landing_height-wall]);
 	}
 	translate([addition_width-house_width,addition_depth])
 	cube([house_width,house_depth,house_height]);
@@ -169,7 +178,7 @@ module fence() {
 	cube([right_gap,gate_depth,gate_height]);
 }
 
-for(n=[0:1:steps-2])
+*for(n=[0:1:steps-2])
 color(deck_color)
 translate([-step_width/2-landing_width/2,landing_offset-landing_depth-n*step_depth,landing_height-two-step_gap*n])
 cube([step_width,step_depth,two]);
@@ -180,7 +189,7 @@ color("green")
 translate([right_fence-grass_width,-grass_depth-flower_depth,-zero])
 cube([grass_width,grass_depth,zero]);
 
-color("#333333")
+color("tan")
 translate([right_fence-grass_width,-flower_depth])
 cube([grass_width,flower_depth+addition_depth,zero]);
 
@@ -224,11 +233,12 @@ module landing_step(n) {
 	}
 }
 
-landing_step(1);
-landing_step(2);
+
+for(n=[1:1:(steps-deck_level-1)])
+landing_step(n);
 
 
-translate([addition_width*0.3,wall,window_sill])
+translate([addition_width*0.37,wall,window_sill])
 scale(2)
 translate([0,0,82])
 import("LaserCat-LowPoly.stl");
