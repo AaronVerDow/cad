@@ -1,4 +1,5 @@
 in=25.4;
+$fn=200;
 wood=in/2;
 pad=0.1;
 zero=0.0001;
@@ -6,6 +7,8 @@ zero=0.0001;
 use <joints.scad>;
 
 width=100;
+front_frame=100;
+back_frame=80;
 
 axle=12;
 axle_wall=in;
@@ -36,13 +39,13 @@ module wood(height=wood) {
 	children();
 }
 
-module base(depth,bwidth) {
+module base(depth,bwidth,frame) {
 	difference() {
 		offset(corner)
 		offset(-corner)
 		square([bwidth,depth]);
-		translate([bwidth/2-width/2,0])
-		dirror_x(width)
+		translate([bwidth/2-frame/2,0])
+		dirror_x(frame)
 		dirror_x(wood)
 		negative_tails(depth+pad*2,wood+pad,pins,pintail_gap,0,pintail_ear);
 	}
@@ -71,17 +74,18 @@ module side(height, depth, center=false) {
 
 center_h=front_height-axle/2-wood;
 
-module center(height) {
+module center(height,frame) {
 	difference() {
-		square([width,center_h]);
-		dirror_x(width)
+		square([frame,center_h]);
+		dirror_x(frame)
 		translate([-pad,-pad])
 		negative_pins(center_h+pad*2,wood+pad,pins,pintail_gap,0,pintail_ear);
 	}
 }
 
+// RENDER svg
 module back_center() {
-	square([width-wood*2,back_height-wood-axle/2]);
+	square([back_frame-wood*2,back_height-wood-axle/2]);
 }
 
 module dirror_x(x=0) {
@@ -100,17 +104,17 @@ module front_side() {
 
 // RENDER svg
 module front_base() {
-	base(front_depth,base_width);
+	base(front_depth,base_width,front_frame);
 }
 
 // RENDER svg
 module front_center() {
-	center(front_height);
+	center(front_height, front_frame);
 }
 
 module front() {
 	dirror_x()
-	translate([-width/2,0])
+	translate([-front_frame/2,0])
 	rotate([90,0,90])
 	wood()
 	front_side();
@@ -121,7 +125,7 @@ module front() {
 	front_base();
 
 	rotate([90,0])
-	translate([-width/2,wood,-wood/2])
+	translate([-front_frame/2,wood,-wood/2])
 	color("magenta")
 	wood()
 	front_center();
@@ -134,12 +138,12 @@ module back_side() {
 
 // RENDER svg
 module back_base() {
-	base(back_depth,back_width);
+	base(back_depth,back_width,back_frame);
 }
 
 module back() {
 	dirror_x()
-	translate([-width/2,0])
+	translate([-back_frame/2,0])
 	rotate([90,0,90])
 	wood()
 	back_side();
@@ -150,7 +154,7 @@ module back() {
 	back_base();
 
 	rotate([90,0])
-	translate([-width/2+wood,wood,-wood/2])
+	translate([-back_frame/2+wood,wood,-wood/2])
 	color("magenta")
 	wood()
 	back_center();
