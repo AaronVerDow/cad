@@ -1,25 +1,40 @@
-laptop_x=358;
-laptop_y=246;
+laptop_x=278;
+laptop_y=206;
 laptop_corner=10;
 
 wood=13;
 base=wood/2;
-
 vesa_sizes=[100];
-mountpoints=[140-laptop_y/2];
+
+mount_offset=23;
+mountpoints=[mount_offset];
 
 pad=15;
 pad_offset=15+15/2;
 
 in=25.4;
-bit=in/4;
+bit=in/8;
 screw=bit*1.1;
 pocket_overhang=bit;
 
+slot_x=265;
+slot_y=4;
+slot_gap=175;
+
+wall=laptop_y-slot_gap+slot_y;
+
+negative_corner=bit;
+
 module laptop() {
-	offset(laptop_corner)
-	offset(-laptop_corner)
 	square([laptop_x,laptop_y],center=true);
+}
+
+dock_x=
+
+module dock() {
+}
+
+module wires() {
 }
 
 module vesa() {
@@ -32,8 +47,41 @@ module vesa() {
 	circle(d=screw);	
 }
 
+module cross() {
+		for(mountpoint=mountpoints)
+		translate([0,mountpoint])
+		rotate([0,0,45])
+		square([wall,laptop_y*2],center=true);
+}
+
+module negative() {
+	offset(negative_corner)
+	offset(-negative_corner)
+	difference() {
+		square([laptop_x-wall,laptop_y-wall*2],center=true);
+
+
+		dirror_x()
+		cross();
+
+	}
+}
+
 module body() {
-	laptop();
+	difference() {
+		offset(laptop_corner)
+		offset(-laptop_corner)
+		intersection() {
+			laptop();
+			dirror_x()
+			hull() {
+				cross();
+				translate([0,laptop_y])
+				cross();
+			}
+		}
+		negative();
+	}
 }
 
 module dirror_y() {
@@ -48,11 +96,13 @@ module dirror_x() {
 	children();
 }
 
-module pads(){ 
-	dirror_x()
+module pads() {
 	dirror_y()
-	translate([laptop_x/2-pad_offset,laptop_y/2-pad_offset])
-	circle(d=pad);
+	translate([0,slot_gap/2])
+	hull()
+	dirror_x()
+	translate([slot_x/2,0])
+	circle(d=slot_y);
 }
 
 module assembled() {
@@ -67,31 +117,11 @@ module outside_profile() {
 		vesa();
 		pads();
 	}
-	anchor();
 }
 
 anchor=10;
 anchor_x=-laptop_x/2-anchor*2;
 anchor_y=-laptop_y-anchor*2;
-
 preview_height=1;
 
-module preview() {
-	color("red")
-	linear_extrude(height=preview_height)
-	outside_profile();
-
-	color("blue")
-	translate([0,0,1])
-	linear_extrude(height=preview_height)
-	pockets();
-}
-
-//preview();
 assembled();
-
-module anchor() {
-	color("lime")
-	translate([anchor_x,anchor_y])
-	square([anchor, anchor]);
-}
