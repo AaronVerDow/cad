@@ -1,12 +1,11 @@
-bolt_gap=120;
-bolt=6;
+$fn=90;
+bolt_gap=65;
+bolt=6.5;
 
-seat_bolt=25;
-bottle_bolt=20;
-collision_offset=bolt*2;
-
+seat_bolt=35;
+bottle_bolt=35;
 seat_to_pivot=30;
-bottle_to_pivot=15;
+bottle_to_pivot=30;
 angle=45;
 
 wall=5;
@@ -14,10 +13,13 @@ wall=5;
 od=bolt+wall*2;
 pad=0.1;
 
-bolt_head=12;
+bolt_head=16;
 bolt_head_height=50;
 bolt_head_d2=bolt_head+bolt_head_height/2;
 
+collision_offset=bolt_head;
+
+manifold=0.1;
 
 module place_bolts() {
 	children();
@@ -33,14 +35,14 @@ module positive() {
 module positive_unhulled() {
 	hull()
 	place_bolts()
-	cylinder(d=od,h=seat_bolt);
+	cylinder(d=od+manifold,h=seat_bolt);
 
 	
 	color("lime")
 	place_bottle()
 	hull()
 	place_bolts()
-	cylinder(d=od,h=bottle_bolt);
+	cylinder(d=od+manifold,h=bottle_bolt);
 }
 
 module place_bottle() {
@@ -62,13 +64,21 @@ module bolts(height,head_height,extra=0) {
 	cylinder(d1=bolt_head,d2=bolt_head_d2,h=bolt_head_height);
 }
 
-difference() {
-	positive();
+module assembled() {
+	difference() {
+		positive();
 
-	bolts(seat_bolt,seat_bolt,bolt_extra);
+		bolts(seat_bolt,seat_bolt,bolt_extra);
 
-	place_bottle()
-	translate([0,0,bottle_bolt+pad])
-	mirror([0,0,1])
-	bolts(bottle_bolt,bottle_bolt,bolt_extra);
+		place_bottle()
+		translate([0,0,bottle_bolt+pad])
+		mirror([0,0,1])
+		bolts(bottle_bolt,bottle_bolt,bolt_extra);
+	}
 }
+
+
+assembled();
+translate([0,bolt_head*1.5])
+mirror([0,1])
+assembled();
