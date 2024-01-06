@@ -20,9 +20,10 @@ flat_depth=22/2+channel/2;
 
 width=11;
 
-wall=flat-mount_od/2;
+mount_base=24;
+// wall=flat-mount_od/2;
+wall=(mount_base-mount_od)/2;
 
-$fn=200;
 pad=0.1;
 
 screw=4.5;
@@ -31,9 +32,9 @@ screw_head=10.5;
 screw_head_depth=2.0+2.5;
 
 tip=mount_od+wall*2;
-tip_gap=mount_width/4;
+// tip_gap=mount_width/4;
+tip_gap=0;
 
-mount_base=24;
 
 inner_gap=0.5;
 
@@ -42,6 +43,52 @@ zero=0.01;
 middle=mount_gap;
 slide_angle=4;
 elephants_foot=0.5;
+
+$fn=200;
+
+knife=1;
+squish=2;
+
+outer_knife=od/2-squish-knife/2;
+inner_knife=screw/2+squish*2+knife/2;
+
+// bar preview
+//#circle(d=22.5);
+
+module knife_point() {
+	translate([0,0,-squish])
+	cylinder(d1=knife,d2=knife+squish*2,h=squish);
+}
+
+for(i=[0:360/6:359])
+rotate([0,0,i])
+hull() {
+	translate([0,inner_knife])
+	knife_point();
+	translate([0,outer_knife])
+	knife_point();
+}
+
+module dirror_x() {
+	children();
+	mirror([1,0])
+	children();
+}
+
+module donut() {
+	difference() {
+		translate([0,0,width+channel-wall])
+		rotate_extrude()
+		translate([mount_od/2,0])
+		circle(r=wall);
+		base_negative();
+	}
+
+	dirror_x()
+	translate([mount_od/2,0,width+channel-wall])
+	rotate([-90,0])
+	cylinder(r=wall,h=flat);
+}
 
 module mount() {
 	translate([0,0,width])
@@ -54,6 +101,14 @@ module tip() {
 }
 
 module positive() {
+	hull() {
+		cylinder(d=od,h=zero);
+		donut();
+	}
+}
+
+
+module old_positive() {
 	hull() {
 		cylinder(d1=od,d2=mount_od+wall*2,h=width+channel);
 		translate([-mount_base/2,flat-zero,width+channel-flat_base_depth])
@@ -91,16 +146,19 @@ module middle() {
 }
 
 
-color("cyan")
-translate([0,0,width+mount_width])
-middle();
-endcap();
+// color("cyan") translate([0,0,width+mount_width]) middle();
+// endcap();
 
 module screw(extra=0) {
 	translate([0,0,-pad])
 	cylinder(d=screw+extra,h=width+channel+tip+pad);
 	translate([0,0,width+channel+tip/2-screw_head_depth])
 	cylinder(d=screw_head,h=screw_head_depth+pad);
+}
+
+module base_negative() {
+	translate([-od/2,flat,width+channel-flat_depth])
+	cube([od,width,od]);
 }
 
 // RENDER stl
@@ -113,8 +171,7 @@ module base() {
 			mount();
 		}
 
-		translate([-od/2,flat,width+channel-flat_depth])
-		cube([od,width,od]);
+		base_negative();
 
 		screw();
 
