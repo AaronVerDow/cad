@@ -12,21 +12,21 @@ pan_gap=10;
 
 window=750;
 
-top_lip=40;
+top_lip=40+wood;
 
 
 box_x=pan_x+wood*2+pan_gap*2;
 box_y=pan_y+wood*2+pan_gap*2;
 box_z=window+top_lip;
 
-steps=5;
-step_ratio=1.25;
+steps=4;
+step_ratio=1;
 
 step_z=box_z/(steps*2-1)*2;
 step_x=step_z*step_ratio;
 step_y=box_y/2;
 
-step_overhang_x=wood;
+step_overhang_x=0;
 step_overhang_y=wood*2;
 
 
@@ -50,8 +50,9 @@ module wood(height=wood) {
     children();
 }
 
-x_pins=4;
+x_pins=2;
 y_pins=3;
+x_pins_total=290;
 z_pins=4;
 bit=in/4;
 pintail_ear=bit;
@@ -63,10 +64,14 @@ module floor() {
 	difference() {
 		square([box_x,box_y]);
 
+		translate([box_x/2,box_y/2])
+		circle(d=box_y*1.1);
+
+		dirror_x(box_x)
 		dirror_y(box_y)
-		translate([box_x,-pad])
+		translate([x_pins_total,-pad])
 		rotate([0,0,90])
-		negative_pins(box_x,wood+pad,x_pins,pintail_gap,0,pintail_ear);
+		negative_pins(x_pins_total,wood+pad,x_pins,pintail_gap,0,pintail_ear);
 
 		dirror_x(box_x)
 		translate([-pad,0])
@@ -76,7 +81,6 @@ module floor() {
 }
 
 module roof() {
-    //square([box_x,box_y]);
 	floor();
 }
 
@@ -97,6 +101,10 @@ module end() {
 		translate([window,0])
 		dirror_x(wood)
 		edge();
+
+		mirror([1,0,0])
+		rotate([0,0,90])
+		arch(box_y,box_z);
 	}
 }
 
@@ -104,7 +112,8 @@ module end() {
 module back() {
 
 	module edge() {
-		negative_tails(box_x,wood,x_pins,pintail_gap,pintail_holes,pintail_ear);
+		dirror_y(box_x)
+		negative_tails(x_pins_total,wood,x_pins,pintail_gap,pintail_holes,pintail_ear);
 	}
     difference() {
         square([box_x,box_z]);
@@ -122,12 +131,10 @@ module back() {
 
 	dirror_x(box_x)
 	negative_tails(box_z,wood,z_pins,pintail_gap,pintail_holes,pintail_ear);
+	arch(box_x,box_z);
+
     }
 }
-
-brick_z_lines=z_pins*2+1;
-brick_y=box_z/brick_z_lines;
-brick_x=brick_y*2.5;
 
 module front_etching() {
     back_etching();
@@ -144,32 +151,10 @@ module steps_etching() {
 }
 
 
-module back_etching() {
-	for(z=[brick_y:brick_y:box_z-1])
-	translate([-pad,-line/2+z])
-	square([box_x+pad*2,line]);
-
-	for(z=[brick_y:brick_y*2:box_z-1])
-	translate([box_x/2-(box_x+brick_x)/2,0])
-	for(x=[0:brick_x:box_x+brick_x])
-	translate([x,z])
-	square([line,brick_y]);
-
-	for(z=[0:brick_y*2:box_z-1])
-	translate([box_x/2-(box_x+brick_x)/2,0])
-	for(x=[0:brick_x:box_x+brick_x])
-	translate([x+brick_x/2,z])
-	square([line,brick_y]);
-
-}
-
-
 module front() {
     difference() {
         back();
-        place_door()
-        offset(door_gap)
-        door_profile();
+        front_negative();
     }
 }
 
@@ -181,53 +166,81 @@ step_display_gap=30;
 door_window=door_x*0.6;
 door_window_line=wood;
 
-module place_door() {
-    translate([box_x/2-door_x/2,door_lip])
-    children();
-}
-
-etching=in/8;
 line=bit;
 door_plank=(door_x+line)/7;
 window_trim=wood;
 
-module door_etching() {
-	difference() {
-		for(x=[0:door_plank:door_x+door_plank])
-		translate([x-line,0])
-		square([line,door_y]);
-		translate([door_x/2,door_y-door_x/2])
-		circle(d=door_window+window_trim*2);
+wall=100;
+fence=wall;
+fence_h=wall*2.5;
+
+wood_pan_gap=in/4;
+pan_corner=in;
+
+handle_x=50;
+handle_y=150;
+
+handle_gap_x=box_y*0.8;
+handle_gap_y=box_y*0.5;
+
+
+module pan() {
+	module handle() {
+		translate([0,-handle_y/2+handle_x/2])
+		hull() {
+			circle(d=handle_x);
+			translate([0,handle_y-handle_x])
+			circle(d=handle_x);
+		}
 	}
-	translate([door_x/2,door_y-door_x/2])
 	difference() {
-		circle(d=door_window+window_trim*2);
-		if(0)
-		circle(d=door_window+window_trim*2);
+		offset(pan_corner)
+		offset(-wood-wood_pan_gap-pan_corner)
+		square([box_x,box_y]);
+		
+		translate([box_x/2-handle_gap_x/2,box_y/2])
+		dirror_x(handle_gap_x)
+		handle();
+
+		*translate([box_x/2,box_y/2-handle_gap_y/2])
+		dirror_y(handle_gap_y)
+		rotate([0,0,90])
+		handle();
 	}
-
 }
 
-module door() {
-    difference() {
-        door_profile();
-        translate([door_x/2,door_y-door_x/2])
-        difference() {
-            circle(d=door_window);
-            square([door_window,door_window_line],center=true);
-            rotate([0,0,90])
-            square([door_window,door_window_line],center=true);
-        }
-    }
+module front_negative() {
+	arch(box_x,box_z);
+	translate([box_x,0])
+	mirror([1,0])
+	translate([wall,wall])
+	square([(box_x-fence*3)/2,fence_h+pad]);
+}
+
+module arch(x,y) {
+	y2=y-(x-wall*2)/2-wall;
+	difference() {
+		union() {
+			translate([x/2,y2])
+			difference() {
+				circle(d=x-wall*2);
+				translate([-x/2,-x-pad])
+				square([x,x]);
+			}
+			translate([wall,wall])
+			square([x-wall*2,y2-wall]);
+		}
+		translate([0,fence_h])
+		square([x,fence]);
+		
+		translate([x/2-fence/2,0])
+		square([fence,fence_h]);
+	}
 }
 
 
-module door_profile() {
-    translate([door_x/2,door_y-door_x/2])
-    circle(d=door_x);
-    square([door_x,door_y-door_x/2]);
-}
-
+spine=step_x/2+wood/2;
+spine_gap=spine-wood*2;
 
 module assembled() {
     color("cyan")
@@ -242,70 +255,153 @@ module assembled() {
     dirror_x(box_x)
     translate([wood,0])
     rotate([0,-90,0])
-    difference() {
-        wood()
-        end();
-        translate([0,0,wood-etching])
-        wood()
-        end_etching();
-    }
+    wood()
+    end();
 
     translate([0,box_y])
     rotate([90,0])
-    difference() {
-        wood()
-        back();
-        translate([0,0,etching-wood])
-        wood()
-        back_etching();
-    }
+    wood()
+    back();
 
     translate([0,wood])
     rotate([90,0])
+    wood()
+    front();
+
+    rotate([0,0,-90])
+    translate([80,0])
+    steps_assembled();
+
+	color("blue")
+	translate([0,0,wood])
+	rotate([0,-pan_angle])
+	wood()
+	pan();
+
+	color("blue")
+	translate([0,0,window+wood])
+	rotate([0,-pan_angle])
+	wood()
+	pan();
+}
+
+pan_angle=0;
+
+steps_z=step_z*(steps-1);
+
+step_angle=atan(step_x/step_z);
+steps_z_inner=steps_z-step_x/2-wood/2-spine/sin(step_angle);
+
+steps_back_pins=3;
+
+module steps_back() {
 	difference() {
-        wood()
-        front();
-        translate([0,0,wood-etching])
-        wood()
-        front_etching();
+		translate([wood,-spine_gap/2-wood])
+		square([steps_z-wood*2,spine_gap+wood*2]);
+
+
+		dirror_y()
+		translate([wood,spine_gap/2+wood+pad])
+		rotate([0,0,-90])
+		negative_pins(steps_z-wood*2,wood+pad,z_pins,pintail_gap,pintail_holes,pintail_ear);
 	}
+}
 
-    translate([box_x+step_display_gap,box_y-step_y]) {
-            dirror_y(step_y)
-            translate([0,wood])
-            rotate([90,0])
-            difference() {
-                wood()
-                steps();
-                translate([0,0,wood-etching])
-                wood()
-                steps_etching();
-            }
-            
-            color("cyan")
-            place_steps()
-            translate([0,-step_overhang_y,-wood])
-            wood()
-            step_surface();
+module steps_back_inner() {
+	translate([wood,-spine_gap/2-wood])
+	square([steps_z_inner-wood,spine_gap+wood*2]);
+}
 
-            place_steps()
-            translate([step_x-wood,0,-wood])
-            rotate([0,90,0])
-            wood()
-            step_face();
-    }
+steps_front=step_z-step_x/2-wood/2;
 
-    //color("cyan")
-    translate([0,wood])
-    rotate([90,0])
-    place_door()
-	difference() {
-	    wood()
-	    door();
-		translate([0,0,wood-etching])
-		wood()
-		door_etching();
+module steps_front() {
+	translate([0,-spine_gap/2-wood])
+	square([steps_front,spine_gap+wood*2]);
+}
+
+function c(x)=sqrt(x*x+x*x);
+
+module step_splash() {
+	translate([0,-spine_gap/2-wood])
+	square([c(step_x/2-wood/2),spine_gap+wood*2]);
+}
+
+module step_lower_splash() {
+	translate([0,-spine_gap/2-wood])
+	square([c(step_x/2-wood/2),spine_gap+wood*2]);
+}
+
+module steps_assembled() {
+	color("blue")
+	translate([0,-spine_gap/2])
+	dirror_y(spine_gap)
+	rotate([90,0])
+	wood()
+	steps();
+
+	color("cyan")
+	translate([0,0,-wood])
+	place_steps()
+	wood()
+	step_surface();
+
+	color("cyan")
+	wood()
+	step_base();
+
+	color("cyan")
+	translate([step_x*(steps-2),0])
+	wood()
+	step_base();
+
+	translate([wood,0])
+	rotate([0,-90,0])
+	wood()
+	steps_back();
+
+	translate([spine,0])
+	rotate([0,-90,0])
+	wood()
+	steps_back_inner();
+
+	translate([step_x*(steps-2)+spine,0])
+	rotate([0,-90,0])
+	wood()
+	steps_front();
+
+	//color("magenta")
+	place_steps()
+	translate([spine,0,steps_front-step_z])
+	//translate([step_x*(steps-2)+spine,0,steps_front])
+	rotate([0,-45,0])
+	wood()
+	step_splash();
+
+	place_steps(2)
+	translate([spine,0,steps_front-step_z])
+	//translate([step_x*(steps-2)+spine,0,steps_front])
+	rotate([0,90-step_angle,0])
+	translate([0,0,-wood])
+	wood()
+	step_lower_splash();
+}
+
+//!steps_assembled();
+
+module step_base() {
+	translate([0,-step_y/2-step_overhang_y,0])
+	square([spine,step_y+step_overhang_y*2]);
+}
+
+module step_side() {
+	hull() {
+		translate([-step_x/2,0])
+		square([step_x,wood]);
+
+		translate([-spine/2,0])
+		square([spine,(step_x-spine)/2]);
 	}
+	
 }
 
 step_pins=1;
@@ -323,7 +419,71 @@ module steps_negative(i=(steps-1)) {
     }
 }
 
+
 module steps() {
+	module negative() {
+		for(i=[1:1:steps-1])
+		translate([step_x*(steps-1-i),step_z*i+pad])
+		rotate([0,0,-90])
+		negative_pins(step_x+step_overhang_x,wood+pad,step_pins,pintail_gap,0,pintail_ear);
+
+		translate([-pad,wood])	
+		negative_tails(steps_z-wood*2,wood+pad,z_pins,pintail_gap,pintail_holes,pintail_ear);
+	}
+	difference() {
+		translate([step_x*(steps-2),0])
+		step_support();
+
+		translate([0,step_z*(steps-1)])
+		rotate([0,0,-atan(step_z/step_x)])
+		translate([0,-spine*2])
+		square([(step_x)*(steps-1),spine]);
+
+		negative();
+	}
+	
+	difference() {
+		square([spine,step_z*(steps-1)]);
+		negative();
+	}
+
+	difference() {
+		intersection() {
+			translate([0,step_z*(steps-1)])
+			rotate([0,0,-atan(step_z/step_x)])
+			translate([0,-spine])
+			square([(step_x+step_z)*(steps-1),spine]);
+
+			square([step_x*(steps-1),step_z*(steps-1)]);
+		}
+		translate([step_x*(steps-2)+spine,0])
+		square([step_x-spine,step_z]);
+		negative();
+	}
+}
+
+
+module step_support(i=(steps-1)) {
+    if (i>0) {
+	//square([step_x,step_z]); 
+	square([spine,step_z]);
+
+	difference() {
+		hull() {
+			translate([0,step_z-wood])
+			square([step_x,wood]);
+			translate([0,step_z-step_x])
+			square([wood,step_x]);
+		}
+	}
+
+        translate([-step_x,step_z])
+        step_support(i-1);
+    }
+}
+
+
+module old_steps() {
 	difference() {
 		steps_positive();
 		steps_negative();
@@ -338,9 +498,9 @@ module steps_positive(i=(steps-1)) {
     }
 }
 
-module place_steps() {
+module place_steps(start=1) {
     translate([step_x*(steps-1),0])
-    for(i=[1:1:(steps-1)]) {
+    for(i=[start:1:(steps-1)]) {
         translate([-step_x*i,0,step_z*i])
         children();
     }
@@ -348,11 +508,11 @@ module place_steps() {
 
 module step_surface() {
 	difference() {
+		translate([0,-step_y/2-step_overhang_y])
 		square([step_x+step_overhang_x,step_y+step_overhang_y*2]);
 
-		translate([0,step_overhang_y])
-		dirror_y(step_y)
-		translate([0,wood])
+		dirror_y()
+		translate([0,spine_gap/2+wood,0])
 		rotate([0,0,-90])
 		dirror_x(wood)
 		negative_tails(step_x+step_overhang_x,wood+pad,step_pins,pintail_gap,0,pintail_ear);
