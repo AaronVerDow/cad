@@ -307,28 +307,60 @@ module steps_back() {
 	}
 }
 
+steps_back_inner_pins=2;
+
 module steps_back_inner() {
-	translate([wood,-spine_gap/2-wood])
-	square([steps_z_inner-wood,spine_gap+wood*2]);
+	difference() {
+		translate([wood,-spine_gap/2-wood])
+		square([steps_z_inner-wood,spine_gap+wood*2]);
+		dirror_y()
+		translate([0,spine_gap/2+wood+pad])
+		rotate([0,0,-90])
+		negative_pins(steps_z_inner,wood+pad,steps_back_inner_pins,pintail_gap,bit,pintail_ear);
+	}
 }
 
 steps_front=step_z-step_x/2-wood/2;
+steps_front_pins=1;
 
 module steps_front() {
-	translate([0,-spine_gap/2-wood])
-	square([steps_front,spine_gap+wood*2]);
+	difference() {
+		translate([0,-spine_gap/2-wood])
+		square([steps_front,spine_gap+wood*2]);
+		dirror_y()
+		translate([0,spine_gap/2+wood+pad])
+		rotate([0,0,-90])
+		negative_pins(steps_front,wood+pad,steps_front_pins,pintail_gap,pintail_holes,pintail_ear);
+	}
 }
 
 function c(x)=sqrt(x*x+x*x);
+step_splash_x=c(step_x/2-wood/2);
 
 module step_splash() {
-	translate([0,-spine_gap/2-wood])
-	square([c(step_x/2-wood/2),spine_gap+wood*2]);
+	difference() {
+		translate([0,-spine_gap/2-wood])
+		square([step_splash_x,spine_gap+wood*2]);
+
+		dirror_y()
+		translate([0,spine_gap/2+wood+pad,0])
+		rotate([0,0,-90])
+		negative_pins(step_splash_x,wood+pad,step_pins,pintail_gap,bit,pintail_ear);
+	}
 }
 
+step_lower_splash_x=c(step_x/2-wood/2);
+
 module step_lower_splash() {
-	translate([0,-spine_gap/2-wood])
-	square([c(step_x/2-wood/2),spine_gap+wood*2]);
+	difference() {
+		translate([0,-spine_gap/2-wood])
+		square([c(step_x/2-wood/2),spine_gap+wood*2]);
+
+		dirror_y()
+		translate([0,spine_gap/2+wood+pad,0])
+		rotate([0,0,-90])
+		negative_pins(step_lower_splash_x,wood+pad,step_pins,pintail_gap,bit,pintail_ear);
+	}
 }
 
 module steps_assembled() {
@@ -386,8 +418,6 @@ module steps_assembled() {
 	step_lower_splash();
 }
 
-//!steps_assembled();
-
 module step_base() {
 	translate([0,-step_y/2-step_overhang_y,0])
 	square([spine,step_y+step_overhang_y*2]);
@@ -420,6 +450,7 @@ module steps_negative(i=(steps-1)) {
 }
 
 
+
 module steps() {
 	module negative() {
 		for(i=[1:1:steps-1])
@@ -429,6 +460,26 @@ module steps() {
 
 		translate([-pad,wood])	
 		negative_tails(steps_z-wood*2,wood+pad,z_pins,pintail_gap,pintail_holes,pintail_ear);
+
+		translate([spine+pad,0])
+		mirror([1,0])
+		negative_tails(steps_z_inner,wood+pad,steps_back_inner_pins,pintail_gap,bit,pintail_ear);
+
+		translate([step_x*(steps-2)+step_x/2+wood/2+pad,0])
+		mirror([1,0])
+		negative_tails(steps_front,wood+pad,steps_front_pins,pintail_gap,pintail_holes,pintail_ear);
+
+		for(i=[1:1:steps-1])
+		translate([step_x*(steps-i),step_z*i+pad-wood])
+		rotate([0,0,90+45])
+		translate([-pad,0])
+		negative_tails(step_splash_x,wood+pad,step_pins,pintail_gap,bit,pintail_ear);
+
+		for(i=[2:1:steps-1])
+		translate([step_x*(steps-i)-step_x/2+wood/2,step_z*i-step_x/2-wood/2])
+		rotate([0,0,-90-45])
+		translate([-pad,0])
+		negative_tails(step_lower_splash_x,wood+pad,step_pins,pintail_gap,bit,pintail_ear);
 	}
 	difference() {
 		translate([step_x*(steps-2),0])
@@ -461,7 +512,6 @@ module steps() {
 		negative();
 	}
 }
-
 
 module step_support(i=(steps-1)) {
     if (i>0) {
