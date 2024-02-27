@@ -59,6 +59,7 @@ pintail_holes=bit;
 pintail_gap=in/8;
 pad=0.1;
 
+//RENDER svg
 module floor() {
 	difference() {
 		square([box_x,box_y]);
@@ -83,6 +84,7 @@ module roof() {
 	floor();
 }
 
+//RENDER svg
 module end() {
 	module edge() {
 		negative_tails(box_y,wood+pad,y_pins,pintail_gap,pintail_holes,pintail_ear);
@@ -107,6 +109,7 @@ module end() {
 	}
 }
 
+//RENDER svg
 module back() {
 
 	module edge() {
@@ -153,6 +156,7 @@ module door_space() {
 	square([box_x/2-pattern_wall*2,fence_h+fence-pattern_wall+door_gap]);
 }
 
+//RENDER svg
 module door() {
 	difference() {
 		offset(-door_gap)
@@ -165,6 +169,7 @@ module door() {
 	}
 }
 
+//RENDER svg
 module front() {
 	difference() {
 		back();
@@ -206,6 +211,7 @@ handle_gap_x=box_y*0.8;
 handle_gap_y=box_y*0.5;
 
 
+//RENDER svg
 module pan() {
 	module handle() {
 		translate([0,-handle_y/2+handle_x/2])
@@ -359,6 +365,7 @@ steps_z_inner=steps_z-step_x/2-wood/2-spine/sin(step_angle);
 
 steps_back_pins=3;
 
+//RENDER svg
 module steps_back() {
 	difference() {
 		translate([wood,-spine_gap/2-wood])
@@ -374,6 +381,7 @@ module steps_back() {
 
 steps_back_inner_pins=2;
 
+//RENDER svg
 module steps_back_inner() {
 	difference() {
 		translate([wood,-spine_gap/2-wood])
@@ -388,6 +396,7 @@ module steps_back_inner() {
 steps_front=step_z-step_x/2-wood/2;
 steps_front_pins=1;
 
+//RENDER svg
 module steps_front() {
 	difference() {
 		translate([wood,-spine_gap/2-wood])
@@ -402,6 +411,7 @@ module steps_front() {
 function c(x)=sqrt(x*x+x*x);
 step_splash_x=c(step_x/2-wood/2);
 
+//RENDER svg
 module step_splash() {
 	difference() {
 		translate([0,-spine_gap/2-wood])
@@ -416,6 +426,7 @@ module step_splash() {
 
 step_lower_splash_x=c(step_x/2-wood/2);
 
+//RENDER svg
 module step_lower_splash() {
 	difference() {
 		translate([0,-spine_gap/2-wood])
@@ -483,6 +494,7 @@ module steps_assembled() {
 	step_lower_splash();
 }
 
+//RENDER svg
 module step_base() {
 	difference() {
 		translate([0,-step_y/2-step_overhang_y,0])
@@ -495,6 +507,7 @@ module step_base() {
 	}
 }
 
+//RENDER svg
 module step_side() {
 	hull() {
 		translate([-step_x/2,0])
@@ -521,6 +534,7 @@ module steps_negative(i=(steps-1)) {
     }
 }
 
+// RENDER svg
 module steps() {
 	module negative() {
 		for(i=[1:1:steps-1])
@@ -637,6 +651,7 @@ module place_steps(start=1) {
     }
 }
 
+//RENDER svg
 module step_surface() {
 	difference() {
 		translate([0,-step_y/2-step_overhang_y])
@@ -650,12 +665,12 @@ module step_surface() {
 	}
 }
 
+//RENDER svg
 module step_face() {
 	square([step_z,step_y]);
 }
 cutsheet_gap=100;
 
-//RENDER svg
 module cutsheet() {
 	front();
 	translate([0,box_z+cutsheet_gap])
@@ -665,8 +680,11 @@ module cutsheet() {
 		end();
 		translate([0,box_y+cutsheet_gap])
 		end();
+		translate([box_z+cutsheet_gap,0]) {
+			steps();
+		}
 	}
 }
 
-cutsheet();
-//assembled();
+//cutsheet();
+assembled();
